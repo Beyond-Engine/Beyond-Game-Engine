@@ -4,7 +4,7 @@ add_executable(${TEST_TARGET_NAME}
     "angle_test.cpp"
     "main.cpp"
     "vector_test.cpp"
-    "sparse_map_test.cpp")
+    "sparse_set_test.cpp")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
