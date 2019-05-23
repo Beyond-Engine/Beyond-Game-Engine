@@ -25,13 +25,19 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
                                    -Woverloaded-virtual
                                    -Wconversion
                                    -Wsign-conversion
-                                   -Wno-gnu-anonymous-struct
-                                   -Wno-nested-anon-types
                                    -Wnull-dereference
                                    -Wdouble-promotion
                                    -Wformat=2)
   if(BEYOND_WARNING_AS_ERROR)
     target_compile_options(compiler_warnings INTERFACE -Werror)
+  endif()
+
+  if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    target_compile_options(compiler_warnings
+                           INTERFACE
+                           -Wno-gnu-anonymous-struct
+                           -Wno-nested-anon-types
+                           )
   endif()
 
   if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")

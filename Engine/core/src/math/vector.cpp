@@ -7,6 +7,4 @@
 
 namespace beyond {
 
-}
-
-// namespace beyond
+} // namespace beyond

@@ -105,6 +105,7 @@ template <typename Trait, size_t index> struct VectorComponent {
     return (data_[index]);
   }
 
+  // NOLINTNEXTLINE(google-runtime-operator)
   [[nodiscard]] constexpr auto operator&() const noexcept -> const ValueType*
   {
     return data_ + index;
@@ -197,7 +198,7 @@ public:
         detail::VectorConverter<Trait, index_x, index_y>::convert(elem.data()));
   }
 
-  template <typename T, int ind_x, int ind_y>
+  template <typename T, std::size_t ind_x, std::size_t ind_y>
   constexpr auto operator=(const Subvector2<T, ind_x, ind_y>& value) noexcept
       -> Subvector2&
   {
