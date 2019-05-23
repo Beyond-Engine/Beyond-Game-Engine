@@ -31,6 +31,7 @@ template <typename Value> class Degree;
 
 /**
  * @brief Radian angle wrapper
+ * @see Degree
  */
 template <typename Value> class Radian {
 public:
@@ -94,6 +95,7 @@ private:
 
 /**
  * @brief Degree angle wrapper
+ * @see Radian
  */
 template <typename Value> class Degree {
 public:
