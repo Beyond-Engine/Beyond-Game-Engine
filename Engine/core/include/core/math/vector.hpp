@@ -8,7 +8,7 @@
 
 #include <array>
 #include <cmath>
-#include <iosfwd>
+#include <iostream>
 #include <type_traits>
 #include <utility>
 
