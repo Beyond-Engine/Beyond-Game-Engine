@@ -4,7 +4,7 @@ add_executable(${TEST_TARGET_NAME}
     "angle_test.cpp"
     "main.cpp"
     "vector_test.cpp"
-    "slot_map_test.cpp")
+    "sparse_map_test.cpp")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
@@ -14,7 +14,7 @@ if(${BEYOND_BUILD_TESTS_COVERAGE})
     set(CMAKE_STATIC_LINKER_FLAGS "--whole-archive")
     set(CMAKE_SHARED_LINKER_FLAGS "--whole-archive")
 
-    include("../cmake/CodeCoverage.cmake")
+    include("CodeCoverage")
     APPEND_COVERAGE_COMPILER_FLAGS("-g -O0 -fprofile-arcs -ftest-coverage")
     set(COVERAGE_LCOV_EXCLUDES '/usr/*' '*/.conan/*' '*/test/*' 'test/*')
     SETUP_TARGET_FOR_COVERAGE_LCOV(
@@ -24,6 +24,5 @@ if(${BEYOND_BUILD_TESTS_COVERAGE})
     )
 endif()
 
-enable_testing()
 
-add_test(UnitTest "${CMAKE_BINARY_DIR}/bin/${TEST_TARGET_NAME}")
+add_test(${PROJECT_NAME}CoreTest "${CMAKE_BINARY_DIR}/bin/${TEST_TARGET_NAME}")

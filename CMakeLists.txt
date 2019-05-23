@@ -45,6 +45,9 @@ endif()
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup(TARGETS)
 
-add_subdirectory(Engine)
+if(${BEYOND_BUILD_TESTS})
+enable_testing()
+endif()
 
+add_subdirectory(Engine)
 

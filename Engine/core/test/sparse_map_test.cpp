@@ -2,9 +2,9 @@
 
 namespace beyond {
 
-template <typename T, typename Key = std::size_t> class SlotMap {
+template <typename T, typename Key = std::size_t> class SparseMap {
 public:
-  SlotMap() = default;
+  SparseMap() = default;
 
   /// @brief Gets how many components are stored in the slot map
   [[nodiscard]] auto size() const noexcept -> std::size_t
@@ -60,7 +60,7 @@ using namespace beyond;
 
 TEST_CASE("SlotMap Test", "[beyond.core.math.angle]")
 {
-  SlotMap<int> sm;
+  SparseMap<int> sm;
   REQUIRE(sm.size() == 0);
   REQUIRE(sm.capacity() == 0);
 
