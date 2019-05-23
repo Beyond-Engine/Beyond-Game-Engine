@@ -291,7 +291,7 @@ template <typename T>
   return Radian<float>(static_cast<float>(v));
 }
 
-/// @brief Prints the Degree
+/// @brief Prints the Radian
 /// @related Degree
 template <typename T>
 auto operator<<(std::ostream& os, Radian<T> r) -> std::ostream&
