@@ -1,6 +1,19 @@
 #ifndef BEYOND_CORE_ASSERT_HPP
 #define BEYOND_CORE_ASSERT_HPP
 
+/**
+ * @file assert.hpp
+ * @brief Assertions for the Beyond Game Engine Core
+ * @ingroup util
+ */
+
+/**
+ * @addtogroup core
+ * @{
+ * @addtogroup util
+ * @{
+ */
+
 #ifdef BEYOND_GAME_ENGINE_CORE_DEBUG
 #include <iostream>
 #include <string_view>
@@ -54,5 +67,8 @@
 #define BEYOND_UNREACHABLE()
 #endif
 #endif
+
+/** @}
+ *  @} */
 
 #endif // BEYOND_CORE_ASSERT_HPP

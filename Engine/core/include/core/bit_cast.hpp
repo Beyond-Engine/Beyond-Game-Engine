@@ -1,15 +1,30 @@
 #ifndef BEYOND_CORE_BIT_CAST_HPP
 #define BEYOND_CORE_BIT_CAST_HPP
 
+/**
+ * @file bit_cast.hpp
+ * @brief C++20 like `bit_cast`
+ * @ingroup util
+ */
+
 #include <cstring>
 #include <type_traits>
+
+namespace beyond {
 
 /**
  * @addtogroup core
  * @{
  */
 
-namespace beyond {
+/**
+ * @defgroup util Utilities
+ * @brief Utility functionalities
+ * @ingroup core
+ *
+ * @{
+ */
+
 /**
  * @brief Implements safer equivalent of `*reinterpret_cast<Dest*>(&source)`
  */
@@ -28,8 +43,8 @@ template <typename Dest, typename Source>
   return dest;
 }
 
-} // namespace beyond
+/** @}@} */
 
-/** @} */
+} // namespace beyond
 
 #endif // BEYOND_CORE_BIT_CAST_HPP

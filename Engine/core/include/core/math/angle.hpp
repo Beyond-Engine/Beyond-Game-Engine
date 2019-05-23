@@ -9,6 +9,7 @@
 /**
  * @file angle.hpp
  * @brief float point Degrees and Radians classes, along with literal operators.
+ * @ingroup math
  */
 
 namespace beyond {

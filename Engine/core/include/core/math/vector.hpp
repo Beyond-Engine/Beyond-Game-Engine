@@ -4,6 +4,7 @@
 /**
  * @file vector.hpp
  * @brief Provides Vector and Point classes
+ * @ingroup math
  */
 
 #include <array>
@@ -20,13 +21,7 @@ namespace beyond {
 /**
  * @addtogroup core
  * @{
- */
-
-/**
- * @defgroup math Math
- * @brief Mathematics and geometry codes of the beyond game engine
- * @ingroup core
- *
+ * @addtogroup math
  * @{
  */
 

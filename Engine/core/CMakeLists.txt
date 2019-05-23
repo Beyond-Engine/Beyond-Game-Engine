@@ -1,6 +1,7 @@
 add_library(core
     include/core/assert.hpp
     include/core/bit_cast.hpp
+    include/core/type_traits.hpp
     include/core/math/angle.hpp
     include/core/math/constants.hpp
     include/core/math/vector.hpp

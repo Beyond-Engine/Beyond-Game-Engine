@@ -2,11 +2,20 @@
 #include <vector>
 
 #include "core/assert.hpp"
+#include "core/type_traits.hpp"
 
 namespace beyond {
 
+template <typename Entity> struct EntityTrait;
+
+template <> struct EntityTrait<std::uint32_t> {
+};
+
 template <typename Entity> class SparseSet {
 public:
+  static_assert(beyond::is_complete<EntityTrait<Entity>>(),
+                "The Entity class must has its corresponding EntityTrait");
+
   SparseSet() = default;
 
   /// @brief Returns true if the SparseSet does not contains any element
