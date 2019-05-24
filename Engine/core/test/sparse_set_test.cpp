@@ -192,9 +192,16 @@ public:
       return *entity_;
     }
 
-    constexpr auto operator++() noexcept
+    constexpr auto operator++() noexcept -> Iterator&
     {
       ++entity_;
+      return *this;
+    }
+
+    constexpr auto operator--() noexcept -> Iterator&
+    {
+      --entity_;
+      return *this;
     }
 
   private:
@@ -306,13 +313,13 @@ TEST_CASE("SparseSet", "[beyond.core.ecs.sparse_set]")
           {
             REQUIRE(*ss.begin() == entity);
           }
-          AND_WHEN("Do prefix increment of begin")
+          AND_THEN("++begin = end")
           {
-            ++begin;
-            AND_THEN("It should equal to end")
-            {
-              REQUIRE(begin == end);
-            }
+              REQUIRE(++begin == end);
+          }
+          AND_THEN("--end == begin")
+          {
+              REQUIRE(--end == begin);
           }
         }
       }
