@@ -27,6 +27,9 @@ template <> struct EntityTrait<std::uint32_t> {
   /// @brief Underlying entity id type without its version
   using Id = std::uint32_t;
 
+  /// @brief Underlying entity difference type
+  using DiffType = std::ptrdiff_t;
+
   /// @brief Extent of the entity number within an identifier.
   static constexpr std::size_t entity_shift = 20;
   static constexpr std::uint32_t entity_mask = 0xFFFFF;
@@ -41,6 +44,7 @@ public:
   // It is impossible to have a sparse set bigger than the total number of
   // entities
   using SizeType = typename Trait::Id;
+  using DiffType = typename Trait::DiffType;
 
 private:
   static constexpr std::size_t page_shift = 12;
@@ -171,14 +175,12 @@ public:
   public:
     friend class SparseSet<Entity>;
     constexpr Iterator() noexcept = default;
-    explicit constexpr Iterator(const Entity* entity) noexcept : entity_{entity}
-    {
-    }
+    explicit constexpr Iterator(const Entity* entity) noexcept : ptr_{entity} {}
 
     [[nodiscard]] constexpr auto operator==(const Iterator& other) const
         noexcept -> bool
     {
-      return entity_ == other.entity_;
+      return ptr_ == other.ptr_;
     }
 
     [[nodiscard]] constexpr auto operator!=(const Iterator& other) const
@@ -189,23 +191,53 @@ public:
 
     [[nodiscard]] constexpr auto operator*() const noexcept -> Entity
     {
-      return *entity_;
+      return *ptr_;
     }
 
     constexpr auto operator++() noexcept -> Iterator&
     {
-      ++entity_;
+      ++ptr_;
       return *this;
     }
 
     constexpr auto operator--() noexcept -> Iterator&
     {
-      --entity_;
+      --ptr_;
       return *this;
     }
 
+    constexpr auto operator+=(DiffType offset) noexcept -> Iterator&
+    {
+      ptr_ += offset;
+      return *this;
+    }
+
+    constexpr auto operator-=(DiffType offset) noexcept -> Iterator&
+    {
+      ptr_ -= offset;
+      return *this;
+    }
+
+    [[nodiscard]] constexpr auto operator+(DiffType offset) const noexcept
+        -> Iterator
+    {
+      return Iterator{ptr_ + offset};
+    }
+
+    [[nodiscard]] constexpr auto operator-(DiffType offset) const noexcept
+        -> Iterator
+    {
+      return Iterator{ptr_ - offset};
+    }
+
+    [[nodiscard]] constexpr auto operator-(const Iterator& other) const noexcept
+        -> DiffType
+    {
+      return static_cast<DiffType>(ptr_ - other.ptr_);
+    }
+
   private:
-    const Entity* entity_;
+    const Entity* ptr_;
   };
 
   /// @brief Gets the iterator to the beginning of the sparse set
@@ -315,11 +347,40 @@ TEST_CASE("SparseSet", "[beyond.core.ecs.sparse_set]")
           }
           AND_THEN("++begin = end")
           {
-              REQUIRE(++begin == end);
+            REQUIRE(++begin == end);
           }
           AND_THEN("--end == begin")
           {
-              REQUIRE(--end == begin);
+            REQUIRE(--end == begin);
+          }
+          AND_WHEN("begin += 1")
+          {
+            begin += 1;
+            AND_THEN("begin == end")
+            {
+              REQUIRE(begin == end);
+            }
+          }
+          AND_WHEN("end -= 1")
+          {
+            end -= 1;
+            AND_THEN("begin == end")
+            {
+              REQUIRE(begin == end);
+            }
+          }
+          AND_THEN("begin + 1 == end")
+          {
+            REQUIRE(begin + 1 == end);
+            // REQUIRE(1 + begin == end);
+          }
+          AND_THEN("end - 1 == begin")
+          {
+            REQUIRE(end - 1 == begin);
+          }
+          AND_THEN("end - begin == 1")
+          {
+            REQUIRE(end - begin == 1);
           }
         }
       }
