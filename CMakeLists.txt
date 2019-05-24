@@ -19,10 +19,6 @@ option(BEYOND_ENABLE_CLANG_TIDY "Enable testing with clang-tidy" OFF)
 option(BEYOND_ENABLE_CPPCHECK "Enable testing with cppcheck" OFF)
 option(BEYOND_WARNING_AS_ERROR "Treats compiler warnings as errors" ON)
 
-option(BEYOND_GAME_ENGINE_CORE_DEBUG
-    "enable debugging functionalities for the core part of Beyond game engine"
-    $<$<CONFIG:Debug>:ON>$<$<NOT:$<CONFIG:Debug>>:OFF>)
-
 option(BEYOND_BUILD_DOCUMENTATION
     "Build the documentation of the Beyond game engine" OFF)
 

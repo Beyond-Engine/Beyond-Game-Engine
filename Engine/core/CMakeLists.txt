@@ -7,8 +7,17 @@ add_library(core
     include/core/math/vector.hpp
     src/math/vector.cpp)
 
-if(BEYOND_GAME_ENGINE_CORE_DEBUG)
-    target_compile_definitions(core PUBLIC BEYOND_GAME_ENGINE_CORE_DEBUG)
+set(BEYOND_CORE_ASSERT_POLICY AUTO CACHE STRING "The policy of enabling
+    assertion or not in beyond game engine core.
+    AUTO means follow the debug or release build setting.")
+set_property(CACHE BEYOND_CORE_ASSERT_POLICY PROPERTY STRINGS AUTO ON OFF)
+
+if(BEYOND_CORE_ASSERT_POLICY STREQUAL "AUTO")
+    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+        target_compile_definitions(core PUBLIC BEYOND_GAME_ENGINE_CORE_ENABLE_ASSERT)
+    endif()
+elseif(BEYOND_CORE_ASSERT_POLICY STREQUAL "ON")
+    target_compile_definitions(core PUBLIC BEYOND_GAME_ENGINE_CORE_ENABLE_ASSERT)
 endif()
 
 target_include_directories(core

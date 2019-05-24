@@ -14,12 +14,12 @@
  * @{
  */
 
-#ifdef BEYOND_GAME_ENGINE_CORE_DEBUG
+#ifdef BEYOND_GAME_ENGINE_CORE_ENABLE_ASSERT
 #include <iostream>
 #include <string_view>
 #endif
 
-#ifdef BEYOND_GAME_ENGINE_CORE_DEBUG
+#ifdef BEYOND_GAME_ENGINE_CORE_ENABLE_ASSERT
 #define BEYOND_ASSERT(condition, message)                                      \
   do {                                                                         \
     if (!(condition)) {                                                        \
