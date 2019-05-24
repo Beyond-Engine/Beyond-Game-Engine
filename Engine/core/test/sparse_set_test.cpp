@@ -156,9 +156,53 @@ public:
   /**
    * @brief Returns a raw pointer to the underlying entities array
    */
-  [[nodiscard]] auto data() const noexcept -> const Entity*
+  [[nodiscard]] auto entities() const noexcept -> const Entity*
   {
     return direct_.data();
+  }
+
+  /** @brief Iterator of the sparse set
+   * @note This Iterator cannot modify the underlying values of the sparse set,
+   * and SparseSet only have this `const` version of iterators
+   *
+   * @tparam Entity A valid entity handle type
+   */
+  class Iterator {
+  public:
+    friend class SparseSet<Entity>;
+    constexpr Iterator() noexcept = default;
+    explicit constexpr Iterator(const Entity* entity) noexcept : entity_{entity}
+    {
+    }
+
+    [[nodiscard]] constexpr auto operator==(const Iterator& other) const
+        noexcept -> bool
+    {
+      return entity_ == other.entity_;
+    }
+
+    [[nodiscard]] constexpr auto operator!=(const Iterator& other) const
+        noexcept -> bool
+    {
+      return !(*this == other);
+    }
+
+  private:
+    const Entity* entity_;
+  };
+
+  /// @brief Gets the iterator to the beginning of the sparse set
+  /// @return An iterator to the first entity
+  [[nodiscard]] auto begin() const noexcept -> Iterator
+  {
+    return Iterator{direct_.data()};
+  }
+
+  /// @brief Gets an iterator to the end of sparse set
+  /// @return An iterator to the entity following the last entity
+  [[nodiscard]] auto end() const noexcept -> Iterator
+  {
+    return Iterator{direct_.data() + direct_.size() + 1};
   }
 
 private:
@@ -182,7 +226,7 @@ private:
 
 using namespace beyond;
 
-TEST_CASE("SparseSet Functionalities Test", "[beyond.core.ecs.SparseSet]")
+TEST_CASE("SparseSet", "[beyond.core.ecs.sparse_set]")
 {
   using Entity = std::uint32_t;
 
@@ -218,7 +262,7 @@ TEST_CASE("SparseSet Functionalities Test", "[beyond.core.ecs.SparseSet]")
           REQUIRE(ss.contains(entity));
           const auto index = ss.get(entity);
           REQUIRE(index == 0);
-          REQUIRE(ss.data()[index] == entity);
+          REQUIRE(ss.entities()[index] == entity);
         }
 
         AND_WHEN("Delete that entity in the sparse set")
@@ -229,6 +273,25 @@ TEST_CASE("SparseSet Functionalities Test", "[beyond.core.ecs.SparseSet]")
             REQUIRE(ss.size() == 0);
             REQUIRE(!ss.contains(entity));
           }
+
+          AND_WHEN("Reconstructs that entity in the sparse set")
+          {
+            ss.insert(entity);
+
+            THEN("You can find this entity in the sparse set")
+            {
+              REQUIRE(ss.contains(entity));
+              REQUIRE(ss.entities()[ss.get(entity)] == entity);
+            }
+          }
+        }
+
+        AND_GIVEN("begin() and end() iterators of the "
+                  "sparse set")
+        {
+          auto begin = ss.begin();
+          auto end = ss.end();
+          REQUIRE(begin != end);
         }
       }
     }

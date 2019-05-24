@@ -6,7 +6,6 @@ add_library(core
     include/core/math/angle.hpp
     include/core/math/constants.hpp
     include/core/math/vector.hpp
-    src/math/vector.cpp
     src/panic.cpp)
 
 set(BEYOND_CORE_ASSERT_POLICY AUTO CACHE STRING "The policy of enabling
