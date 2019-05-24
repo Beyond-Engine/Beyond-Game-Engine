@@ -187,6 +187,16 @@ public:
       return !(*this == other);
     }
 
+    [[nodiscard]] constexpr auto operator*() const noexcept -> Entity
+    {
+      return *entity_;
+    }
+
+    constexpr auto operator++() noexcept
+    {
+      ++entity_;
+    }
+
   private:
     const Entity* entity_;
   };
@@ -202,7 +212,7 @@ public:
   /// @return An iterator to the entity following the last entity
   [[nodiscard]] auto end() const noexcept -> Iterator
   {
-    return Iterator{direct_.data() + direct_.size() + 1};
+    return Iterator{direct_.data() + direct_.size()};
   }
 
 private:
@@ -292,6 +302,18 @@ TEST_CASE("SparseSet", "[beyond.core.ecs.sparse_set]")
           auto begin = ss.begin();
           auto end = ss.end();
           REQUIRE(begin != end);
+          AND_THEN("begin() points to the only entity in the sparse set")
+          {
+            REQUIRE(*ss.begin() == entity);
+          }
+          AND_WHEN("Do prefix increment of begin")
+          {
+            ++begin;
+            AND_THEN("It should equal to end")
+            {
+              REQUIRE(begin == end);
+            }
+          }
         }
       }
     }
