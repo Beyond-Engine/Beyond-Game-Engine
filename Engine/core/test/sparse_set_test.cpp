@@ -99,9 +99,37 @@ public:
   }
 
   /**
+   * @brief Removes an entity from the sparse set
+   *
+   * @warning Attempting to erase an entity that is not in the sparse set leads
+   * to undefined behavior.
+   *
+   * @param entity A valid entity identifier.
+   */
+  auto erase(Entity entity) -> void
+  {
+    BEYOND_ASSERT(
+        contains(entity),
+        "Attempting to remove an entity that are not in the sparse set");
+    // Swaps the to be delete alement with the last element
+    const auto [from_page, from_offset] = index_of(entity);
+    const auto [to_page, to_offset] = index_of(direct_.back());
+
+    const auto entity_from_index = *(*reverse_[from_page])[from_offset];
+    BEYOND_ASSERT(direct_[entity_from_index] == entity,
+                  "Correctly find the entity to delete");
+
+    (*reverse_[from_page])[from_offset] = std::nullopt;
+    *(*reverse_[to_page])[to_offset] = entity_from_index;
+
+    direct_[entity_from_index] = direct_.back();
+    direct_.pop_back();
+  }
+
+  /**
    * @brief Gets the position of an entity in a sparse set.
    *
-   * @warning Attempting to get the index of an entity that are not in the
+   * @warning Attempting to get the index of an entity that is not in the
    * sparse set leads to undefined behavior.
    *
    * @param entity A valid entity identifier.
@@ -159,7 +187,7 @@ private:
 
 using namespace beyond;
 
-TEST_CASE("SparseSet Test", "[beyond.core.ecs.SparseSet]")
+TEST_CASE("SparseSet Functionalities Test", "[beyond.core.ecs.SparseSet]")
 {
   using Entity = std::uint32_t;
 
@@ -177,18 +205,35 @@ TEST_CASE("SparseSet Test", "[beyond.core.ecs.SparseSet]")
       REQUIRE(ss.capacity() >= 16);
     }
 
-    AND_GIVEN("An entity 3")
+    AND_GIVEN("An entity")
     {
-      const Entity entity = 3;
+      const Entity entity = 42;
 
       WHEN("Insert that entity to the sparse set")
       {
         ss.insert(entity);
 
-        THEN("You can find this entity at the sparse set")
+        THEN("You cannot find 0 in the sparse set")
+        {
+          REQUIRE(!ss.contains(0));
+        }
+
+        THEN("You can find this entity in the sparse set")
         {
           REQUIRE(ss.contains(entity));
-          REQUIRE(ss.data()[ss.get(entity)] == entity);
+          const auto index = ss.get(entity);
+          REQUIRE(index == 0);
+          REQUIRE(ss.data()[index] == entity);
+        }
+
+        AND_WHEN("Delete that entity in the sparse set")
+        {
+          ss.erase(entity);
+          THEN("The sparse set will no longer contain that entity")
+          {
+            REQUIRE(ss.size() == 0);
+            REQUIRE(!ss.contains(entity));
+          }
         }
       }
     }
