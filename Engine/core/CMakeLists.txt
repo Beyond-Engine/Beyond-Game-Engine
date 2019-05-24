@@ -3,6 +3,7 @@ add_library(core
     include/core/bit_cast.hpp
     include/core/panic.hpp
     include/core/type_traits.hpp
+    include/core/ecs/sparse_set.hpp
     include/core/math/angle.hpp
     include/core/math/constants.hpp
     include/core/math/vector.hpp
