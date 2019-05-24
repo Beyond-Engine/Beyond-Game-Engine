@@ -15,24 +15,28 @@
  */
 
 #ifdef BEYOND_GAME_ENGINE_CORE_ENABLE_ASSERT
-#include <iostream>
+#include "core/panic.hpp"
+#include <fmt/format.h>
 #include <string_view>
 #endif
 
 #ifdef BEYOND_GAME_ENGINE_CORE_ENABLE_ASSERT
-#define BEYOND_ASSERT(condition, message)                                      \
+#define BEYOND_ASSERT(condition)                                               \
   do {                                                                         \
     if (!(condition)) {                                                        \
       []() {                                                                   \
-        std::cerr << "[" << __FILE__ << ":" << __LINE__ << "] "                \
-                  << "Assert failed in "                                       \
-                  << std::string_view{static_cast<const char*>(__func__)}      \
-                  << ": "                                                      \
-                  << std::string_view{static_cast<const char*>(message)}       \
-                  << '\n'                                                      \
-                  << "This is probabaly an internal bug of the Beyond Game "   \
-                     "Engine Implementation, please fill a bug report.\n";     \
-        std::abort();                                                          \
+        ::beyond::panic(fmt::format("[{}:{}] Assert failed in {}\n", __FILE__, \
+                                    __LINE__, __func__));                      \
+      }();                                                                     \
+    }                                                                          \
+  } while (0)
+
+#define BEYOND_ASSERT_MSG(condition, message)                                  \
+  do {                                                                         \
+    if (!(condition)) {                                                        \
+      []() {                                                                   \
+        ::beyond::panic(fmt::format("[{}:{}] Assert failed in {}: {}\n",       \
+                                    __FILE__, __LINE__, __func__, message));   \
       }();                                                                     \
     }                                                                          \
   } while (0)
@@ -46,15 +50,15 @@
 // code is never reached.
 #define BEYOND_UNREACHABLE()                                                   \
   do {                                                                         \
-    std::cerr << "[" << __FILE__ << ":" << __LINE__ << "] "                    \
-              << "This code should not be reached in "                         \
-              << std::string_view{static_cast<const char*>(__func__)}          \
-              << "\nThis is probabaly an internal bug of the Beyond Game "     \
-                 "Engine Implementation, please fill a bug report.\n";         \
-    std::abort();                                                              \
+    panic(fmt::format("[{}:{}] Reach unreachable code {}: {}\n", __FILE__,     \
+                      __LINE__, __func__, message));                           \
   } while (0)
 #else
-#define BEYOND_ASSERT(condition, message)                                      \
+#define BEYOND_ASSERT(condition)                                               \
+  do {                                                                         \
+  } while (0)
+
+#define BEYOND_ASSERT_MSG(condition, message)                                  \
   do {                                                                         \
   } while (0)
 

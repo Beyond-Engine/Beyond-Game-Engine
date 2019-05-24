@@ -1,11 +1,13 @@
 add_library(core
     include/core/assert.hpp
     include/core/bit_cast.hpp
+    include/core/panic.hpp
     include/core/type_traits.hpp
     include/core/math/angle.hpp
     include/core/math/constants.hpp
     include/core/math/vector.hpp
-    src/math/vector.cpp)
+    src/math/vector.cpp
+    src/panic.cpp)
 
 set(BEYOND_CORE_ASSERT_POLICY AUTO CACHE STRING "The policy of enabling
     assertion or not in beyond game engine core.

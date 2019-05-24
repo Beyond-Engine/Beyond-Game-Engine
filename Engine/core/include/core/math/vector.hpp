@@ -369,14 +369,14 @@ struct VectorBase : VectorStorage<Vector<T, sizeof...(Ns)>, sizeof...(Ns)> {
    */
   auto operator[](std::size_t i) const noexcept -> ValueType
   {
-    BEYOND_ASSERT(i < size(), "Invalid index");
+    BEYOND_ASSERT_MSG(i < size(), "Invalid index");
     return Storage::elem[i];
   }
 
   /// @overload
   auto operator[](std::size_t i) noexcept -> ValueType&
   {
-    BEYOND_ASSERT(i < size(), "Invalid index");
+    BEYOND_ASSERT_MSG(i < size(), "Invalid index");
     return Storage::elem[i];
   }
 
@@ -386,14 +386,14 @@ struct VectorBase : VectorStorage<Vector<T, sizeof...(Ns)>, sizeof...(Ns)> {
    */
   auto operator()(std::size_t i) const noexcept -> ValueType
   {
-    BEYOND_ASSERT(i < size(), "Invalid index");
+    BEYOND_ASSERT_MSG(i < size(), "Invalid index");
     return Storage::elem[i];
   }
 
   /// @overload
   auto operator()(std::size_t i) noexcept -> ValueType&
   {
-    BEYOND_ASSERT(i < size(), "Invalid index");
+    BEYOND_ASSERT_MSG(i < size(), "Invalid index");
     return Storage::elem[i];
   }
 
@@ -439,7 +439,7 @@ struct VectorBase : VectorStorage<Vector<T, sizeof...(Ns)>, sizeof...(Ns)> {
   constexpr auto operator/=(U rhs) noexcept
       -> std::enable_if_t<std::is_floating_point_v<U>, VectorBase&>
   {
-    BEYOND_ASSERT(rhs != 0, "Devide by zero");
+    BEYOND_ASSERT_MSG(rhs != 0, "Devide by zero");
     const auto inv = static_cast<ValueType>(1) / rhs;
     ((Storage::elem[Ns] *= inv), ...);
     return *this;

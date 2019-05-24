@@ -88,13 +88,12 @@ public:
    */
   auto insert(Entity entity) -> void
   {
-    BEYOND_ASSERT(!contains(entity), "Attempting to assign an entity that "
-                                     "already belongs to the sparse set");
+    BEYOND_ASSERT(!contains(entity));
     const auto [page, offset] = index_of(entity);
     if (reverse_[page] == nullptr) {
       reverse_[page] = std::make_unique<Page>();
     }
-    (*reverse_[page])[offset] = direct_.size();
+    (*reverse_[page])[offset] = static_cast<SizeType>(direct_.size());
     direct_.push_back(entity);
   }
 
@@ -108,16 +107,13 @@ public:
    */
   auto erase(Entity entity) -> void
   {
-    BEYOND_ASSERT(
-        contains(entity),
-        "Attempting to remove an entity that are not in the sparse set");
+    BEYOND_ASSERT(contains(entity));
     // Swaps the to be delete alement with the last element
     const auto [from_page, from_offset] = index_of(entity);
     const auto [to_page, to_offset] = index_of(direct_.back());
 
     const auto entity_from_index = *(*reverse_[from_page])[from_offset];
-    BEYOND_ASSERT(direct_[entity_from_index] == entity,
-                  "Correctly find the entity to delete");
+    BEYOND_ASSERT(direct_[entity_from_index] == entity);
 
     (*reverse_[from_page])[from_offset] = std::nullopt;
     *(*reverse_[to_page])[to_offset] = entity_from_index;
@@ -138,8 +134,7 @@ public:
    */
   [[nodiscard]] auto get(Entity entity) const noexcept -> SizeType
   {
-    BEYOND_ASSERT(contains(entity), "Attempting to get the index of an entity "
-                                    "that are not in the sparse set");
+    BEYOND_ASSERT(contains(entity));
     const auto [page, offset] = index_of(entity);
     return *(*reverse_[page])[offset];
   }

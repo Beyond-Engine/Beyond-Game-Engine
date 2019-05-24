@@ -3,7 +3,7 @@
 
 /**
  * @file type_traits.hpp
- * @brief A complementary set of type traits to the standard <type_traits>
+ * @brief A complementary set of type traits to the standard \<type_traits\>
  * @ingroup meta
  */
 
