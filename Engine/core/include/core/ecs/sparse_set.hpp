@@ -68,6 +68,8 @@ public:
   using SizeType = typename Trait::Id;
   using DiffType = typename Trait::DiffType;
 
+  using Iterator = const Entity*;
+
 private:
   static constexpr std::size_t page_shift = 12;
   static_assert(Trait::entity_shift > page_shift);
@@ -186,105 +188,6 @@ public:
   {
     return direct_.data();
   }
-
-  /** @brief Iterator of the sparse set
-   * @note This Iterator cannot modify the underlying values of the sparse set,
-   * and SparseSet only have this `const` version of iterators
-   *
-   * @tparam Entity A valid entity handle type
-   */
-  class Iterator {
-  public:
-    friend class SparseSet<Entity>;
-    constexpr Iterator() noexcept = default;
-    explicit constexpr Iterator(const Entity* entity) noexcept : ptr_{entity} {}
-
-    [[nodiscard]] constexpr auto operator==(const Iterator& other) const
-        noexcept -> bool
-    {
-      return ptr_ == other.ptr_;
-    }
-
-    [[nodiscard]] constexpr auto operator!=(const Iterator& other) const
-        noexcept -> bool
-    {
-      return !(*this == other);
-    }
-
-    [[nodiscard]] constexpr auto operator<(const Iterator& other) const noexcept
-        -> bool
-    {
-      return ptr_ < other.ptr_;
-    }
-
-    [[nodiscard]] constexpr auto operator<=(const Iterator& other) const
-        noexcept -> bool
-    {
-      return ptr_ <= other.ptr_;
-    }
-
-    [[nodiscard]] constexpr auto operator>(const Iterator& other) const noexcept
-        -> bool
-    {
-      return ptr_ > other.ptr_;
-    }
-
-    [[nodiscard]] constexpr auto operator>=(const Iterator& other) const
-        noexcept -> bool
-    {
-      return ptr_ >= other.ptr_;
-    }
-
-    [[nodiscard]] constexpr auto operator*() const noexcept -> Entity
-    {
-      return *ptr_;
-    }
-
-    constexpr auto operator++() noexcept -> Iterator&
-    {
-      ++ptr_;
-      return *this;
-    }
-
-    constexpr auto operator--() noexcept -> Iterator&
-    {
-      --ptr_;
-      return *this;
-    }
-
-    constexpr auto operator+=(DiffType offset) noexcept -> Iterator&
-    {
-      ptr_ += offset;
-      return *this;
-    }
-
-    constexpr auto operator-=(DiffType offset) noexcept -> Iterator&
-    {
-      ptr_ -= offset;
-      return *this;
-    }
-
-    [[nodiscard]] constexpr auto operator+(DiffType offset) const noexcept
-        -> Iterator
-    {
-      return Iterator{ptr_ + offset};
-    }
-
-    [[nodiscard]] constexpr auto operator-(DiffType offset) const noexcept
-        -> Iterator
-    {
-      return Iterator{ptr_ - offset};
-    }
-
-    [[nodiscard]] constexpr auto operator-(const Iterator& other) const noexcept
-        -> DiffType
-    {
-      return static_cast<DiffType>(ptr_ - other.ptr_);
-    }
-
-  private:
-    const Entity* ptr_;
-  };
 
   /// @brief Gets the iterator to the beginning of the sparse set
   /// @return An iterator to the first entity
