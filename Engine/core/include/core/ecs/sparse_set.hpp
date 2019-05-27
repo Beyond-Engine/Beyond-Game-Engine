@@ -1,3 +1,6 @@
+#ifndef BEYOND_CORE_SPARSE_SET_HPP
+#define BEYOND_CORE_SPARSE_SET_HPP
+
 #include <array>
 #include <memory>
 #include <optional>
@@ -9,8 +12,10 @@
 
 /**
  * @file sparse_set.hpp
- * @brief Sparse sets are the internal data structure of the
- * entity-component-system to store entities
+ * @brief Provides the SparseSet class
+ *
+ * Sparse sets are the internal data structure of the entity-component-system to
+ * store entities
  * @ingroup ecs
  */
 
@@ -79,7 +84,7 @@ private:
   using Page = std::array<std::optional<SizeType>, page_size>;
 
 public:
-  SparseSet() = default;
+  SparseSet() noexcept = default;
 
   /// @brief Returns true if the SparseSet does not contains any elements
   [[nodiscard]] auto empty() const noexcept -> bool
@@ -222,3 +227,5 @@ private:
  *  @} */
 
 } // namespace beyond
+
+#endif // BEYOND_CORE_SPARSE_SET_HPP
