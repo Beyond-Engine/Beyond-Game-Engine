@@ -3,6 +3,7 @@ set(TEST_TARGET_NAME ${PROJECT_NAME}CoreTest)
 add_executable(${TEST_TARGET_NAME}
     "angle_test.cpp"
     "main.cpp"
+    "math_test.cpp"
     "vector_test.cpp"
     "sparse_set_test.cpp"
     "sparse_map_test.cpp")

@@ -17,13 +17,7 @@ namespace beyond {
 /**
  * @addtogroup core
  * @{
- */
-
-/**
- * @defgroup math Math
- * @brief Mathematics and geometry codes of the beyond game engine
- * @ingroup core
- *
+ * @addtogroup math
  * @{
  */
 
@@ -33,127 +27,129 @@ template <typename Value> class Degree;
  * @brief Radian angle wrapper
  * @see Degree
  */
-template <typename Value> class Radian {
+template <typename T> class Radian {
 public:
-  static_assert(std::is_floating_point_v<Value>);
+  static_assert(std::is_floating_point_v<T>);
+  using ValueType = T;
 
   constexpr Radian() = default;
-  explicit constexpr Radian(Value v) noexcept : value_{v} {}
+  explicit constexpr Radian(T v) noexcept : value_{v} {}
 
   /// @brief Converts a Degree to Radian
-  constexpr Radian(Degree<Value> r) noexcept
-      : value_{r.value() * constant::pi<Value> / 180}
+  constexpr Radian(Degree<T> r) noexcept
+      : value_{r.value() * constant::pi<T> / 180}
   {
   }
 
   /**
    * @brief Convert from radian of another underlying type
    */
-  template <typename T>
-  explicit constexpr Radian(Radian<T> r) noexcept
-      : value_{static_cast<Value>(r.value())}
+  template <typename U>
+  explicit constexpr Radian(Radian<U> r) noexcept
+      : value_{static_cast<U>(r.value())}
   {
   }
 
   /// @brief Gets the underlying numerical value of the Radian
-  [[nodiscard]] constexpr auto value() const noexcept -> Value
+  [[nodiscard]] constexpr auto value() const noexcept -> T
   {
     return value_;
   }
 
   /// @brief Adds another Radian to this radian
-  constexpr auto operator+=(Radian<Value> rhs) noexcept -> Radian&
+  constexpr auto operator+=(Radian<T> rhs) noexcept -> Radian&
   {
     value_ += rhs.value_;
     return *this;
   }
 
   /// @brief Subtracts another Radian to this radian
-  constexpr auto operator-=(Radian<Value> rhs) noexcept -> Radian&
+  constexpr auto operator-=(Radian<T> rhs) noexcept -> Radian&
   {
     value_ -= rhs.value_;
     return *this;
   }
 
   /// @brief Multiples a scalar to this radian
-  constexpr auto operator*=(Value rhs) noexcept -> Radian&
+  constexpr auto operator*=(T rhs) noexcept -> Radian&
   {
     value_ *= rhs;
     return *this;
   }
 
   /// @brief Divides this radian by a scalar
-  constexpr auto operator/=(Value rhs) noexcept -> Radian&
+  constexpr auto operator/=(T rhs) noexcept -> Radian&
   {
     value_ /= rhs;
     return *this;
   }
 
 private:
-  Value value_ = 0;
+  T value_ = 0;
 };
 
 /**
  * @brief Degree angle wrapper
  * @see Radian
  */
-template <typename Value> class Degree {
+template <typename T> class Degree {
 public:
-  static_assert(std::is_floating_point_v<Value>);
+  static_assert(std::is_floating_point_v<T>);
+  using ValueType = T;
 
   constexpr Degree() = default;
-  explicit constexpr Degree(Value v) noexcept : value_{v} {}
+  explicit constexpr Degree(T v) noexcept : value_{v} {}
 
-  constexpr Degree(Radian<Value> r) noexcept
-      : value_{r.value() / constant::pi<Value> * 180}
+  constexpr Degree(Radian<T> r) noexcept
+      : value_{r.value() / constant::pi<T> * 180}
   {
   }
 
   /**
    * @brief Convert from Degree of another underlying type
    */
-  template <typename T>
-  explicit constexpr Degree(Degree<T> r) noexcept
-      : value_{static_cast<Value>(r.value())}
+  template <typename U>
+  explicit constexpr Degree(Degree<U> r) noexcept
+      : value_{static_cast<U>(r.value())}
   {
   }
 
   /// @brief Gets the underlying numerical value of the Degree
-  [[nodiscard]] constexpr auto value() const noexcept -> Value
+  [[nodiscard]] constexpr auto value() const noexcept -> T
   {
     return value_;
   }
 
   /// @brief Adds another Degree to this Degree
-  constexpr auto operator+=(Degree<Value> rhs) noexcept -> Degree&
+  constexpr auto operator+=(Degree<T> rhs) noexcept -> Degree&
   {
     value_ += rhs.value_;
     return *this;
   }
 
   /// @brief Subtracts another Degree to this Degree
-  constexpr auto operator-=(Degree<Value> rhs) noexcept -> Degree&
+  constexpr auto operator-=(Degree<T> rhs) noexcept -> Degree&
   {
     value_ -= rhs.value_;
     return *this;
   }
 
   /// @brief Multiples a scalar to this Degree
-  constexpr auto operator*=(Value rhs) noexcept -> Degree&
+  constexpr auto operator*=(T rhs) noexcept -> Degree&
   {
     value_ *= rhs;
     return *this;
   }
 
   /// @brief Divides this Degree by a scalar
-  constexpr auto operator/=(Value rhs) noexcept -> Degree&
+  constexpr auto operator/=(T rhs) noexcept -> Degree&
   {
     value_ /= rhs;
     return *this;
   }
 
 private:
-  Value value_ = 0;
+  T value_ = 0;
 };
 
 /// @brief Negates the Radian
