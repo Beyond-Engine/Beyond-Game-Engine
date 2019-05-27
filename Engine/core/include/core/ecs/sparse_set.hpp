@@ -81,25 +81,25 @@ private:
 public:
   SparseSet() = default;
 
-  /// @brief Returns true if the SparseSet does not contains any element
+  /// @brief Returns true if the SparseSet does not contains any elements
   [[nodiscard]] auto empty() const noexcept -> bool
   {
     return direct_.empty();
   }
 
-  /// @brief Gets how many components are stored in the slot map
+  /// @brief Gets how many entities are stored in the sparse set
   [[nodiscard]] auto size() const noexcept -> SizeType
   {
     return static_cast<SizeType>(direct_.size());
   }
 
-  /// @brief Gets the capacity of the slot map
+  /// @brief Gets the capacity of the sparse set
   [[nodiscard]] auto capacity() const noexcept -> SizeType
   {
     return static_cast<SizeType>(direct_.capacity());
   }
 
-  /// @brief Reserves the capacity of the slot map to `capacity`
+  /// @brief Reserves the capacity of the sparse set to `capacity`
   auto reserve(std::size_t capacity) -> void
   {
     direct_.reserve(capacity);
@@ -117,7 +117,7 @@ public:
   auto insert(Entity entity) -> void
   {
     BEYOND_ASSERT(!contains(entity));
-    const auto [page, offset] = index_of(entity);
+    const auto [page, offset] = page_index_of(entity);
     if (reverse_[page] == nullptr) {
       reverse_[page] = std::make_unique<Page>();
     }
@@ -137,8 +137,8 @@ public:
   {
     BEYOND_ASSERT(contains(entity));
     // Swaps the to be delete alement with the last element
-    const auto [from_page, from_offset] = index_of(entity);
-    const auto [to_page, to_offset] = index_of(direct_.back());
+    const auto [from_page, from_offset] = page_index_of(entity);
+    const auto [to_page, to_offset] = page_index_of(direct_.back());
 
     const auto entity_from_index = *(*reverse_[from_page])[from_offset];
     BEYOND_ASSERT(direct_[entity_from_index] == entity);
@@ -160,10 +160,10 @@ public:
    *
    * @return The position of entity in the sparse set
    */
-  [[nodiscard]] auto get(Entity entity) const noexcept -> SizeType
+  [[nodiscard]] auto index_of(Entity entity) const noexcept -> SizeType
   {
     BEYOND_ASSERT(contains(entity));
-    const auto [page, offset] = index_of(entity);
+    const auto [page, offset] = page_index_of(entity);
     return *(*reverse_[page])[offset];
   }
 
@@ -174,7 +174,7 @@ public:
    */
   [[nodiscard]] auto contains(Entity entity) const noexcept -> bool
   {
-    const auto [page, offset] = index_of(entity);
+    const auto [page, offset] = page_index_of(entity);
     if (reverse_[page]) {
       return (*reverse_[page])[offset] != std::nullopt;
     }
@@ -208,7 +208,7 @@ private:
   std::vector<Entity> direct_; // The packed array of entities
 
   // Given an entity, get its location inside the reverse array
-  [[nodiscard]] auto index_of(Entity entity) const noexcept
+  [[nodiscard]] auto page_index_of(Entity entity) const noexcept
   {
     const SizeType identifier =
         static_cast<SizeType>(entity & Trait::entity_mask);

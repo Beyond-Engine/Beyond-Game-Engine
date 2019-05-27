@@ -37,7 +37,7 @@ TEST_CASE("SparseSet", "[beyond.core.ecs.sparse_set]")
         THEN("You can find this entity in the sparse set")
         {
           REQUIRE(ss.contains(entity));
-          const auto index = ss.get(entity);
+          const auto index = ss.index_of(entity);
           REQUIRE(index == 0);
           REQUIRE(ss.entities()[index] == entity);
         }
@@ -58,7 +58,7 @@ TEST_CASE("SparseSet", "[beyond.core.ecs.sparse_set]")
             THEN("You can find this entity in the sparse set")
             {
               REQUIRE(ss.contains(entity));
-              REQUIRE(ss.entities()[ss.get(entity)] == entity);
+              REQUIRE(ss.entities()[ss.index_of(entity)] == entity);
             }
           }
         }
