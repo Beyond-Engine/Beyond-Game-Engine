@@ -16,7 +16,7 @@ if(${BEYOND_BUILD_TESTS_COVERAGE})
     set(CMAKE_SHARED_LINKER_FLAGS "--whole-archive")
 
     include("CodeCoverage")
-    APPEND_COVERAGE_COMPILER_FLAGS("-g -O0 -fprofile-arcs -ftest-coverage")
+    target_compile_options(${TEST_TARGET_NAME} PUBLIC -fprofile-arcs -ftest-coverage)
     set(COVERAGE_LCOV_EXCLUDES '/usr/*' '*/.conan/*' '*/test/*' 'test/*')
     SETUP_TARGET_FOR_COVERAGE_LCOV(
         NAME coverage                    # New target name
