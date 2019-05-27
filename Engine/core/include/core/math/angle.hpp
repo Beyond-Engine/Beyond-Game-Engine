@@ -46,7 +46,7 @@ public:
    */
   template <typename U>
   explicit constexpr Radian(Radian<U> r) noexcept
-      : value_{static_cast<U>(r.value())}
+      : value_{static_cast<T>(r.value())}
   {
   }
 
@@ -110,7 +110,7 @@ public:
    */
   template <typename U>
   explicit constexpr Degree(Degree<U> r) noexcept
-      : value_{static_cast<U>(r.value())}
+      : value_{static_cast<T>(r.value())}
   {
   }
 

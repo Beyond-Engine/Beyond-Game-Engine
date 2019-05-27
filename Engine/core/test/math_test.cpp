@@ -62,4 +62,9 @@ TEST_CASE("Trig functions", "[beyond.core.math]")
     const auto expected2 = std::atan(1);
     REQUIRE(beyond::atan(1).value() == Approx(expected2));
   }
+
+  SECTION("lerp")
+  {
+    REQUIRE(beyond::lerp(0, 2, 0.5) == Approx(1));
+  }
 }

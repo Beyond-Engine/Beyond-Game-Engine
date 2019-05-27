@@ -152,6 +152,22 @@ template <typename T1, typename T2>
   return Radian<std::common_type_t<T1, T2>>{std::atan2(y, x)};
 }
 
+/**
+ * @brief Linear interpolation of two values.
+ * @param a First value
+ * @param b Second value
+ * @param t Interpolation phase (from range \f$[0, 1]\f$)
+ */
+template <typename T1, typename T2, typename T3,
+          typename = std::enable_if_t<std::is_arithmetic_v<T3>>>
+[[nodiscard]] constexpr auto lerp(const T1& a, const T2& b,
+                                  const T3& t) noexcept
+    -> std::common_type_t<T1, T2, T3>
+{
+  using ResultType = std::common_type_t<T1, T2, T3>;
+  return b * (static_cast<ResultType>(1) - t) + (a * t);
+}
+
 using std::abs;
 using std::fabs;
 using std::fdim;
