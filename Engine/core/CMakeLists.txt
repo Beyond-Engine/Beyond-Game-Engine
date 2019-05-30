@@ -1,6 +1,7 @@
 add_library(core
     include/core/assert.hpp
     include/core/bit_cast.hpp
+    include/core/crtp.hpp
     include/core/panic.hpp
     src/panic.cpp
     include/core/type_traits.hpp
