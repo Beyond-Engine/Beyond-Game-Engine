@@ -47,7 +47,7 @@ matrix:
   - os: linux
     compiler: gcc
     name: Coverage
-    env: CC="/usr/bin/gcc-7" CXX="/usr/bin/g++-7" GCOV="/usr/bin/gcov-7" CMAKE_OPTIONS=" -DCMAKE_BUILD_TYPE=Debug -DBEYOND_BUILD_TESTS=ON -DBEYOND_BUILD_TESTS_COVERAGE=ON"  CODECOV_TOKEN="57d08cc4-17fc-4b9b-af29-84d76a5b7259" CONAN_INSTALL_SETTING="build_type=Debug"
+    env: CC="/usr/bin/gcc-7" CXX="/usr/bin/g++-7" GCOV="/usr/bin/gcov-7" CMAKE_OPTIONS=" -DCMAKE_BUILD_TYPE=Debug -DBEYOND_BUILD_TESTS=ON -DBEYOND_BUILD_TESTS_COVERAGE=ON"  CODECOV_TOKEN="83bec924-357a-4655-b54d-6bee5ee0dbb8" CONAN_INSTALL_SETTING="build_type=Debug"
     addons:
       apt:
         sources:
