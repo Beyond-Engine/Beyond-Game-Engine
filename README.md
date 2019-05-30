@@ -1,4 +1,5 @@
 # Beyond Game Engine
+[![Line Count](https://tokei.rs/b1/github/LesleyLai/Beyond-Game-Engine)](https://github.com/XAMPPRocky/tokei)
 [![Build Status](https://travis-ci.org/LesleyLai/Beyond-Game-Engine.svg?branch=master)](https://travis-ci.org/LesleyLai/Beyond-Game-Engine)
 [![Build status](https://ci.appveyor.com/api/projects/status/5to4c2t8t2el99mm/branch/master?svg=true)](https://ci.appveyor.com/project/LesleyLai/beyond-game-engine/branch/master)
 [![codecov](https://codecov.io/gh/LesleyLai/Beyond-Game-Engine/branch/master/graph/badge.svg)](https://codecov.io/gh/LesleyLai/Beyond-Game-Engine)
