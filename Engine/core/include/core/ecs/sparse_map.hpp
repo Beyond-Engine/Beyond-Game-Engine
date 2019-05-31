@@ -182,6 +182,94 @@ public:
     return data_.data();
   }
 
+  class Iterator {
+  public:
+    [[nodiscard]] auto operator==(const Iterator& other) const noexcept -> bool
+    {
+      return (map_ == other.map_) && (index_ == other.index_);
+    }
+
+    [[nodiscard]] auto operator!=(const Iterator& other) const noexcept -> bool
+    {
+      return (map_ != other.map_) || (index_ != other.index_);
+    }
+
+    [[nodiscard]] auto operator*() const noexcept
+        -> std::pair<Entity, ValueType&>
+    {
+      return std::make_pair(map_->entities_set_.entities()[index_],
+                            std::ref(map_->data_[index_]));
+    }
+
+    [[nodiscard]] auto operator-> () const noexcept
+        -> const std::pair<Entity, ValueType&>*
+    {
+      // TODO: need to research how to do this
+    }
+
+    auto operator++() noexcept -> Iterator&
+    {
+      ++index_;
+      return *this;
+    }
+
+    auto operator--() noexcept -> Iterator&
+    {
+      --index_;
+      return *this;
+    }
+
+    auto operator+=(std::ptrdiff_t i) noexcept -> Iterator&
+    {
+      index_ += i;
+      return *this;
+    }
+
+    auto operator-=(std::ptrdiff_t i) noexcept -> Iterator&
+    {
+      index_ -= i;
+      return *this;
+    }
+
+    [[nodiscard]] auto operator+(std::ptrdiff_t i) const noexcept -> Iterator
+    {
+      return Iterator{map_, index_ + i};
+    }
+
+    [[nodiscard]] auto operator-(std::ptrdiff_t i) const noexcept -> Iterator
+    {
+      return Iterator{map_, index_ - i};
+    }
+
+    [[nodiscard]] auto operator-(const Iterator& other) const noexcept
+        -> std::ptrdiff_t
+    {
+      BEYOND_ASSERT(map_ == other.map_);
+      return index_ - other.index_;
+    }
+
+  private:
+    SparseMap* map_;
+    std::ptrdiff_t index_;
+
+    friend SparseMap;
+
+    constexpr Iterator(SparseMap* map, std::ptrdiff_t index)
+        : map_{map}, index_{index}
+    {
+    }
+  };
+
+  [[nodiscard]] auto begin() noexcept -> Iterator
+  {
+    return {this, 0};
+  }
+
+  [[nodiscard]] auto end() noexcept -> Iterator
+  {
+    return {this, static_cast<std::ptrdiff_t>(data_.size())};
+  }
+
 private:
   SparseSet<Entity> entities_set_;
   std::vector<ValueType> data_;

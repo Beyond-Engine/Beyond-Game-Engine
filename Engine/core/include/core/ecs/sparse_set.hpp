@@ -59,6 +59,8 @@ template <> struct EntityTrait<std::uint32_t> {
   static constexpr std::uint32_t entity_mask = 0xFFFFF;
 };
 
+template <typename Entity, typename T> class SparseMap;
+
 /**
  * @brief SparseSet stores entities
  */
