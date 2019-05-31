@@ -1,7 +1,6 @@
 #ifndef BEYOND_CORE_SPARSE_MAP_HPP
 #define BEYOND_CORE_SPARSE_MAP_HPP
 
-#include <unordered_map>
 #include <vector>
 
 #include "core/ecs/sparse_set.hpp"
