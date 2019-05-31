@@ -1,6 +1,7 @@
 #ifndef BEYOND_CORE_SPARSE_MAP_HPP
 #define BEYOND_CORE_SPARSE_MAP_HPP
 
+#include <unordered_map>
 #include <vector>
 
 #include "core/ecs/sparse_set.hpp"
@@ -180,6 +181,50 @@ public:
   [[nodiscard]] auto data() const noexcept -> const ValueType*
   {
     return data_.data();
+  }
+
+  class Iterator {
+  public:
+    [[nodiscard]] auto operator!=(const Iterator& other) const noexcept -> bool
+    {
+      return (map_ != other.map_) || (index_ != other.index_);
+    }
+
+    [[nodiscard]] auto operator*() const noexcept
+        -> std::pair<Entity, ValueType&>
+    {
+      return std::make_pair(map_->entities_set_.entities()[index_],
+                            std::ref(map_->data_[index_]));
+    }
+
+    [[nodiscard]] auto operator-> () const noexcept
+        -> const std::pair<Entity, ValueType&>*
+    {
+      auto pair = std::make_pair(map_->entities_set_.entities()[index_],
+                                 map_->data_[index_]);
+      return &pair;
+    }
+
+  private:
+    SparseMap* map_;
+    std::size_t index_;
+
+    friend SparseMap;
+
+    constexpr Iterator(SparseMap* map, std::size_t index)
+        : map_{map}, index_{index}
+    {
+    }
+  };
+
+  [[nodiscard]] auto begin() noexcept -> Iterator
+  {
+    return {this, 0};
+  }
+
+  [[nodiscard]] auto end() noexcept -> Iterator
+  {
+    return {this, data_.size()};
   }
 
 private:

@@ -4,7 +4,7 @@
 
 using namespace beyond;
 
-TEST_CASE("SparseMap", "[beyond.core.ecs.sparse_set]")
+TEST_CASE("SparseMap", "[beyond.core.ecs.sparse_map]")
 {
   using Entity = std::uint32_t;
   SparseMap<Entity, float> sm;
@@ -21,7 +21,6 @@ TEST_CASE("SparseMap", "[beyond.core.ecs.sparse_set]")
 
   GIVEN("An entity 42 and its corresponding data")
   {
-
     const Entity entity = 42;
     const float data = 3.14f;
     const float data2 = 2.16f;
@@ -79,6 +78,31 @@ TEST_CASE("SparseMap", "[beyond.core.ecs.sparse_set]")
             REQUIRE(sm.get(entity) == Approx(data2));
           }
         }
+      }
+    }
+  }
+}
+
+TEST_CASE("SparseMap iterator test", "[beyond.core.ecs.sparse_map]")
+{
+  using Entity = std::uint32_t;
+  GIVEN("SparseMap {0 -> 1.2}")
+  {
+    SparseMap<Entity, float> sm;
+    const Entity e1 = 0;
+    const float v1 = 1.2f;
+    sm.insert(e1, v1);
+
+    AND_GIVEN("begin() and end() iterator of the map")
+    {
+      auto begin = sm.begin();
+      auto end = sm.end();
+      REQUIRE(begin != end);
+
+      THEN("begin() points to the only entity in the sparse set")
+      {
+        REQUIRE((*begin).first == e1);
+        REQUIRE((*begin).second == Approx(v1));
       }
     }
   }
