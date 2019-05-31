@@ -185,6 +185,11 @@ public:
 
   class Iterator {
   public:
+    [[nodiscard]] auto operator==(const Iterator& other) const noexcept -> bool
+    {
+      return (map_ == other.map_) && (index_ == other.index_);
+    }
+
     [[nodiscard]] auto operator!=(const Iterator& other) const noexcept -> bool
     {
       return (map_ != other.map_) || (index_ != other.index_);
@@ -200,18 +205,57 @@ public:
     [[nodiscard]] auto operator-> () const noexcept
         -> const std::pair<Entity, ValueType&>*
     {
-      auto pair = std::make_pair(map_->entities_set_.entities()[index_],
-                                 map_->data_[index_]);
-      return &pair;
+      // TODO: need to research how to do this
+    }
+
+    auto operator++() noexcept -> Iterator&
+    {
+      ++index_;
+      return *this;
+    }
+
+    auto operator--() noexcept -> Iterator&
+    {
+      --index_;
+      return *this;
+    }
+
+    auto operator+=(std::ptrdiff_t i) noexcept -> Iterator&
+    {
+      index_ += i;
+      return *this;
+    }
+
+    auto operator-=(std::ptrdiff_t i) noexcept -> Iterator&
+    {
+      index_ -= i;
+      return *this;
+    }
+
+    [[nodiscard]] auto operator+(std::ptrdiff_t i) const noexcept -> Iterator
+    {
+      return Iterator{map_, index_ + i};
+    }
+
+    [[nodiscard]] auto operator-(std::ptrdiff_t i) const noexcept -> Iterator
+    {
+      return Iterator{map_, index_ - i};
+    }
+
+    [[nodiscard]] auto operator-(const Iterator& other) const noexcept
+        -> std::ptrdiff_t
+    {
+      BEYOND_ASSERT(map_ == other.map_);
+      return index_ - other.index_;
     }
 
   private:
     SparseMap* map_;
-    std::size_t index_;
+    std::ptrdiff_t index_;
 
     friend SparseMap;
 
-    constexpr Iterator(SparseMap* map, std::size_t index)
+    constexpr Iterator(SparseMap* map, std::ptrdiff_t index)
         : map_{map}, index_{index}
     {
     }
@@ -224,7 +268,7 @@ public:
 
   [[nodiscard]] auto end() noexcept -> Iterator
   {
-    return {this, data_.size()};
+    return {this, static_cast<std::ptrdiff_t>(data_.size())};
   }
 
 private:
