@@ -132,16 +132,15 @@ TEST_CASE("SparseMap iterator test", "[beyond.core.ecs.sparse_map]")
       AND_THEN("begin + 1 == end")
       {
         REQUIRE(begin + 1 == end);
-        // TODO: Solve this
-        // REQUIRE(1 + begin == end);
+        REQUIRE(1 + begin == end);
       }
       AND_THEN("end - 1 == begin")
       {
         REQUIRE(end - 1 == begin);
       }
-      AND_THEN("end - begin == 1")
+      AND_THEN("begin - end == -1")
       {
-        REQUIRE(end - begin == 1);
+        REQUIRE(begin - end == -1);
       }
     }
   }

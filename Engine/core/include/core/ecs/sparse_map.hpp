@@ -231,21 +231,29 @@ public:
       return *this;
     }
 
-    [[nodiscard]] auto operator+(std::ptrdiff_t i) const noexcept -> Iterator
+    [[nodiscard]] friend auto operator+(const Iterator& lhs, std::ptrdiff_t rhs)
+        -> Iterator
     {
-      return Iterator{map_, index_ + i};
+      return Iterator{lhs.map_, lhs.index_ + rhs};
     }
 
-    [[nodiscard]] auto operator-(std::ptrdiff_t i) const noexcept -> Iterator
+    [[nodiscard]] friend auto operator+(std::ptrdiff_t lhs, Iterator rhs)
+        -> Iterator
     {
-      return Iterator{map_, index_ - i};
+      return Iterator{rhs.map_, rhs.index_ + lhs};
     }
 
-    [[nodiscard]] auto operator-(const Iterator& other) const noexcept
-        -> std::ptrdiff_t
+    [[nodiscard]] friend auto operator-(const Iterator& lhs, std::ptrdiff_t rhs)
+        -> Iterator
     {
-      BEYOND_ASSERT(map_ == other.map_);
-      return index_ - other.index_;
+      return Iterator{lhs.map_, lhs.index_ - rhs};
+    }
+
+    [[nodiscard]] friend auto operator-(const Iterator& lhs,
+                                        const Iterator& rhs) -> std::ptrdiff_t
+    {
+      BEYOND_ASSERT(lhs.map_ == rhs.map_);
+      return lhs.index_ - rhs.index_;
     }
 
   private:
