@@ -210,6 +210,18 @@ public:
     return Iterator{direct_.data() + direct_.size()};
   }
 
+  /// @copydoc begin
+  [[nodiscard]] auto cbegin() const noexcept -> Iterator
+  {
+    return Iterator{direct_.data()};
+  }
+
+  /// @copydoc end
+  [[nodiscard]] auto cend() const noexcept -> Iterator
+  {
+    return Iterator{direct_.data() + direct_.size()};
+  }
+
 private:
   std::array<std::unique_ptr<Page>, page_count> reverse_;
   std::vector<Entity> direct_; // The packed array of entities

@@ -68,6 +68,9 @@ TEST_CASE("SparseSet", "[beyond.core.ecs.sparse_set]")
         {
           auto begin = ss.begin();
           auto end = ss.end();
+          REQUIRE(begin == ss.cbegin());
+          REQUIRE(end == ss.cend());
+
           REQUIRE(!(begin == end));
           REQUIRE(begin != end);
           REQUIRE(begin < end);
