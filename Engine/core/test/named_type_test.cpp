@@ -5,9 +5,79 @@
 
 namespace beyond {
 
-template <typename T> class Addable {
+//
+
+/// @brief Support ++T and T++
+/// @note The Derived type T should be a value wrapper that support `.get()`
+/// function
+/// @note The wrapped type should support both prefix and postfix operator++
+template <typename T> struct IncrementableBase : CRTP<T, IncrementableBase> {
+  constexpr auto operator++() noexcept(noexcept(++this->underlying().get()))
+  {
+    ++this->underlying().get();
+    return this->underlying();
+  }
+
+  constexpr auto operator++(int) noexcept(noexcept(this->underlying().get()++))
+  {
+    const auto ret = this->underlying().get()++;
+    return T{ret};
+  }
 };
-template <typename T> class Comparable {
+
+/// @brief Support ++T and T++
+/// @note The Derived type T should be a value wrapper that support `.get()`
+/// function
+/// @note The wrapped type should support both prefix and postfix operator++
+template <typename T> struct DecrementableBase : CRTP<T, DecrementableBase> {
+  constexpr auto operator--() noexcept(noexcept(++this->underlying().get()))
+  {
+    --this->underlying().get();
+    return this->underlying();
+  }
+
+  constexpr auto operator--(int) noexcept(noexcept(this->underlying().get()++))
+  {
+    const auto ret = this->underlying().get()--;
+    return T{ret};
+  }
+};
+
+/// @brief Support T + T
+/// @note The Derived type T should be a value wrapper that support `.get()`
+/// function
+/// @note The wrapped type should support binary operator +
+template <typename T> struct AddableBase : CRTP<T, AddableBase> {
+  constexpr auto operator+(const T& other) const
+      noexcept(noexcept(this->underlying().get() + other.get())) -> T
+  {
+    return T{this->underlying().get() + other.get()};
+  }
+};
+
+/// @brief Support T - T
+/// @note The Derived type T should be a value wrapper that support `.get()`
+/// function
+/// @note The wrapped type should support binary operator -
+template <typename T> struct SubtractableBase : CRTP<T, SubtractableBase> {
+  constexpr auto operator-(const T& other) const
+      noexcept(noexcept(this->underlying().get() - other.get())) -> T
+  {
+    return T{this->underlying().get() - other.get()};
+  }
+};
+
+// NegatabeCRTP
+/// @brief Support -T
+/// @note The Derived type T should be a value wrapper that support `.get()`
+/// function
+/// @note The wrapped type should support unary operator -
+template <typename T> struct NegatabeBase : CRTP<T, NegatabeBase> {
+  constexpr auto operator-() const noexcept(noexcept(-this->underlying().get()))
+      -> T
+  {
+    return T{-this->underlying().get()};
+  }
 };
 
 template <typename T, typename Tag, template <typename> typename... Mixins>
@@ -105,4 +175,81 @@ TEST_CASE("NamedType of References", "[beyond.core.meta.named_type]")
     NamedDoubleCR nd2 = nd1;
     REQUIRE(nd2.get() == Approx(1.2));
   }
+}
+
+TEST_CASE("Arithmatic Operations", "[beyond.core.meta.named_type]")
+{
+
+  SECTION("Incrementation")
+  {
+    using Incrementable =
+        beyond::NamedType<int, struct NamedIntTag, beyond::IncrementableBase>;
+    constexpr auto i = 1;
+    Incrementable n{i};
+    CHECK((++n).get() == 2);
+    CHECK((n++).get() == 2);
+    CHECK(n.get() == 3);
+  }
+
+  SECTION("Decrementation")
+  {
+    using Decrementable =
+        beyond::NamedType<int, struct NamedIntTag, beyond::DecrementableBase>;
+    constexpr auto i = 1;
+    Decrementable n{i};
+    CHECK((--n).get() == 0);
+    CHECK((n--).get() == 0);
+    CHECK(n.get() == -1);
+  }
+
+  SECTION("Addition")
+  {
+    using Addable =
+        beyond::NamedType<double, struct NamedDoubleTag, beyond::AddableBase>;
+    constexpr auto d1 = 1., d2 = 3.;
+    Addable n1{d1};
+    Addable n2{d2};
+    REQUIRE((n1 + n2).get() == Approx(d1 + d2));
+  }
+
+  SECTION("Subtraction")
+  {
+    using Subtractble = beyond::NamedType<double, struct NamedDoubleTag,
+                                          beyond::SubtractableBase>;
+    constexpr auto d1 = 1., d2 = 3.;
+    Subtractble n1{d1};
+    Subtractble n2{d2};
+    REQUIRE((n1 - n2).get() == Approx(d1 - d2));
+  }
+
+  SECTION("Negation")
+  {
+    using Negatabe =
+        beyond::NamedType<double, struct NamedDoubleTag, beyond::NegatabeBase>;
+    constexpr auto d1 = 1.;
+    Negatabe n1{d1};
+    REQUIRE((-n1).get() == Approx(-d1));
+  }
+}
+
+struct Meter
+    : beyond::NamedType<double, struct MeterTag, beyond::IncrementableBase,
+                        beyond::DecrementableBase, beyond::AddableBase,
+                        beyond::SubtractableBase> {
+  explicit Meter(double d) : NamedType{d} {}
+  Meter(NamedType n) : NamedType{n} {}
+};
+
+TEST_CASE("Inheritance from NamedType")
+{
+  constexpr auto d1 = 1., d2 = 3.;
+  Meter n1{d1};
+  Meter n2{d2};
+  Meter result = n1 - n2;
+  REQUIRE(result.get() == Approx(d1 - d2));
+}
+
+TEST_CASE("Empty base class optimization")
+{
+  static_assert(sizeof(Meter) == sizeof(double));
 }
