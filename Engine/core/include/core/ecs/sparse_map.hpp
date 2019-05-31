@@ -1,8 +1,10 @@
 #ifndef BEYOND_CORE_SPARSE_MAP_HPP
 #define BEYOND_CORE_SPARSE_MAP_HPP
 
+#include <iterator>
 #include <vector>
 
+#include "core/arrow_proxy.hpp"
 #include "core/ecs/sparse_set.hpp"
 
 /**
@@ -42,7 +44,7 @@ public:
   using Trait = EntityTrait<Entity>;
   using SizeType = typename Trait::Id;
   using DiffType = typename Trait::DiffType;
-  using ValueType = T;
+  using MappedType = T;
 
   SparseMap() noexcept = default;
 
@@ -79,7 +81,7 @@ public:
    * @param entity A valid entity identifier.
    * @param data The data attaches to an entity
    */
-  auto insert(Entity entity, ValueType data) -> void
+  auto insert(Entity entity, MappedType data) -> void
   {
     entities_set_.insert(entity);
     data_.push_back(std::move(data));
@@ -136,13 +138,13 @@ public:
    *
    * @return The data associated with an entity
    */
-  [[nodiscard]] auto get(Entity entity) const noexcept -> const ValueType&
+  [[nodiscard]] auto get(Entity entity) const noexcept -> const MappedType&
   {
     return data_[entities_set_.index_of(entity)];
   }
 
   /// @overload
-  [[nodiscard]] auto get(Entity entity) noexcept -> ValueType&
+  [[nodiscard]] auto get(Entity entity) noexcept -> MappedType&
   {
     return data_[entities_set_.index_of(entity)];
   }
@@ -155,7 +157,7 @@ public:
    * @return A pointer to the data associated with an entity if the entity is in
    * the sparse map, nullptr otherwise
    */
-  [[nodiscard]] auto try_get(Entity entity) const noexcept -> const ValueType*
+  [[nodiscard]] auto try_get(Entity entity) const noexcept -> const MappedType*
   {
     return (entities_set_.contains(entity))
                ? &data_[entities_set_.index_of(entity)]
@@ -163,7 +165,7 @@ public:
   }
 
   /// @overload
-  [[nodiscard]] auto try_get(Entity entity) noexcept -> ValueType*
+  [[nodiscard]] auto try_get(Entity entity) noexcept -> MappedType*
   {
     return (entities_set_.contains(entity))
                ? &data_[entities_set_.index_of(entity)]
@@ -177,13 +179,19 @@ public:
   }
 
   /// @brief Direct accesses to the array of data.
-  [[nodiscard]] auto data() const noexcept -> const ValueType*
+  [[nodiscard]] auto data() const noexcept -> const MappedType*
   {
     return data_.data();
   }
 
   class Iterator {
   public:
+    using iterator_category = std::random_access_iterator_tag;
+    using value_type = std::pair<Entity, MappedType&>;
+    using difference_type = std::ptrdiff_t;
+    using reference = std::pair<Entity, MappedType&>;
+    using pointer = ArrowProxy<reference>;
+
     [[nodiscard]] auto operator==(const Iterator& other) const noexcept -> bool
     {
       return (map_ == other.map_) && (index_ == other.index_);
@@ -194,17 +202,15 @@ public:
       return (map_ != other.map_) || (index_ != other.index_);
     }
 
-    [[nodiscard]] auto operator*() const noexcept
-        -> std::pair<Entity, ValueType&>
+    [[nodiscard]] auto operator*() const noexcept -> reference
     {
       return std::make_pair(map_->entities_set_.entities()[index_],
                             std::ref(map_->data_[index_]));
     }
 
-    [[nodiscard]] auto operator-> () const noexcept
-        -> const std::pair<Entity, ValueType&>*
+    [[nodiscard]] auto operator-> () const noexcept -> pointer
     {
-      // TODO: need to research how to do this
+      return pointer{operator*()};
     }
 
     auto operator++() noexcept -> Iterator&
@@ -219,38 +225,38 @@ public:
       return *this;
     }
 
-    auto operator+=(std::ptrdiff_t i) noexcept -> Iterator&
+    auto operator+=(difference_type i) noexcept -> Iterator&
     {
       index_ += i;
       return *this;
     }
 
-    auto operator-=(std::ptrdiff_t i) noexcept -> Iterator&
+    auto operator-=(difference_type i) noexcept -> Iterator&
     {
       index_ -= i;
       return *this;
     }
 
-    [[nodiscard]] friend auto operator+(const Iterator& lhs, std::ptrdiff_t rhs)
-        -> Iterator
+    [[nodiscard]] friend auto operator+(const Iterator& lhs,
+                                        difference_type rhs) -> Iterator
     {
       return Iterator{lhs.map_, lhs.index_ + rhs};
     }
 
-    [[nodiscard]] friend auto operator+(std::ptrdiff_t lhs, Iterator rhs)
+    [[nodiscard]] friend auto operator+(difference_type lhs, Iterator rhs)
         -> Iterator
     {
       return Iterator{rhs.map_, rhs.index_ + lhs};
     }
 
-    [[nodiscard]] friend auto operator-(const Iterator& lhs, std::ptrdiff_t rhs)
-        -> Iterator
+    [[nodiscard]] friend auto operator-(const Iterator& lhs,
+                                        difference_type rhs) -> Iterator
     {
       return Iterator{lhs.map_, lhs.index_ - rhs};
     }
 
     [[nodiscard]] friend auto operator-(const Iterator& lhs,
-                                        const Iterator& rhs) -> std::ptrdiff_t
+                                        const Iterator& rhs) -> difference_type
     {
       BEYOND_ASSERT(lhs.map_ == rhs.map_);
       return lhs.index_ - rhs.index_;
@@ -258,11 +264,11 @@ public:
 
   private:
     SparseMap* map_;
-    std::ptrdiff_t index_;
+    difference_type index_;
 
     friend SparseMap;
 
-    constexpr Iterator(SparseMap* map, std::ptrdiff_t index)
+    constexpr Iterator(SparseMap* map, difference_type index)
         : map_{map}, index_{index}
     {
     }
@@ -275,12 +281,13 @@ public:
 
   [[nodiscard]] auto end() noexcept -> Iterator
   {
-    return {this, static_cast<std::ptrdiff_t>(data_.size())};
+    return {this,
+            static_cast<typename Iterator::difference_type>(data_.size())};
   }
 
 private:
   SparseSet<Entity> entities_set_;
-  std::vector<ValueType> data_;
+  std::vector<MappedType> data_;
 };
 
 /** @}

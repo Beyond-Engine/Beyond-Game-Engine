@@ -1,5 +1,6 @@
 add_library(core
     include/core/assert.hpp
+    include/core/arrow_proxy.hpp
     include/core/bit_cast.hpp
     include/core/crtp.hpp
     include/core/panic.hpp

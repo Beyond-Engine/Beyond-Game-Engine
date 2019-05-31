@@ -101,8 +101,8 @@ TEST_CASE("SparseMap iterator test", "[beyond.core.ecs.sparse_map]")
 
       THEN("begin() points to the only entity in the sparse set")
       {
-        REQUIRE((*begin).first == e1);
-        REQUIRE((*begin).second == Approx(v1));
+        REQUIRE(begin->first == e1);
+        REQUIRE(begin->second == Approx(v1));
       }
 
       AND_THEN("++begin = end")
