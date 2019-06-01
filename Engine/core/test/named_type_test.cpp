@@ -5,8 +5,6 @@
 
 namespace beyond {
 
-//
-
 /// @brief Support ++T and T++
 /// @note The Derived type T should be a value wrapper that support `.get()`
 /// function
