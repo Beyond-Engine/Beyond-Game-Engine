@@ -100,7 +100,8 @@ matrix:
         fi
 
 script:
-  - sudo pip install conan
+  - sudo apt install python3-pip
+  - sudo pip3 install conan
   - mkdir build && cd build
   - conan install .. -s $CONAN_INSTALL_SETTING --build fmt
   - cmake .. $CMAKE_OPTIONS

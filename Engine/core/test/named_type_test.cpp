@@ -65,7 +65,6 @@ template <typename T> struct SubtractableBase : CRTP<T, SubtractableBase> {
   }
 };
 
-// NegatabeCRTP
 /// @brief Support -T
 /// @note The Derived type T should be a value wrapper that support `.get()`
 /// function
@@ -75,6 +74,24 @@ template <typename T> struct NegatabeBase : CRTP<T, NegatabeBase> {
       -> T
   {
     return T{-this->underlying().get()};
+  }
+};
+
+/// @brief Support T == T, T != T
+/// @note The Derived type T should be a value wrapper that support `.get()`
+/// function
+/// @note The wrapped type should support operator ==
+template <typename T> struct EquableBase : CRTP<T, EquableBase> {
+  constexpr auto operator==(const T& other) const
+      noexcept(noexcept(this->underlying().get() == other.get())) -> bool
+  {
+    return this->underlying().get() == other.get();
+  }
+
+  constexpr auto operator!=(const T& other) const
+      noexcept(noexcept(this->underlying().get() == other.get())) -> bool
+  {
+    return !(this->underlying().get() == other.get());
   }
 };
 
@@ -227,6 +244,19 @@ TEST_CASE("Arithmatic Operations", "[beyond.core.meta.named_type]")
     constexpr auto d1 = 1.;
     Negatabe n1{d1};
     REQUIRE((-n1).get() == Approx(-d1));
+  }
+}
+
+TEST_CASE("Comparison Operations", "[beyond.core.meta.named_type]")
+{
+  SECTION("Equality")
+  {
+    using Equable =
+        beyond::NamedType<int, struct NamedIntTag, beyond::EquableBase>;
+    Equable n1{1};
+    Equable n2{2};
+    REQUIRE(!(n1 == n2));
+    REQUIRE(n1 != n2);
   }
 }
 
