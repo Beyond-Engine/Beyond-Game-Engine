@@ -77,10 +77,12 @@ template <typename T> struct NegatabeBase : CRTP<T, NegatabeBase> {
   }
 };
 
+//
+
 /// @brief Support T == T, T != T
 /// @note The Derived type T should be a value wrapper that support `.get()`
 /// function
-/// @note The wrapped type should support operator ==
+/// @note The wrapped type should support operator == and !=
 template <typename T> struct EquableBase : CRTP<T, EquableBase> {
   constexpr auto operator==(const T& other) const
       noexcept(noexcept(this->underlying().get() == other.get())) -> bool
@@ -91,7 +93,37 @@ template <typename T> struct EquableBase : CRTP<T, EquableBase> {
   constexpr auto operator!=(const T& other) const
       noexcept(noexcept(this->underlying().get() == other.get())) -> bool
   {
-    return !(this->underlying().get() == other.get());
+    return this->underlying().get() != other.get();
+  }
+};
+
+/// @brief ComparableBase is EquableBase | support T < T, T <= T, T > T, T >= T
+/// @note The Derived type T should be a value wrapper that support `.get()`
+/// function
+/// @note The wrapped type should support all comparison operations
+template <typename T> struct ComparableBase : EquableBase<T> {
+  constexpr auto operator<(const T& other) const
+      noexcept(noexcept(this->underlying().get() < other.get())) -> bool
+  {
+    return this->underlying().get() < other.get();
+  }
+
+  constexpr auto operator<=(const T& other) const
+      noexcept(noexcept(this->underlying().get() <= other.get())) -> bool
+  {
+    return this->underlying().get() <= other.get();
+  }
+
+  constexpr auto operator>(const T& other) const
+      noexcept(noexcept(this->underlying().get() > other.get())) -> bool
+  {
+    return this->underlying().get() > other.get();
+  }
+
+  constexpr auto operator>=(const T& other) const
+      noexcept(noexcept(this->underlying().get() >= other.get())) -> bool
+  {
+    return this->underlying().get() >= other.get();
   }
 };
 
@@ -255,8 +287,22 @@ TEST_CASE("Comparison Operations", "[beyond.core.meta.named_type]")
         beyond::NamedType<int, struct NamedIntTag, beyond::EquableBase>;
     Equable n1{1};
     Equable n2{2};
-    REQUIRE(!(n1 == n2));
-    REQUIRE(n1 != n2);
+    CHECK(!(n1 == n2));
+    CHECK(n1 != n2);
+  }
+
+  SECTION("comparable")
+  {
+    using Comparable =
+        beyond::NamedType<int, struct NamedIntTag, beyond::ComparableBase>;
+    Comparable n1{1};
+    Comparable n2{2};
+    CHECK(!(n1 == n2));
+    CHECK(n1 != n2);
+    CHECK(n1 < n2);
+    CHECK(n1 <= n2);
+    CHECK(!(n1 > n2));
+    CHECK(!(n1 >= n2));
   }
 }
 

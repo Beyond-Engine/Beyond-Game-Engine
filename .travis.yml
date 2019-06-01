@@ -100,7 +100,7 @@ matrix:
         fi
 
 script:
-  - sudo apt install python3-pip
+  - sudo apt install python3 python3-pip
   - sudo pip3 install conan
   - mkdir build && cd build
   - conan install .. -s $CONAN_INSTALL_SETTING --build fmt
