@@ -1,20 +1,21 @@
+#include <functional>
+#include <utility>
+
 #include "core/crtp.hpp"
 #include "core/type_traits.hpp"
-
-#include <catch2/catch.hpp>
 
 namespace beyond {
 
 // Enable empty base class optimization with multiple inheritance on Visual
 // Studio.
-#if defined(_MSC_VER) && _MSC_VER >= 1910
+#if defined(_MSC_VER)
 #define BEYOND_EBCO __declspec(empty_bases)
 #else
 #define BEYOND_EBCO
 #endif
 
 /// @brief Support ++T and T++
-/// @note The Derived type T should be a value wrapper that support `.get()`
+/// @note The Derived type T should be a value wrapper that supports `.get()`
 /// function
 /// @note The wrapped type should support both prefix and postfix operator++
 template <typename T> struct IncrementableBase : CRTP<T, IncrementableBase> {
@@ -32,7 +33,7 @@ template <typename T> struct IncrementableBase : CRTP<T, IncrementableBase> {
 };
 
 /// @brief Support ++T and T++
-/// @note The Derived type T should be a value wrapper that support `.get()`
+/// @note The Derived type T should be a value wrapper that supports `.get()`
 /// function
 /// @note The wrapped type should support both prefix and postfix operator++
 template <typename T> struct DecrementableBase : CRTP<T, DecrementableBase> {
@@ -50,7 +51,7 @@ template <typename T> struct DecrementableBase : CRTP<T, DecrementableBase> {
 };
 
 /// @brief Support T + T
-/// @note The Derived type T should be a value wrapper that support `.get()`
+/// @note The Derived type T should be a value wrapper that supports `.get()`
 /// function
 /// @note The wrapped type should support binary operator +
 template <typename T> struct AddableBase : CRTP<T, AddableBase> {
@@ -62,7 +63,7 @@ template <typename T> struct AddableBase : CRTP<T, AddableBase> {
 };
 
 /// @brief Support T - T
-/// @note The Derived type T should be a value wrapper that support `.get()`
+/// @note The Derived type T should be a value wrapper that supports `.get()`
 /// function
 /// @note The wrapped type should support binary operator -
 template <typename T> struct SubtractableBase : CRTP<T, SubtractableBase> {
@@ -74,7 +75,7 @@ template <typename T> struct SubtractableBase : CRTP<T, SubtractableBase> {
 };
 
 /// @brief Support -T
-/// @note The Derived type T should be a value wrapper that support `.get()`
+/// @note The Derived type T should be a value wrapper that supports `.get()`
 /// function
 /// @note The wrapped type should support unary operator -
 template <typename T> struct NegatabeBase : CRTP<T, NegatabeBase> {
@@ -88,7 +89,7 @@ template <typename T> struct NegatabeBase : CRTP<T, NegatabeBase> {
 //
 
 /// @brief Support T == T, T != T
-/// @note The Derived type T should be a value wrapper that support `.get()`
+/// @note The Derived type T should be a value wrapper that supports `.get()`
 /// function
 /// @note The wrapped type should support operator == and !=
 template <typename T> struct EquableBase : CRTP<T, EquableBase> {
@@ -106,7 +107,7 @@ template <typename T> struct EquableBase : CRTP<T, EquableBase> {
 };
 
 /// @brief ComparableBase is EquableBase | support T < T, T <= T, T > T, T >= T
-/// @note The Derived type T should be a value wrapper that support `.get()`
+/// @note The Derived type T should be a value wrapper that supports `.get()`
 /// function
 /// @note The wrapped type should support all comparison operations
 template <typename T> struct ComparableBase : EquableBase<T> {
@@ -183,10 +184,11 @@ private:
 
 } // namespace beyond
 
+#include <catch2/catch.hpp>
+
 using NamedDouble = beyond::NamedType<double, struct NamedDoubleTag>;
 using NamedDoubleR = beyond::NamedType<double&, struct NamedDoubleTag>;
 using NamedDoubleCR = beyond::NamedType<const double&, struct NamedDoubleTag>;
-
 TEST_CASE("NamedType basic usage", "[beyond.core.meta.named_type]")
 {
   SECTION("Constructs from prvalue")

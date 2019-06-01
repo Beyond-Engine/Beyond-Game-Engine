@@ -25,7 +25,7 @@ matrix:
   - os: linux
     compiler: clang
     name: Clang 8 with Unit Test
-    env: CC="/usr/bin/clang-8.0" CXX="/usr/bin/clang++-8.0" CMAKE_OPTIONS="-DBEYOND_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release" CONAN_INSTALL_SETTING="build_type=Release"
+    env: CC="/usr/bin/clang-8" CXX="/usr/bin/clang++-8" CMAKE_OPTIONS="-DBEYOND_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release" CONAN_INSTALL_SETTING="build_type=Release"
     addons:
       apt:
         sources:
@@ -35,10 +35,10 @@ matrix:
         key_url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
         packages:
           - g++-9
-          - clang-8.0
+          - clang-8
     before_script:
-      - sudo ln -s /usr/bin/clang-8.0 /usr/local/bin/clang
-      - sudo ln -s /usr/bin/clang++-8.0 /usr/local/bin/clang++
+      - sudo ln -s /usr/bin/clang-8 /usr/local/bin/clang
+      - sudo ln -s /usr/bin/clang++-8 /usr/local/bin/clang++
 
 
   # Coverage
@@ -73,16 +73,16 @@ matrix:
       apt:
         sources:
           - ubuntu-toolchain-r-test
-          - llvm-toolchain-xenial-8.0
-          - sourceline: 'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-8.0 main'
+          - llvm-toolchain-xenial-8
+          - sourceline: 'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-8 main'
         key_url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
         packages:
           - g++-9
-          - clang-8.0
-          - clang-tidy-8.0
+          - clang-8
+          - clang-tidy-8
     before_script:
-      - sudo ln -s /usr/bin/clang-8.0 /usr/local/bin/clang
-      - sudo ln -s /usr/bin/clang++-8.0 /usr/local/bin/clang++
+      - sudo ln -s /usr/bin/clang-8 /usr/local/bin/clang
+      - sudo ln -s /usr/bin/clang++-8 /usr/local/bin/clang++
 
 
   #
