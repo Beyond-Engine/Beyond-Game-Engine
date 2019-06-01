@@ -27,7 +27,7 @@ namespace beyond {
  */
 template <class Reference> struct ArrowProxy {
   Reference r;
-  Reference* operator->()
+  [[nodiscard]] auto operator-> () noexcept -> Reference*
   {
     return &r;
   }
