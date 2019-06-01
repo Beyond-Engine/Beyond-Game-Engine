@@ -30,8 +30,8 @@ matrix:
       apt:
         sources:
           - ubuntu-toolchain-r-test
-          - llvm-toolchain-xenial-8.0
-          - sourceline: 'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-8.0 main'
+          - llvm-toolchain-xenial-8
+          - sourceline: 'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-8 main'
         key_url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
         packages:
           - g++-9
@@ -100,7 +100,8 @@ matrix:
         fi
 
 script:
-  - sudo apt install python3 python3-pip
+  - sudo apt install python3-pip
+  - sudo pip3 install --upgrade setuptools
   - sudo pip3 install conan
   - mkdir build && cd build
   - conan install .. -s $CONAN_INSTALL_SETTING --build fmt

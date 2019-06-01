@@ -5,6 +5,14 @@
 
 namespace beyond {
 
+// Enable empty base class optimization with multiple inheritance on Visual
+// Studio.
+#if defined(_MSC_VER) && _MSC_VER >= 1910
+#define BEYOND_EBCO __declspec(empty_bases)
+#else
+#define BEYOND_EBCO
+#endif
+
 /// @brief Support ++T and T++
 /// @note The Derived type T should be a value wrapper that support `.get()`
 /// function
@@ -128,7 +136,8 @@ template <typename T> struct ComparableBase : EquableBase<T> {
 };
 
 template <typename T, typename Tag, template <typename> typename... Mixins>
-struct NamedType : public Mixins<NamedType<T, Tag, Mixins...>>... {
+class BEYOND_EBCO NamedType : public Mixins<NamedType<T, Tag, Mixins...>>... {
+public:
   using UnderlyingType = T;
   using Ref = NamedType<T&, Tag, Mixins...>;
   using ConstRef = NamedType<const T&, Tag, Mixins...>;
