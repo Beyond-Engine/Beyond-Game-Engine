@@ -362,45 +362,82 @@ TEST_CASE("Vector Swizzling", "[beyond.core.math.vec]")
   constexpr float a = 2.1f;
   constexpr float b = 4.2f;
 
-  SECTION("2D Vector Swizzling")
+  beyond::Vector2f v1{a, b};
+
+  SECTION("Equality test")
   {
-    beyond::Vector2f v1{a, b};
+    const beyond::Vector2f v2 = v1.xy;
+    CHECK(v1 == v2);
+    CHECK(v1 == v1.xy);
+    CHECK(v1.xy == v1.xy);
 
-    SECTION("Equality test")
+    const beyond::Vector2f v3{v1.yx};
+    CHECK(v1 != v3);
+    CHECK(v1 != v3.xy);
+    CHECK(v1.xy != v1.yx);
+  }
+
+  SECTION("Swizzle assignment")
+  {
+    v1.yx = v1;
+    CHECK(v1.x == Approx(b));
+    CHECK(v1.y == Approx(a));
+
+    v1.yx = v1.xy;
+    CHECK(v1.x == Approx(a));
+    CHECK(v1.y == Approx(b));
+  }
+
+  SECTION("Arithmetics on swizzed structures")
+  {
+    SECTION("Scalar multiplication")
     {
-      const beyond::Vector2f v2 = v1.xy;
-      CHECK(v1 == v2);
-      CHECK(v1 == v1.xy);
-      CHECK(v1.xy == v1.xy);
+      const beyond::Vector2f result1 = v1.xy * 2;
+      const beyond::Vector2f result2 = 2 * v1.xy;
+      CHECK(result1.x == Approx(v1.x * 2));
+      CHECK(result1.y == Approx(v1.y * 2));
+      CHECK(result1 == result2);
 
-      const beyond::Vector2f v3{v1.yx};
-      CHECK(v1 != v3);
-      CHECK(v1 != v3.xy);
-      CHECK(v1.xy != v1.yx);
+      v1.xy *= 2;
+      CHECK(result1 == v1);
     }
 
-    SECTION("Swizzle assignment")
+    SECTION("Scalar division")
     {
-      v1.yx = v1;
-      CHECK(v1.x == Approx(b));
-      CHECK(v1.y == Approx(a));
+      const beyond::Vector2f result1 = v1.xy / 2;
+      CHECK(result1.x == Approx(v1.x / 2));
+      CHECK(result1.y == Approx(v1.y / 2));
 
-      v1.yx = v1.xy;
-      CHECK(v1.x == Approx(a));
-      CHECK(v1.y == Approx(b));
+      v1.xy /= 2;
+      CHECK(result1 == v1);
     }
 
-    SECTION("Arithmetics on swizzed structures")
+    SECTION("Addition")
     {
-      SECTION("Scalar multiplication")
-      {
-        //        const beyond::Vector2f result1 = v1.xy * 2;
-        //        const beyond::Vector2f result2 = 2 * v1.xy;
-        //        REQUIRE(result1.x == Approx(v1.x * 2));
-        //        REQUIRE(result1.y == Approx(v1.y * 2));
-        //        REQUIRE(result2.x == Approx(v1.x * 2));
-        //        REQUIRE(result2.y == Approx(v1.y * 2));
-      }
+      const beyond::Vector2f result1 = v1.xy + v1.yx;
+      CHECK(result1.x == Approx(v1.x + v1.y));
+      CHECK(result1.y == Approx(v1.x + v1.y));
+
+      const auto result2 = v1.xy + v1;
+      CHECK(result2.x == Approx(v1.x * 2));
+      CHECK(result2.y == Approx(v1.y * 2));
+
+      const auto result3 = v1 + v1.xy;
+      CHECK(result3 == result2);
+    }
+
+    SECTION("Subtraction")
+    {
+      const beyond::Vector2f result1 = v1.xy - v1.yx;
+      CHECK(result1.x == Approx(v1.x - v1.y));
+      CHECK(result1.y == Approx(v1.y - v1.x));
+
+      const auto result2 = v1.xy - v1;
+      CHECK(result2.x == Approx(0));
+      CHECK(result2.y == Approx(0));
+
+      const auto result3 = v1 - v1.xy;
+      CHECK(result3 == result2);
     }
   }
 }
