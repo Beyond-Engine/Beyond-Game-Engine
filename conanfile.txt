@@ -2,7 +2,7 @@
 fmt/5.3.0@bincrafters/stable
 
 [build_requires]
-Catch2/2.7.2@catchorg/stable
+Catch2/2.8.0@catchorg/stable
 
 [generators]
 cmake

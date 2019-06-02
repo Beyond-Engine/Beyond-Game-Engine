@@ -59,6 +59,8 @@ template <> struct EntityTrait<std::uint32_t> {
   static constexpr std::uint32_t entity_mask = 0xFFFFF;
 };
 
+template <typename Entity, typename T> class SparseMap;
+
 /**
  * @brief SparseSet stores entities
  */
@@ -204,6 +206,18 @@ public:
   /// @brief Gets an iterator to the end of sparse set
   /// @return An iterator to the entity following the last entity
   [[nodiscard]] auto end() const noexcept -> Iterator
+  {
+    return Iterator{direct_.data() + direct_.size()};
+  }
+
+  /// @copydoc begin
+  [[nodiscard]] auto cbegin() const noexcept -> Iterator
+  {
+    return Iterator{direct_.data()};
+  }
+
+  /// @copydoc end
+  [[nodiscard]] auto cend() const noexcept -> Iterator
   {
     return Iterator{direct_.data() + direct_.size()};
   }

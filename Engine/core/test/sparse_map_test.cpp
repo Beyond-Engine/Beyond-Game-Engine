@@ -4,7 +4,7 @@
 
 using namespace beyond;
 
-TEST_CASE("SparseMap", "[beyond.core.ecs.sparse_set]")
+TEST_CASE("SparseMap", "[beyond.core.ecs.sparse_map]")
 {
   using Entity = std::uint32_t;
   SparseMap<Entity, float> sm;
@@ -21,7 +21,6 @@ TEST_CASE("SparseMap", "[beyond.core.ecs.sparse_set]")
 
   GIVEN("An entity 42 and its corresponding data")
   {
-
     const Entity entity = 42;
     const float data = 3.14f;
     const float data2 = 2.16f;
@@ -79,6 +78,131 @@ TEST_CASE("SparseMap", "[beyond.core.ecs.sparse_set]")
             REQUIRE(sm.get(entity) == Approx(data2));
           }
         }
+      }
+    }
+  }
+}
+
+TEST_CASE("SparseMap iterator test", "[beyond.core.ecs.sparse_map]")
+{
+  using Entity = std::uint32_t;
+  GIVEN("SparseMap {0 -> 1.2}")
+  {
+    SparseMap<Entity, float> sm;
+    const Entity e1 = 0;
+    const float v1 = 1.2f;
+    sm.insert(e1, v1);
+
+    AND_GIVEN("begin() and end() iterator of the map")
+    {
+      SparseMap<Entity, float>::Iterator begin = sm.begin();
+      SparseMap<Entity, float>::Iterator end = sm.end();
+      REQUIRE(begin != end);
+
+      THEN("begin() points to the only entity in the sparse set")
+      {
+        REQUIRE(begin->first == e1);
+        REQUIRE(begin->second == Approx(v1));
+      }
+
+      AND_THEN("++begin = end")
+      {
+        REQUIRE(++begin == end);
+      }
+      AND_THEN("--end == begin")
+      {
+        REQUIRE(--end == begin);
+      }
+      AND_WHEN("begin += 1")
+      {
+        begin += 1;
+        AND_THEN("begin == end")
+        {
+          REQUIRE(begin == end);
+        }
+      }
+      AND_WHEN("end -= 1")
+      {
+        end -= 1;
+        AND_THEN("begin == end")
+        {
+          REQUIRE(begin == end);
+        }
+      }
+      AND_THEN("begin + 1 == end")
+      {
+        REQUIRE(begin + 1 == end);
+        REQUIRE(1 + begin == end);
+      }
+      AND_THEN("end - 1 == begin")
+      {
+        REQUIRE(end - 1 == begin);
+      }
+      AND_THEN("begin - end == -1")
+      {
+        REQUIRE(begin - end == -1);
+      }
+
+      AND_WHEN("begin->second = 3.14")
+      {
+        begin->second = 3.14f;
+        AND_THEN("begin->second == 3.14")
+        {
+          REQUIRE(begin->second == Approx(3.14));
+        }
+      }
+    }
+
+    AND_GIVEN("begin() and end() iterator of the map")
+    {
+      SparseMap<Entity, float>::ConstIterator begin = sm.cbegin();
+      SparseMap<Entity, float>::ConstIterator end = sm.cend();
+      REQUIRE(begin != end);
+      REQUIRE(begin == std::as_const(sm).begin());
+      REQUIRE(end == std::as_const(sm).end());
+
+      THEN("begin() points to the only entity in the sparse set")
+      {
+        REQUIRE(begin->first == e1);
+        REQUIRE(begin->second == Approx(v1));
+      }
+
+      AND_THEN("++begin = end")
+      {
+        REQUIRE(++begin == end);
+      }
+      AND_THEN("--end == begin")
+      {
+        REQUIRE(--end == begin);
+      }
+      AND_WHEN("begin += 1")
+      {
+        begin += 1;
+        AND_THEN("begin == end")
+        {
+          REQUIRE(begin == end);
+        }
+      }
+      AND_WHEN("end -= 1")
+      {
+        end -= 1;
+        AND_THEN("begin == end")
+        {
+          REQUIRE(begin == end);
+        }
+      }
+      AND_THEN("begin + 1 == end")
+      {
+        REQUIRE(begin + 1 == end);
+        REQUIRE(1 + begin == end);
+      }
+      AND_THEN("end - 1 == begin")
+      {
+        REQUIRE(end - 1 == begin);
+      }
+      AND_THEN("begin - end == -1")
+      {
+        REQUIRE(begin - end == -1);
       }
     }
   }
