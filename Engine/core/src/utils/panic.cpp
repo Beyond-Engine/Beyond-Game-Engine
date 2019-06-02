@@ -1,7 +1,7 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include "core/panic.hpp"
+#include "beyond/core/utils/panic.hpp"
 
 namespace beyond {
 

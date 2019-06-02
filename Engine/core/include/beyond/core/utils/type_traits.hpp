@@ -1,10 +1,10 @@
-#ifndef BEYOND_CORE_TYPE_TRAITS_HPP
-#define BEYOND_CORE_TYPE_TRAITS_HPP
+#ifndef BEYOND_CORE_UTILS_TYPE_TRAITS_HPP
+#define BEYOND_CORE_UTILS_TYPE_TRAITS_HPP
 
 /**
  * @file type_traits.hpp
  * @brief A complementary set of type traits to the standard \<type_traits\>
- * @ingroup meta
+ * @ingroup util
  */
 
 #include <type_traits>
@@ -14,13 +14,7 @@ namespace beyond {
 /**
  * @addtogroup core
  * @{
- */
-
-/**
- * @defgroup meta Meta
- * @brief Meta programming helpers
- * @ingroup core
- *
+ * @addtogroup util
  * @{
  */
 
@@ -43,4 +37,4 @@ using is_complete = decltype(detail::is_complete_impl(std::declval<T*>()));
 
 } // namespace beyond
 
-#endif // BEYOND_CORE_TYPE_TRAITS_HPP
+#endif // BEYOND_CORE_UTILS_TYPE_TRAITS_HPP

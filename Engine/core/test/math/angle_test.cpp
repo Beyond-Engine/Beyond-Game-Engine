@@ -1,7 +1,7 @@
 #include <catch2/catch.hpp>
 
-#include "core/math/angle.hpp"
-#include "core/math/constants.hpp"
+#include "beyond/core/math/angle.hpp"
+#include "beyond/core/math/constants.hpp"
 
 using namespace beyond;
 

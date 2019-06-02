@@ -1,5 +1,5 @@
-#ifndef BEYOND_CORE_PANIC_HPP
-#define BEYOND_CORE_PANIC_HPP
+#ifndef BEYOND_CORE_UTILS_PANIC_HPP
+#define BEYOND_CORE_UTILS_PANIC_HPP
 
 /**
  * @file panic.hpp
@@ -27,4 +27,4 @@ namespace beyond {
 
 /** @}@} */
 
-#endif // BEYOND_CORE_PANIC_HPP
+#endif // BEYOND_CORE_UTILS_PANIC_HPP

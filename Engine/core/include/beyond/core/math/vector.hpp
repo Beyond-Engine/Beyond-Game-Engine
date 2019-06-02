@@ -1,5 +1,5 @@
-﻿#ifndef BEYOND_CORE_VECTOR_HPP
-#define BEYOND_CORE_VECTOR_HPP
+#ifndef BEYOND_CORE_MATH_VECTOR_HPP
+#define BEYOND_CORE_MATH_VECTOR_HPP
 
 /**
  * @file vector.hpp
@@ -13,8 +13,8 @@
 #include <type_traits>
 #include <utility>
 
-#include "core/assert.hpp"
-#include "core/bit_cast.hpp"
+#include "beyond/core/utils/assert.hpp"
+#include "beyond/core/utils/bit_cast.hpp"
 
 namespace beyond {
 
@@ -723,4 +723,4 @@ using Point3i = Point3<int>;
 
 } // namespace beyond
 
-#endif // BEYOND_CORE_VECTOR_HPP
+#endif // BEYOND_CORE_MATH_VECTOR_HPP

@@ -1,6 +1,6 @@
 #include <catch2/catch.hpp>
 
-#include "core/math/vector.hpp"
+#include "beyond/core/math/vector.hpp"
 
 TEST_CASE("All Vector types test", "[beyond.core.math.vec]")
 {

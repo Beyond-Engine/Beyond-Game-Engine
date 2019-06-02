@@ -13,7 +13,7 @@
  * @ingroup core
  */
 
-#include "core/math/angle.hpp"
+#include "beyond/core/math/angle.hpp"
 
 #include <cmath>
 #include <type_traits>

@@ -1,5 +1,5 @@
-#ifndef BEYOND_CORE_SPARSE_SET_HPP
-#define BEYOND_CORE_SPARSE_SET_HPP
+#ifndef BEYOND_CORE_ECS_SPARSE_SET_HPP
+#define BEYOND_CORE_ECS_SPARSE_SET_HPP
 
 #include <array>
 #include <memory>
@@ -7,8 +7,8 @@
 #include <utility>
 #include <vector>
 
-#include "core/assert.hpp"
-#include "core/type_traits.hpp"
+#include "beyond/core/utils/assert.hpp"
+#include "beyond/core/utils/type_traits.hpp"
 
 /**
  * @file sparse_set.hpp
@@ -58,6 +58,8 @@ template <> struct EntityTrait<std::uint32_t> {
   static constexpr std::size_t entity_shift = 20;
   static constexpr std::uint32_t entity_mask = 0xFFFFF;
 };
+
+template <typename Entity, typename T> class SparseMap;
 
 /**
  * @brief SparseSet stores entities
@@ -208,6 +210,18 @@ public:
     return Iterator{direct_.data() + direct_.size()};
   }
 
+  /// @copydoc begin
+  [[nodiscard]] auto cbegin() const noexcept -> Iterator
+  {
+    return Iterator{direct_.data()};
+  }
+
+  /// @copydoc end
+  [[nodiscard]] auto cend() const noexcept -> Iterator
+  {
+    return Iterator{direct_.data() + direct_.size()};
+  }
+
 private:
   std::array<std::unique_ptr<Page>, page_count> reverse_;
   std::vector<Entity> direct_; // The packed array of entities
@@ -228,4 +242,4 @@ private:
 
 } // namespace beyond
 
-#endif // BEYOND_CORE_SPARSE_SET_HPP
+#endif // BEYOND_CORE_ECS_SPARSE_SET_HPP

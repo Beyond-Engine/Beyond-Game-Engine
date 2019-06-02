@@ -1,5 +1,5 @@
-#ifndef BEYOND_CORE_ANGLE_HPP
-#define BEYOND_CORE_ANGLE_HPP
+#ifndef BEYOND_CORE_MATH_ANGLE_HPP
+#define BEYOND_CORE_MATH_ANGLE_HPP
 
 #include <iosfwd>
 #include <type_traits>
@@ -451,4 +451,4 @@ auto operator<<(std::ostream& os, Degree<T> r) -> std::ostream&
 
 } // namespace beyond
 
-#endif // BEYOND_CORE_ANGLE_HPP
+#endif // BEYOND_CORE_MATH_ANGLE_HPP
