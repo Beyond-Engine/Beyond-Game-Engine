@@ -20,6 +20,9 @@
  * @brief Provides named type used in place of another type to carry specific
  * meaning through its name.
  * @ingroup util
+ *
+ * This implementation borrowed ideas heavely on Jonathan Boccara's <a
+ * href="https://github.com/joboccara/NamedType">NamedType</a> library
  */
 
 namespace beyond {
@@ -153,6 +156,23 @@ template <typename T> struct ComparableBase : EquableBase<T> {
   }
 };
 
+/**
+ * @brief NamedType are types that wrap another type to carry specific meaning
+ * through its name.
+ * @tparam T The underlying type to be wrapped
+ * @tparam Tag A dummy type to distinguish different named types
+ * @tparam Mixins... Mixins define operations that this named type support
+ *
+ *
+ * ## Inheritance from a `NamedType`
+ * You can inheriting from a `NamedType` to avoid excessive long symbol name:
+ * ```cpp
+ * struct Meter
+ *  : beyond::NamedType<double, struct MeterTag, beyond::IncrementableBase,
+ *                      beyond::DecrementableBase, beyond::AddableBase,
+ *                      beyond::SubtractableBase> {};
+ * ```
+ */
 template <typename T, typename Tag, template <typename> typename... Mixins>
 class BEYOND_EBCO NamedType : public Mixins<NamedType<T, Tag, Mixins...>>... {
 public:
@@ -183,14 +203,14 @@ public:
   }
 
   /// @brief Converts to the NamedType of the reference of the underlying type
-  operator Ref()
+  [[nodiscard]] constexpr operator Ref()
   {
     return Ref{value_};
   }
 
   /// @brief Converts to the NamedType of the const reference of the underlying
   /// type
-  operator ConstRef() const
+  [[nodiscard]] constexpr operator ConstRef() const
   {
     return ConstRef{value_};
   }
