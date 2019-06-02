@@ -62,11 +62,7 @@ matrix:
       - sudo ln -s /usr/bin/gcov-9 /usr/local/bin/gcov
     after_success:
       - make coverage
-      - bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports";June 8 - August 9 (August 4-9; limited service)
-
-    Mon-Fri 6:45 am - 6:30 pm
-    Saturday and Sunday: 9:00 am - 6:30 pm
-
+      - bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports";
 
   # Clang-tidy
   - os: linux
