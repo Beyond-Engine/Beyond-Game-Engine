@@ -369,27 +369,38 @@ TEST_CASE("Vector Swizzling", "[beyond.core.math.vec]")
     SECTION("Equality test")
     {
       const beyond::Vector2f v2 = v1.xy;
-      REQUIRE(v1 == v2);
-      REQUIRE(v1 == v1.xy);
-      REQUIRE(v1.xy == v1.xy);
+      CHECK(v1 == v2);
+      CHECK(v1 == v1.xy);
+      CHECK(v1.xy == v1.xy);
 
       const beyond::Vector2f v3{v1.yx};
-      REQUIRE(v1 != v3);
-      REQUIRE(v1 != v3.xy);
-      REQUIRE(v1.xy != v1.yx);
+      CHECK(v1 != v3);
+      CHECK(v1 != v3.xy);
+      CHECK(v1.xy != v1.yx);
+    }
+
+    SECTION("Swizzle assignment")
+    {
+      v1.yx = v1;
+      CHECK(v1.x == Approx(b));
+      CHECK(v1.y == Approx(a));
+
+      v1.yx = v1.xy;
+      CHECK(v1.x == Approx(a));
+      CHECK(v1.y == Approx(b));
     }
 
     SECTION("Arithmetics on swizzed structures")
     {
-      //      SECTION("Scalar multiplication")
-      //      {
-      //        const beyond::Vector2f result1 = v1.xy * 2;
-      //        const beyond::Vector2f result2 = 2 * v1.xy;
-      //        REQUIRE(result1.x == Approx(v1.x * 2));
-      //        REQUIRE(result1.y == Approx(v1.y * 2));
-      //        REQUIRE(result2.x == Approx(v1.x * 2));
-      //        REQUIRE(result2.y == Approx(v1.y * 2));
-      //      }
+      SECTION("Scalar multiplication")
+      {
+        //        const beyond::Vector2f result1 = v1.xy * 2;
+        //        const beyond::Vector2f result2 = 2 * v1.xy;
+        //        REQUIRE(result1.x == Approx(v1.x * 2));
+        //        REQUIRE(result1.y == Approx(v1.y * 2));
+        //        REQUIRE(result2.x == Approx(v1.x * 2));
+        //        REQUIRE(result2.y == Approx(v1.y * 2));
+      }
     }
   }
 }

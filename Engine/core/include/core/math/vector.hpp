@@ -1,4 +1,4 @@
-#ifndef BEYOND_CORE_VECTOR_HPP
+﻿#ifndef BEYOND_CORE_VECTOR_HPP
 #define BEYOND_CORE_VECTOR_HPP
 
 /**
@@ -52,12 +52,14 @@ template <typename Vector> struct VectorTrait;
 
 template <typename Value> struct VectorTrait<Vector<Value, 2>> {
   using ValueType = Value;
+  using VectorType = Vector<Value, 2>;
   using Vector2Type = Vector<Value, 2>;
   static constexpr std::size_t size = 2;
 };
 
 template <typename Value> struct VectorTrait<Vector<Value, 3>> {
   using ValueType = Value;
+  using VectorType = Vector<Value, 2>;
   using Vector2Type = Vector<Value, 2>;
   using Vector3Type = Vector<Value, 3>;
   static constexpr std::size_t size = 3;
@@ -65,6 +67,7 @@ template <typename Value> struct VectorTrait<Vector<Value, 3>> {
 
 template <typename Value> struct VectorTrait<Vector<Value, 4>> {
   using ValueType = Value;
+  using VectorType = Vector<Value, 2>;
   using Vector2Type = Vector<Value, 2>;
   using Vector3Type = Vector<Value, 3>;
   using Vector4Type = Vector<Value, 4>;
@@ -172,43 +175,52 @@ template <typename Trait> struct VectorConverter<Trait, 2, 3> {
   }
 };
 
-template <typename Trait, std::size_t index_x, std::size_t index_y>
-struct Subvector2 {
-public:
+template <typename Trait, std::size_t dimensions, std::size_t... indices>
+struct Subvector {
   using ValueType = typename Trait::ValueType;
-  using Vector2Type = typename Trait::Vector2Type;
-  std::array<ValueType, 2> elem;
+  using VectorType = typename Trait::VectorType;
+
+  std::array<ValueType, dimensions> elem;
 
   // NOLINTNEXTLINE(google-explicit-constructor, hicpp-explicit-conversions)
-  [[nodiscard]] constexpr operator Vector2Type() noexcept
+  [[nodiscard]] constexpr operator VectorType() noexcept
   {
-    return (
-        detail::VectorConverter<Trait, index_x, index_y>::convert(elem.data()));
+    return (detail::VectorConverter<Trait, indices...>::convert(elem.data()));
   }
 
   // NOLINTNEXTLINE(google-explicit-constructor, hicpp-explicit-conversions)
-  [[nodiscard]] constexpr operator Vector2Type() const noexcept
+  [[nodiscard]] constexpr operator VectorType() const noexcept
   {
-    return (
-        detail::VectorConverter<Trait, index_x, index_y>::convert(elem.data()));
+    return (detail::VectorConverter<Trait, indices...>::convert(elem.data()));
   }
 
-  template <typename T, std::size_t ind_x, std::size_t ind_y>
-  constexpr auto operator=(const Subvector2<T, ind_x, ind_y>& value) noexcept
-      -> Subvector2&
+  constexpr auto operator=(VectorType value) noexcept -> Subvector&
   {
-    elem[index_x] = value.data[ind_x];
-    elem[index_y] = value.data[ind_y];
+    std::size_t i = 0;
+    ((elem[indices] = value[i++]), ...);
     return (*this);
   }
 
-  constexpr auto operator=(const Vector2Type& value) noexcept -> Subvector2&
+  template <std::size_t... indices2>
+  constexpr auto
+  operator=(Subvector<Trait, dimensions, indices2...> value) noexcept
+      -> Subvector&
   {
-    elem[index_x] = value.x;
-    elem[index_y] = value.y;
+    ((elem[indices] = value.elem[indices2]), ...);
     return (*this);
   }
 };
+
+template <typename Trait, std::size_t index_x, std::size_t index_y>
+using Subvector2 = Subvector<Trait, 2, index_x, index_y>;
+
+template <typename Trait, std::size_t index_x, std::size_t index_y,
+          std::size_t index_z>
+using Subvector3 = Subvector<Trait, 3, index_x, index_y, index_z>;
+
+template <typename Trait, std::size_t index_x, std::size_t index_y,
+          std::size_t index_z, std::size_t index_w>
+using Subvector4 = Subvector<Trait, 4, index_x, index_y, index_z, index_w>;
 
 template <typename Trait, std::size_t index_x1, std::size_t index_y1,
           std::size_t index_x2, std::size_t index_y2>
@@ -229,31 +241,6 @@ operator!=(const Subvector2<Trait, index_x1, index_y1>& v1,
   return v1.elem[index_x1] != v2.elem[index_x2] ||
          v1.elem[index_y1] != v1.elem[index_y2];
 }
-
-/**
- * @brief Abstraction of two components of vectors
- */
-template <typename Trait, std::size_t index_x, std::size_t index_y,
-          std::size_t index_z>
-struct Subvector3 {
-  using ValueType = typename Trait::ValueType;
-  using Vector2Type = typename Trait::Vector2Type;
-  using Vector3Type = typename Trait::Vector3Type;
-  std::array<ValueType, 3> elem;
-};
-
-/**
- * @brief Abstraction of two components of vectors
- */
-template <typename Trait, std::size_t index_x, std::size_t index_y,
-          std::size_t index_z, std::size_t index_w>
-struct Subvector4 {
-  using ValueType = typename Trait::ValueType;
-  using Vector2Type = typename Trait::Vector2Type;
-  using Vector3Type = typename Trait::Vector3Type;
-  using Vector4Type = typename Trait::Vector4Type;
-  std::array<ValueType, 4> elem;
-};
 
 } // namespace detail
 
