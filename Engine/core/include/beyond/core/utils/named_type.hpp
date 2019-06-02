@@ -164,6 +164,23 @@ template <typename T> struct ComparableBase : EquableBase<T> {
  * @tparam Mixins... Mixins define operations that this named type support
  *
  *
+ * ## Basic usage
+ * You can declare a named type with type alias:
+ * ```cpp
+ * using Width = beyond::NamedType<double, struct WidthTag>;
+ * using Height = beyond::NamedType<double, struct HeightTag>;
+ * ```
+ *
+ * ## Inheriting the underlying type functionalities
+ * You can add some basic functionalities of the underlying type to a
+ * `NamedType.` For example, you can add a bunch of arithmatic operations to a
+ * `NamedType`:
+ * ```cpp
+ * using Meter = beyond::NamedType<double, struct MeterTag,
+ *                      beyond::IncrementableBase, beyond::DecrementableBase,
+ *                      beyond::AddableBase, beyond::SubtractableBase>;
+ * ```
+ *
  * ## Inheritance from a `NamedType`
  * You can inheriting from a `NamedType` to avoid excessive long symbol name:
  * ```cpp
@@ -172,6 +189,8 @@ template <typename T> struct ComparableBase : EquableBase<T> {
  *                      beyond::DecrementableBase, beyond::AddableBase,
  *                      beyond::SubtractableBase> {};
  * ```
+ * Another advantage of such inheritance is that you can add arbitrary
+ * member functions to your NamedType.
  */
 template <typename T, typename Tag, template <typename> typename... Mixins>
 class BEYOND_EBCO NamedType : public Mixins<NamedType<T, Tag, Mixins...>>... {

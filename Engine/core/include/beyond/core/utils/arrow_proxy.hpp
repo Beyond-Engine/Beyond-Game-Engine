@@ -18,7 +18,8 @@ namespace beyond {
  */
 
 /**
- * @brief Helper class for `operator->` for proxy iterators of container
+ * @brief Helper class for implementing `operator->` of proxy iterators of
+ * container
  *
  * Helper class to implement `operator->` for the proxy iterators for
  * containers. See <a
