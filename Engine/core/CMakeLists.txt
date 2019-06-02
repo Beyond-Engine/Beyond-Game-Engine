@@ -1,17 +1,17 @@
 add_library(core
-    include/core/assert.hpp
-    include/core/arrow_proxy.hpp
-    include/core/bit_cast.hpp
-    include/core/crtp.hpp
-    include/core/panic.hpp
     src/panic.cpp
-    include/core/type_traits.hpp
-    include/core/ecs/sparse_map.hpp
-    include/core/ecs/sparse_set.hpp
-    include/core/math/angle.hpp
-    include/core/math/constants.hpp
-    include/core/math/math.hpp
-    include/core/math/vector.hpp
+    include/beyond/core/utils/assert.hpp
+    include/beyond/core/utils/arrow_proxy.hpp
+    include/beyond/core/utils/bit_cast.hpp
+    include/beyond/core/utils/crtp.hpp
+    include/beyond/core/utils/panic.hpp
+    include/beyond/core/utils/type_traits.hpp
+    include/beyond/core/ecs/sparse_map.hpp
+    include/beyond/core/ecs/sparse_set.hpp
+    include/beyond/core/math/angle.hpp
+    include/beyond/core/math/constants.hpp
+    include/beyond/core/math/math.hpp
+    include/beyond/core/math/vector.hpp
 )
 
 set(BEYOND_CORE_ASSERT_POLICY AUTO CACHE STRING "The policy of enabling

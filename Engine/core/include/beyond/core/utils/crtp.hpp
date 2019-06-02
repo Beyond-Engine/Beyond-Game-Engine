@@ -4,7 +4,7 @@
 /**
  * @file crtp.hpp
  * @brief Provides helper class for curious recurrence template pattern
- * @ingroup meta
+ * @ingroup util
  */
 
 namespace beyond {
@@ -12,7 +12,7 @@ namespace beyond {
 /**
  * @addtogroup core
  * @{
- * @addtogroup meta
+ * @addtogroup util
  * @{
  */
 

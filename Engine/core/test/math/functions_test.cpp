@@ -1,6 +1,6 @@
 #include <catch2/catch.hpp>
 
-#include "core/math/math.hpp"
+#include "beyond/core/math/math.hpp"
 #include <cmath>
 
 TEST_CASE("Trig functions", "[beyond.core.math]")

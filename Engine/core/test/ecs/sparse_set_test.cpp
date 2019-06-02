@@ -1,4 +1,4 @@
-#include "core/ecs/sparse_set.hpp"
+#include "beyond/core/ecs/sparse_set.hpp"
 #include <catch2/catch.hpp>
 
 using namespace beyond;

@@ -1,13 +1,14 @@
 set(TEST_TARGET_NAME ${PROJECT_NAME}CoreTest)
 
 add_executable(${TEST_TARGET_NAME}
-    "angle_test.cpp"
     "main.cpp"
-    "math_test.cpp"
-    "named_type_test.cpp"
-    "vector_test.cpp"
-    "sparse_set_test.cpp"
-    "sparse_map_test.cpp")
+    "ecs/sparse_set_test.cpp"
+    "ecs/sparse_map_test.cpp"
+    "math/angle_test.cpp"
+    "math/functions_test.cpp"
+    "math/vector_test.cpp"
+    "utils/named_type_test.cpp"
+    )
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 

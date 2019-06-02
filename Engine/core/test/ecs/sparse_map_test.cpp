@@ -1,4 +1,4 @@
-﻿#include "core/ecs/sparse_map.hpp"
+﻿#include "beyond/core/ecs/sparse_map.hpp"
 
 #include <catch2/catch.hpp>
 

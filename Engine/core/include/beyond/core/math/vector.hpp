@@ -13,8 +13,8 @@
 #include <type_traits>
 #include <utility>
 
-#include "core/assert.hpp"
-#include "core/bit_cast.hpp"
+#include "beyond/core/utils/assert.hpp"
+#include "beyond/core/utils/bit_cast.hpp"
 
 namespace beyond {
 

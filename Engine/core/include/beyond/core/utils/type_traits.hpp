@@ -4,7 +4,7 @@
 /**
  * @file type_traits.hpp
  * @brief A complementary set of type traits to the standard \<type_traits\>
- * @ingroup meta
+ * @ingroup util
  */
 
 #include <type_traits>
@@ -14,13 +14,7 @@ namespace beyond {
 /**
  * @addtogroup core
  * @{
- */
-
-/**
- * @defgroup meta Meta
- * @brief Meta programming helpers
- * @ingroup core
- *
+ * @addtogroup util
  * @{
  */
 

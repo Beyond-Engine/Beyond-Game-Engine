@@ -4,8 +4,8 @@
 #include <iterator>
 #include <vector>
 
-#include "core/arrow_proxy.hpp"
-#include "core/ecs/sparse_set.hpp"
+#include "beyond/core/ecs/sparse_set.hpp"
+#include "beyond/core/utils/arrow_proxy.hpp"
 
 /**
  * @file sparse_map.hpp

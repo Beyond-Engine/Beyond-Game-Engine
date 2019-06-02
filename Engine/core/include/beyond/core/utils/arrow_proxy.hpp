@@ -5,7 +5,7 @@
  * @file arrow_proxy.hpp
  * @brief Provides helper class for `operator->` for proxy iterators of
  * container
- * @ingroup meta
+ * @ingroup util
  */
 
 namespace beyond {
@@ -13,7 +13,7 @@ namespace beyond {
 /**
  * @addtogroup core
  * @{
- * @addtogroup meta
+ * @addtogroup util
  * @{
  */
 

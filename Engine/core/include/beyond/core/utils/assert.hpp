@@ -15,7 +15,7 @@
  */
 
 #ifdef BEYOND_GAME_ENGINE_CORE_ENABLE_ASSERT
-#include "core/panic.hpp"
+#include "beyond/core/utils/panic.hpp"
 #include <fmt/format.h>
 #include <string_view>
 #endif

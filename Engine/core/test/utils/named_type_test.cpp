@@ -1,8 +1,8 @@
 #include <functional>
 #include <utility>
 
-#include "core/crtp.hpp"
-#include "core/type_traits.hpp"
+#include "beyond/core/utils/crtp.hpp"
+#include "beyond/core/utils/type_traits.hpp"
 
 namespace beyond {
 

@@ -7,8 +7,8 @@
 #include <utility>
 #include <vector>
 
-#include "core/assert.hpp"
-#include "core/type_traits.hpp"
+#include "beyond/core/utils/assert.hpp"
+#include "beyond/core/utils/type_traits.hpp"
 
 /**
  * @file sparse_set.hpp
