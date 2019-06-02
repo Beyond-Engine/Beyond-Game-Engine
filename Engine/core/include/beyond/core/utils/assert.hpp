@@ -1,5 +1,5 @@
-#ifndef BEYOND_CORE_ASSERT_HPP
-#define BEYOND_CORE_ASSERT_HPP
+#ifndef BEYOND_CORE_UTILS_ASSERT_HPP
+#define BEYOND_CORE_UTILS_ASSERT_HPP
 
 /**
  * @file assert.hpp
@@ -75,4 +75,4 @@
 /** @}
  *  @} */
 
-#endif // BEYOND_CORE_ASSERT_HPP
+#endif // BEYOND_CORE_UTILS_ASSERT_HPP

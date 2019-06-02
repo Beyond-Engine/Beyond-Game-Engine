@@ -1,5 +1,5 @@
-#ifndef BEYOND_CORE_BIT_CAST_HPP
-#define BEYOND_CORE_BIT_CAST_HPP
+#ifndef BEYOND_CORE_UTILS_BIT_CAST_HPP
+#define BEYOND_CORE_UTILS_BIT_CAST_HPP
 
 /**
  * @file bit_cast.hpp
@@ -47,4 +47,4 @@ template <typename Dest, typename Source>
 
 } // namespace beyond
 
-#endif // BEYOND_CORE_BIT_CAST_HPP
+#endif // BEYOND_CORE_UTILS_BIT_CAST_HPP

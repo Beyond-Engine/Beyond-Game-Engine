@@ -1,5 +1,5 @@
-#ifndef BEYOND_CORE_TYPE_TRAITS_HPP
-#define BEYOND_CORE_TYPE_TRAITS_HPP
+#ifndef BEYOND_CORE_UTILS_TYPE_TRAITS_HPP
+#define BEYOND_CORE_UTILS_TYPE_TRAITS_HPP
 
 /**
  * @file type_traits.hpp
@@ -37,4 +37,4 @@ using is_complete = decltype(detail::is_complete_impl(std::declval<T*>()));
 
 } // namespace beyond
 
-#endif // BEYOND_CORE_TYPE_TRAITS_HPP
+#endif // BEYOND_CORE_UTILS_TYPE_TRAITS_HPP

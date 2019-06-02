@@ -1,5 +1,5 @@
-#ifndef BEYOND_CORE_ARROW_PROXY_HPP
-#define BEYOND_CORE_ARROW_PROXY_HPP
+#ifndef BEYOND_CORE_UTILS_ARROW_PROXY_HPP
+#define BEYOND_CORE_UTILS_ARROW_PROXY_HPP
 
 /**
  * @file arrow_proxy.hpp
@@ -37,4 +37,4 @@ template <class Reference> struct ArrowProxy {
 
 } // namespace beyond
 
-#endif // BEYOND_CORE_ARROW_PROXY_HPP
+#endif // BEYOND_CORE_UTILS_ARROW_PROXY_HPP

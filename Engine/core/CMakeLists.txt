@@ -1,13 +1,14 @@
 add_library(core
-    src/panic.cpp
+    include/beyond/core/ecs/sparse_map.hpp
+    include/beyond/core/ecs/sparse_set.hpp
     include/beyond/core/utils/assert.hpp
     include/beyond/core/utils/arrow_proxy.hpp
     include/beyond/core/utils/bit_cast.hpp
     include/beyond/core/utils/crtp.hpp
+    include/beyond/core/utils/named_type.hpp
     include/beyond/core/utils/panic.hpp
+    src/utils/panic.cpp
     include/beyond/core/utils/type_traits.hpp
-    include/beyond/core/ecs/sparse_map.hpp
-    include/beyond/core/ecs/sparse_set.hpp
     include/beyond/core/math/angle.hpp
     include/beyond/core/math/constants.hpp
     include/beyond/core/math/math.hpp

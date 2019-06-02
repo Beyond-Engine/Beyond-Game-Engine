@@ -1,5 +1,5 @@
-#ifndef BEYOND_CORE_SPARSE_SET_HPP
-#define BEYOND_CORE_SPARSE_SET_HPP
+#ifndef BEYOND_CORE_ECS_SPARSE_SET_HPP
+#define BEYOND_CORE_ECS_SPARSE_SET_HPP
 
 #include <array>
 #include <memory>
@@ -242,4 +242,4 @@ private:
 
 } // namespace beyond
 
-#endif // BEYOND_CORE_SPARSE_SET_HPP
+#endif // BEYOND_CORE_ECS_SPARSE_SET_HPP

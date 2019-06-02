@@ -1,5 +1,5 @@
-#ifndef BEYOND_CORE_CRTP_HPP
-#define BEYOND_CORE_CRTP_HPP
+#ifndef BEYOND_CORE_UTILS_CRTP_HPP
+#define BEYOND_CORE_UTILS_CRTP_HPP
 
 /**
  * @file crtp.hpp
@@ -57,4 +57,4 @@ private:
 
 } // namespace beyond
 
-#endif // BEYOND_CORE_CRTP_HPP
+#endif // BEYOND_CORE_UTILS_CRTP_HPP

@@ -1,5 +1,5 @@
-#ifndef BEYOND_CORE_SPARSE_MAP_HPP
-#define BEYOND_CORE_SPARSE_MAP_HPP
+#ifndef BEYOND_CORE_ECS_SPARSE_MAP_HPP
+#define BEYOND_CORE_ECS_SPARSE_MAP_HPP
 
 #include <iterator>
 #include <vector>
@@ -328,4 +328,4 @@ private:
 
 } // namespace beyond
 
-#endif // BEYOND_CORE_SPARSE_MAP_HPP
+#endif // BEYOND_CORE_ECS_SPARSE_MAP_HPP

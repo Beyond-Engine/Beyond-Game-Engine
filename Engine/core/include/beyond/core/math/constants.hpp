@@ -1,5 +1,5 @@
-#ifndef BEYOND_CORE_CONSTANTS_HPP
-#define BEYOND_CORE_CONSTANTS_HPP
+#ifndef BEYOND_CORE_MATH_CONSTANTS_HPP
+#define BEYOND_CORE_MATH_CONSTANTS_HPP
 
 /**
  * @file constants.hpp
@@ -39,4 +39,4 @@ constexpr double pi = beyond::constant::pi<double>;
 
 } // namespace beyond
 
-#endif // BEYOND_CORE_CONSTANTS_HPP
+#endif // BEYOND_CORE_MATH_CONSTANTS_HPP
