@@ -117,10 +117,7 @@ public:
   /// @endcond
 
   /// @brief Constructs the Expected with a value
-  constexpr Expected(const T& value) : val_{value} {} // NOLINT
-
-  /// @overload
-  constexpr Expected(T&& value) noexcept : val_{std::move(value)} {} // NOLINT
+  constexpr Expected(T value) : val_{std::move(value)} {} // NOLINT
 
   /// @brief In place construction of the value
   template <class... Args,
@@ -226,6 +223,31 @@ public:
     return std::move(unexpected_);
   }
 
+  auto swap(Expected& rhs) noexcept
+      -> std::enable_if_t<std::is_nothrow_swappable_v<T&> &&
+                          std::is_nothrow_swappable_v<E&>>
+  {
+    if (has_value()) {
+      if (rhs.has_value()) {
+        std::swap(val_, rhs.val_);
+      } else {
+        auto temp = std::move(rhs.error());
+        ::new (&rhs.val_) T(std::move(val_));
+        ::new (&this->unexpected_) E(std::move(temp));
+        std::swap(rhs.has_value_, this->has_value_);
+      }
+    } else {
+      if (rhs.has_value()) {
+        auto temp = std::move(this->error());
+        ::new (&this->val_) T(std::move(rhs.val_));
+        ::new (&rhs.unexpected_) E(std::move(temp));
+        std::swap(this->has_value_, rhs.has_value_);
+      } else {
+        std::swap(unexpected_, rhs.unexpected_);
+      }
+    }
+  }
+
 private:
   union {
     value_type val_{};
@@ -318,6 +340,15 @@ template <typename T, typename E1, typename E2>
                                         const Expected<T, E1>& e) -> bool
 {
   return !(e == unexpected);
+}
+
+/// @brief Swap two Expected
+template <class T, class E,
+          std::enable_if_t<std::is_nothrow_swappable_v<T&> &&
+                           std::is_nothrow_swappable_v<E&>>* = nullptr>
+auto swap(Expected<T, E>& lhs, Expected<T, E>& rhs) noexcept -> void
+{
+  lhs.swap(rhs);
 }
 
 } // namespace beyond

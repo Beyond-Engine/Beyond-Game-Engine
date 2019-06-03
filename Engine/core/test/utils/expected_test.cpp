@@ -140,3 +140,55 @@ TEST_CASE("Expected equality comparison", "[beyond.core.utils.expected]")
   CHECK(e4 != beyond::make_unexpected(i2));
   CHECK(beyond::make_unexpected(i2) != e4);
 }
+
+TEST_CASE("Expected swap", "[beyond.core.utils.expected]")
+{
+  const auto i1 = 42, i2 = 17;
+  beyond::Expected<int, int> e1 = i1;
+  beyond::Expected<int, int> e2 = i2;
+  beyond::Expected<int, int> e3 = beyond::make_unexpected(i1);
+  beyond::Expected<int, int> e4 = beyond::make_unexpected(i2);
+
+  SECTION("Swap e1, e2")
+  {
+    swap(e1, e2);
+    REQUIRE(e1);
+    REQUIRE(e2);
+    CHECK(e1 == i2);
+    CHECK(e2 == i1);
+  }
+
+  SECTION("Swap e1, e3")
+  {
+    swap(e1, e3);
+    REQUIRE(!e1);
+    REQUIRE(e3);
+    CHECK(e1.error() == i1);
+    CHECK(e3 == i1);
+  }
+
+  SECTION("Swap e4, e1")
+  {
+    swap(e4, e1);
+    REQUIRE(e4);
+    REQUIRE(!e1);
+    CHECK(e4 == i1);
+    CHECK(e1.error() == i2);
+  }
+
+  SECTION("Swap e3, e4")
+  {
+    swap(e3, e4);
+    REQUIRE(!e3);
+    REQUIRE(!e4);
+    CHECK(e3.error() == i2);
+    CHECK(e4.error() == i1);
+  }
+
+  SECTION("Swap two good expected")
+  {
+    swap(e1, e2);
+    CHECK(e1 == i2);
+    CHECK(e2 == i1);
+  }
+}
