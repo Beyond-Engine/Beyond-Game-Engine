@@ -44,22 +44,21 @@ TEST_CASE("Expected Constructors", "[beyond.core.utils.expected]")
   {
     beyond::Expected<std::tuple<int, int>, int> e(std::in_place, 0, 1);
     REQUIRE(e);
-    REQUIRE(std::get<0>(*e) == 0);
-    REQUIRE(std::get<1>(*e) == 1);
+    CHECK(std::get<0>(*e) == 0);
+    CHECK(std::get<1>(*e) == 1);
   }
 
   SECTION("In place construction of Expected of vector")
   {
     beyond::Expected<std::vector<int>, int> e(std::in_place, {0, 1});
     REQUIRE(e);
-    REQUIRE((*e)[0] == 0);
-    REQUIRE((*e)[1] == 1);
+    CHECK((*e)[0] == 0);
+    CHECK((*e)[1] == 1);
   }
 }
 
 TEST_CASE("Expected assignments", "[beyond.core.utils.expected]")
 {
-
   beyond::Expected<int, int> e1 = 42;
   beyond::Expected<int, int> e2 = 17;
   beyond::Expected<int, int> e3 = 21;
@@ -69,42 +68,75 @@ TEST_CASE("Expected assignments", "[beyond.core.utils.expected]")
 
   e1 = e2;
   REQUIRE(e1);
-  REQUIRE(*e1 == 17);
+  CHECK(*e1 == 17);
   REQUIRE(e2);
-  REQUIRE(*e2 == 17);
+  CHECK(*e2 == 17);
 
   e1 = e2;
   REQUIRE(e1);
-  REQUIRE(*e1 == 17);
+  CHECK(*e1 == 17);
   REQUIRE(e2);
-  REQUIRE(*e2 == 17);
+  CHECK(*e2 == 17);
 
   e1 = 42;
   REQUIRE(e1);
-  REQUIRE(*e1 == 42);
+  CHECK(*e1 == 42);
 
   auto unex = beyond::make_unexpected(12);
   e1 = unex;
   REQUIRE(!e1);
-  REQUIRE(e1.error() == 12);
+  CHECK(e1.error() == 12);
 
   e1 = beyond::make_unexpected(42);
   REQUIRE(!e1);
-  REQUIRE(e1.error() == 42);
+  CHECK(e1.error() == 42);
 
   e1 = e3;
   REQUIRE(e1);
-  REQUIRE(*e1 == 21);
+  CHECK(*e1 == 21);
 
   e4 = e5;
   REQUIRE(!e4);
-  REQUIRE(e4.error() == 17);
+  CHECK(e4.error() == 17);
 
   e4 = e6;
   REQUIRE(!e4);
-  REQUIRE(e4.error() == 21);
+  CHECK(e4.error() == 21);
 
   e4 = e1;
   REQUIRE(e4);
-  REQUIRE(*e4 == 21);
+  CHECK(*e4 == 21);
+}
+
+TEST_CASE("Expected equality comparison", "[beyond.core.utils.expected]")
+{
+  const auto i1 = 42, i2 = 17;
+  const beyond::Expected<int, int> e1 = i1;
+  const beyond::Expected<int, int> e2 = i1;
+  const beyond::Expected<int, int> e3 = i2;
+  const beyond::Expected<int, int> e4 = beyond::make_unexpected(i1);
+  const beyond::Expected<int, int> e5 = beyond::make_unexpected(i1);
+  const beyond::Expected<int, int> e6 = beyond::make_unexpected(i2);
+
+  // Expected equality operators
+  CHECK(e1 == e2);
+  CHECK(e1 != e3);
+  CHECK(e1 != e4);
+  CHECK(e4 != e1);
+  CHECK(e4 == e5);
+  CHECK(e4 != e6);
+
+  // Compare with T
+  CHECK(e1 == i1);
+  CHECK(i1 == e1);
+  CHECK(e1 != i2);
+  CHECK(i2 != e1);
+
+  // Compare with Unexpected<E>
+  CHECK(e1 != beyond::make_unexpected(i1));
+  CHECK(beyond::make_unexpected(i1) != e1);
+  CHECK(e4 == beyond::make_unexpected(i1));
+  CHECK(beyond::make_unexpected(i1) == e4);
+  CHECK(e4 != beyond::make_unexpected(i2));
+  CHECK(beyond::make_unexpected(i2) != e4);
 }

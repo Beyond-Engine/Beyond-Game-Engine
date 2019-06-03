@@ -234,9 +234,30 @@ private:
   bool has_value_ = true;
 }; // namespace beyond
 
+/// @brief Equality test of two expected
+template <typename T1, typename E1, typename T2, typename E2>
+[[nodiscard]] constexpr auto operator==(const Expected<T1, E1>& e1,
+                                        const Expected<T2, E2>& e2) -> bool
+{
+  if (e1.has_value()) {
+    return e2.has_value() ? *e1 == *e2 : false;
+  } else {
+    return e2.has_value() ? false : e1.error() == e2.error();
+  }
+}
+
+/// @brief Inequality test of two expected
+template <typename T1, typename E1, typename T2, typename E2>
+[[nodiscard]] constexpr auto operator!=(const Expected<T1, E1>& e1,
+                                        const Expected<T2, E2>& e2) -> bool
+{
+  return !(e1 == e2);
+}
+
 /// @brief Equality test between an Expected and an underlying value
 template <typename T, typename E, typename U>
 [[nodiscard]] constexpr auto operator==(const Expected<T, E>& e, const U& value)
+    -> bool
 {
   return e.has_value() ? *e == value : false;
 }
@@ -244,8 +265,59 @@ template <typename T, typename E, typename U>
 /// @overload
 template <typename T, typename E, typename U>
 [[nodiscard]] constexpr auto operator==(const U& value, const Expected<T, E>& e)
+    -> bool
 {
   return e.has_value() ? *e == value : false;
+}
+
+/// @brief Inequality test between an Expected and an underlying value
+template <typename T, typename E, typename U>
+[[nodiscard]] constexpr auto operator!=(const Expected<T, E>& e, const U& value)
+    -> bool
+{
+  return !(e == value);
+}
+
+/// @overload
+template <typename T, typename E, typename U>
+[[nodiscard]] constexpr auto operator!=(const U& value, const Expected<T, E>& e)
+    -> bool
+{
+  return !(e == value);
+}
+
+/// @brief Equality test between an Expected and an underlying value
+template <typename T, typename E1, typename E2>
+[[nodiscard]] constexpr auto operator==(const Expected<T, E1>& e,
+                                        const Unexpected<E2>& unexpected)
+    -> bool
+{
+  return e.has_value() ? false : e.error() == unexpected.value();
+}
+
+/// @brief Equality test between an Expected and an underlying value
+template <typename T, typename E1, typename E2>
+[[nodiscard]] constexpr auto operator==(const Unexpected<E2>& unexpected,
+                                        const Expected<T, E1>& e) -> bool
+{
+  return e.has_value() ? false : e.error() == unexpected.value();
+}
+
+/// @brief Equality test between an Expected and an underlying value
+template <typename T, typename E1, typename E2>
+[[nodiscard]] constexpr auto operator!=(const Expected<T, E1>& e,
+                                        const Unexpected<E2>& unexpected)
+    -> bool
+{
+  return !(e == unexpected);
+}
+
+/// @brief Equality test between an Expected and an underlying value
+template <typename T, typename E1, typename E2>
+[[nodiscard]] constexpr auto operator!=(const Unexpected<E2>& unexpected,
+                                        const Expected<T, E1>& e) -> bool
+{
+  return !(e == unexpected);
 }
 
 } // namespace beyond
