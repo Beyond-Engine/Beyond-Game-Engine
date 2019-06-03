@@ -45,8 +45,7 @@ target_link_libraries(core PRIVATE compiler_warnings
 
 if(${BEYOND_BUILD_TESTS})
     if(${BEYOND_BUILD_TESTS_COVERAGE})
-        target_compile_options(core PUBLIC -fprofile-arcs -ftest-coverage)
-        target_link_libraries(core PUBLIC gcov)
+        target_link_libraries(core PUBLIC coverage)
     endif()
 
     add_subdirectory(test)

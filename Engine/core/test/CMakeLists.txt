@@ -20,10 +20,10 @@ if(${BEYOND_BUILD_TESTS_COVERAGE})
     set(CMAKE_SHARED_LINKER_FLAGS "--whole-archive")
 
     include("CodeCoverage")
-    target_compile_options(${TEST_TARGET_NAME} PUBLIC -fprofile-arcs -ftest-coverage)
-    set(COVERAGE_LCOV_EXCLUDES '/usr/*' '*/.conan/*' '*/test/*' 'test/*')
+    target_link_libraries(${TEST_TARGET_NAME} PRIVATE coverage)
+    set(COVERAGE_LCOV_EXCLUDES '/usr/*' '*/.conan/*' '*/test/*' 'test/*' '*/src/utils/panic.cpp')
     SETUP_TARGET_FOR_COVERAGE_LCOV(
-        NAME coverage                    # New target name
+        NAME ${PROJECT_NAME}CoreTestCoverage# New target name
         EXECUTABLE ${TEST_TARGET_NAME}
         DEPENDENCIES ${TEST_TARGET_NAME}  # Dependencies to build first
     )

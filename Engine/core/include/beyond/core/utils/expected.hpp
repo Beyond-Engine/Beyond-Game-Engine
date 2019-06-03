@@ -117,7 +117,10 @@ public:
   /// @endcond
 
   /// @brief Constructs the Expected with a value
-  explicit constexpr Expected(const T& value) : val_{value} {}
+  constexpr Expected(const T& value) : val_{value} {} // NOLINT
+
+  /// @overload
+  constexpr Expected(T&& value) noexcept : val_{std::move(value)} {} // NOLINT
 
   /// @brief In place construction of the value
   template <class... Args,
