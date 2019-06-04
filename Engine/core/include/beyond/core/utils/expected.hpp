@@ -28,6 +28,8 @@ struct unexpect_t {
 /// @brief A tag to tell expected to construct the unexpected value
 static constexpr unexpect_t unexpect{};
 
+template <typename T, typename E> class Expected;
+
 /// @brief Used as a wrapper to store the unexpected value
 template <typename E> class Unexpected {
   static_assert(std::is_nothrow_move_constructible_v<E>);
@@ -72,6 +74,26 @@ template <typename E>
   return Unexpected<E>{std::move(error)};
 }
 
+namespace detail {
+
+// template <class Exp> using exp_t = typename detail::decay_t<Exp>::value_type;
+template <class Exp> using ErrorType = typename std::decay_t<Exp>::ErrorType;
+template <class Exp, class Value>
+using ReturnType = Expected<Value, ErrorType<Exp>>;
+
+template <typename Exp, typename Func,
+          typename NewValueType = decltype(std::invoke(std::declval<Func>(),
+                                                       *std::declval<Exp>()))>
+auto map_impl(Exp&& exp, Func&& f)
+{
+  using Return = ReturnType<Exp, NewValueType>;
+  return exp.has_value() ? Return(std::invoke(std::forward<Func>(f),
+                                              *std::forward<Exp>(exp)))
+                         : Return(unexpect, std::forward<Exp>(exp).error());
+}
+
+} // namespace detail
+
 /**
  * @brief Stores either a value or an error
  * @tparam T Type of the value to store
@@ -95,8 +117,8 @@ template <typename T, typename E> class Expected {
   static_assert(!std::is_reference<E>::value, "E must not be a reference");
 
 public:
-  using value_type = T;
-  using unexpected_type = E;
+  using ValueType = T;
+  using ErrorType = E;
 
   /// @brief Default constructor of Expected
   constexpr Expected() = default;
@@ -117,7 +139,10 @@ public:
   /// @endcond
 
   /// @brief Constructs the Expected with a value
-  constexpr Expected(T value) : val_{std::move(value)} {} // NOLINT
+  constexpr Expected(const T& value) : val_{value} {} // NOLINT
+
+  /// @overload
+  constexpr Expected(T&& value) : val_{std::move(value)} {} // NOLINT
 
   /// @brief In place construction of the value
   template <class... Args,
@@ -223,6 +248,7 @@ public:
     return std::move(unexpected_);
   }
 
+  /// @brief Swaps twp Expected
   auto swap(Expected& rhs) noexcept
       -> std::enable_if_t<std::is_nothrow_swappable_v<T&> &&
                           std::is_nothrow_swappable_v<E&>>
@@ -248,13 +274,25 @@ public:
     }
   }
 
+  /**
+   * @brief carries out some operation on the stored object if there is one.
+   *
+   * If the Expected stores a value now, invokes function `f` to the current
+   * value and returns an Expected contains the result as the value. Otherwise
+   * returns an Expected that contains the current error.
+   */
+  template <typename Func> auto map(Func&& f) const
+  {
+    return detail::map_impl(*this, std::forward<Func>(f));
+  }
+
 private:
   union {
-    value_type val_{};
-    unexpected_type unexpected_;
+    ValueType val_{};
+    ErrorType unexpected_;
   };
   bool has_value_ = true;
-}; // namespace beyond
+};
 
 /// @brief Equality test of two expected
 template <typename T1, typename E1, typename T2, typename E2>

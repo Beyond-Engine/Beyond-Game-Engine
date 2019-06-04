@@ -192,3 +192,16 @@ TEST_CASE("Expected swap", "[beyond.core.utils.expected]")
     CHECK(e2 == i1);
   }
 }
+
+TEST_CASE("Expected.map", "[beyond.core.utils.expected]")
+{
+  auto times2 = [](auto t) { return t * 2; };
+
+  SECTION("double the value of Expected by map")
+  {
+    const beyond::Expected<int, int> e(21);
+    const auto e2 = e.map(times2);
+    REQUIRE(e2);
+    REQUIRE(e2 == 42);
+  }
+}
