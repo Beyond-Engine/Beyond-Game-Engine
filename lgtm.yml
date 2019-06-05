@@ -5,10 +5,9 @@ extraction:
         - python-pip
         - pkg-config
     after_prepare:    # Customizable step used by all languages.
-      - pip3 install --local cmake conan
-      - pip3 install --local cmake conan --upgrade
-      - ls ~/.local/bin
-      - export PATH=$PATH:~/.local/bin
+      - pip3 install wheel
+      - pip3 install cmake conan
+      - export "PATH=$PATH:~/.local/bin"
       - conan --version
       - cmake --version
       - conan profile new default --detect
@@ -18,5 +17,5 @@ extraction:
       - conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan False
       - mkdir $LGTM_SRC/_lgtm_build_dir
       - cd $LGTM_SRC/_lgtm_build_dir
-      - conan install -g cmake ../.conan/linux
+      - conan install -g cmake ..
       - cd -
