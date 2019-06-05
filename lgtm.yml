@@ -5,15 +5,12 @@ extraction:
         - python-pip
         - pkg-config
     after_prepare:    # Customizable step used by all languages.
-      - pip3 install --local cmake conan
-      - pip3 install --local cmake conan --upgrade
-      - ls ~/.local/bin
-      - export PATH=$PATH:~/.local/bin
+      - pip3 install cmake conan
       - conan --version
       - cmake --version
       - conan profile new default --detect
       - conan profile update settings.compiler.version=8 default
-      - conan profile update settings.compiler.libcxx=libstdc++11 default
+      - conan profile update settings.compiler.libcxx=libstdc++ default
       - conan remote update conan-center https://conan.bintray.com False
       - conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan False
       - mkdir $LGTM_SRC/_lgtm_build_dir
