@@ -92,6 +92,16 @@ auto map_impl(Exp&& exp, Func&& f)
                          : Return(unexpect, std::forward<Exp>(exp).error());
 }
 
+template <typename Exp, typename Func,
+          typename Return = decltype(std::invoke(std::declval<Func>(),
+                                                 *std::declval<Exp>()))>
+auto and_then_impl(Exp&& exp, Func&& f)
+{
+  return exp.has_value()
+             ? std::invoke(std::forward<Func>(f), *std::forward<Exp>(exp))
+             : Return(unexpect, std::forward<Exp>(exp).error());
+}
+
 } // namespace detail
 
 /**
@@ -102,10 +112,10 @@ auto map_impl(Exp&& exp, Func&& f)
  * movable to be used in this type
  */
 template <typename T, typename E> class Expected {
-  static_assert(std::is_nothrow_move_constructible_v<T>);
-  static_assert(std::is_nothrow_move_constructible_v<E>);
-  static_assert(std::is_nothrow_move_assignable_v<T>);
-  static_assert(std::is_nothrow_move_assignable_v<E>);
+  static_assert(std::is_nothrow_move_constructible_v<T> || std::is_void_v<T>);
+  static_assert(std::is_nothrow_move_constructible_v<E> || std::is_void_v<E>);
+  static_assert(std::is_nothrow_move_assignable_v<T> || std::is_void_v<T>);
+  static_assert(std::is_nothrow_move_assignable_v<E> || std::is_void_v<E>);
 
   static_assert(!std::is_reference<T>::value, "T must not be a reference");
   static_assert(!std::is_same<T, std::remove_cv<std::in_place_t>>::value,
@@ -286,13 +296,30 @@ public:
     return detail::map_impl(*this, std::forward<Func>(f));
   }
 
+  /**
+   * @brief Carries out some operation which returns an expected on the stored
+   * object if there is one.
+   *
+   * This operation is commonly called a monadic `bind`.
+   * Some languages call this operation `flatmap`.
+   *
+   * @return   Let `U` be the result of `std::invoke(std::forward<F>(f),
+   * value())`. Returns an `expected<U>`. The return value is empty if `*this`
+   * is empty, otherwise the return value of `std::invoke(std::forward<F>(f),
+   * value())`  is returned.
+   */
+  template <typename Func> auto and_then(Func&& f) const
+  {
+    return detail::and_then_impl(*this, std::forward<Func>(f));
+  }
+
 private:
   union {
     ValueType val_{};
     ErrorType unexpected_;
   };
   bool has_value_ = true;
-};
+}; // namespace beyond
 
 /// @brief Equality test of two expected
 template <typename T1, typename E1, typename T2, typename E2>

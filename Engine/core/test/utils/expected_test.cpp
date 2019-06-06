@@ -204,4 +204,54 @@ TEST_CASE("Expected.map", "[beyond.core.utils.expected]")
     REQUIRE(e2);
     REQUIRE(e2 == 42);
   }
+
+  SECTION("map does not impact the error value")
+  {
+    const beyond::Expected<int, int> e(beyond::unexpect, 21);
+    const auto e2 = e.map(times2);
+    REQUIRE(!e2);
+    REQUIRE(e2.error() == 21);
+  }
+}
+
+TEST_CASE("Expected.and_then", "[beyond.core.utils.expected]")
+{
+
+  auto succeed = [](int a) { return beyond::Expected<int, int>(a * 2); };
+  auto fail = [](int) {
+    return beyond::Expected<int, int>(beyond::unexpect, 17);
+  };
+
+  SECTION("and_then pip this expected with a function")
+  {
+    beyond::Expected<int, int> e = 21;
+    auto ret = e.and_then(succeed);
+    REQUIRE(ret);
+    REQUIRE(*ret == 42);
+  }
+
+  SECTION("and_then pip this expected with a function")
+  {
+    const beyond::Expected<int, int> e = 21;
+    auto ret = e.and_then(succeed);
+    REQUIRE(ret);
+    REQUIRE(*ret == 42);
+  }
+
+  SECTION(
+      "and_then returns the expected of failing value of the passed function")
+  {
+    const beyond::Expected<int, int> e = 21;
+    auto ret = e.and_then(fail);
+    REQUIRE(!ret);
+    REQUIRE(ret.error() == 17);
+  }
+
+  SECTION("and_then pass the error of expected if it already contains one")
+  {
+    const beyond::Expected<int, int> e(beyond::unexpect, 21);
+    auto ret = e.and_then(succeed);
+    REQUIRE(!ret);
+    REQUIRE(ret.error() == 21);
+  }
 }
