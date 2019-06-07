@@ -4,6 +4,7 @@ extraction:
       packages:
         - python-pip
         - pkg-config
+        - gcc-9
     after_prepare:    # Customizable step used by all languages.
       - pip3 install --local cmake conan
       - pip3 install --local cmake conan --upgrade
@@ -11,8 +12,11 @@ extraction:
       - export PATH=$PATH:~/.local/bin
       - conan --version
       - cmake --version
+      - sudo ln -s /usr/bin/gcc-9 /usr/local/bin/gcc
+      - sudo ln -s /usr/bin/g++-9 /usr/local/bin/g++
+      - sudo ln -s /usr/bin/gcov-9 /usr/local/bin/gcov
       - conan profile new default --detect
-      - conan profile update settings.compiler.version=8 default
+      - conan profile update settings.compiler.version=9 default
       - conan profile update settings.compiler.libcxx=libstdc++11 default
       - conan remote update conan-center https://conan.bintray.com False
       - conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan False
@@ -20,3 +24,7 @@ extraction:
       - cd $LGTM_SRC/_lgtm_build_dir
       - conan install -g cmake ../.conan/linux
       - cd -
+    configure:
+      command:
+        - cd $LGTM_SRC/_lgtm_build_dir
+        - cmake -DBEYOND_BUILD_TESTS=ON ..

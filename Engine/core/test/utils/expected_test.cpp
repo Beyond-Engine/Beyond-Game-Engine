@@ -25,23 +25,47 @@ TEST_CASE("Expected Constructors", "[beyond.core.utils.expected]")
 
   SECTION("Expected constructed with a value")
   {
-    beyond::Expected<int, int> e{1};
-    REQUIRE(e);
-    REQUIRE(e == 1);
+    {
+      beyond::Expected<int, int> e{1};
+      REQUIRE(e);
+      REQUIRE(e == 1);
+    }
+
+    {
+      beyond::Expected<std::string, int> e{"value"};
+      REQUIRE(e);
+      REQUIRE(e == "value");
+    }
   }
 
   SECTION("Expected constructed with an Unexpected")
   {
-    beyond::Expected<int, int> e = beyond::make_unexpected(1);
-    REQUIRE(!e);
-    REQUIRE(e.error() == 1);
+    {
+      beyond::Expected<int, int> e = beyond::make_unexpected(1);
+      REQUIRE(!e);
+      REQUIRE(e.error() == 1);
+    }
+
+    {
+      beyond::Expected<int, std::string> e = beyond::make_unexpected("error");
+      REQUIRE(!e);
+      REQUIRE(e.error() == "error");
+    }
   }
 
   SECTION("Expected constructed with unexpect tag")
   {
-    beyond::Expected<int, int> e{beyond::unexpect, 1};
-    REQUIRE(!e);
-    REQUIRE(e.error() == 1);
+    {
+      beyond::Expected<int, int> e{beyond::unexpect, 1};
+      REQUIRE(!e);
+      REQUIRE(e.error() == 1);
+    }
+
+    {
+      beyond::Expected<int, std::string> e{beyond::unexpect, "error"};
+      REQUIRE(!e);
+      REQUIRE(e.error() == "error");
+    }
   }
 
   SECTION("In place construction of Expected of tuple")
@@ -442,313 +466,402 @@ TEST_CASE("Expected.map", "[beyond.core.utils.expected]")
 
   SECTION("double the value of Expected by map")
   {
-    const beyond::Expected<int, int> e(21);
-    const auto e2 = e.map(mul2);
-    REQUIRE(e2);
-    REQUIRE(e2 == 42);
+    const auto v = 21;
+    const auto v2 = 42;
+
+    {
+      beyond::Expected<int, int> e = v;
+      auto ret = e.map(mul2);
+      REQUIRE(ret);
+      REQUIRE(*ret == v2);
+    }
+
+    {
+      const beyond::Expected<int, int> e(v);
+      const auto e2 = e.map(mul2);
+      REQUIRE(e2);
+      REQUIRE(e2 == v2);
+    }
+
+    {
+      beyond::Expected<int, int> e = v;
+      auto ret = std::move(e).map(mul2);
+      REQUIRE(ret);
+      REQUIRE(*ret == v2);
+    }
+
+    {
+      const beyond::Expected<int, int> e = v;
+      auto ret = std::move(e).map(mul2);
+      REQUIRE(ret);
+      REQUIRE(*ret == v2);
+    }
   }
 
   SECTION("map does not impact the error value")
   {
-    const beyond::Expected<int, int> e(beyond::unexpect, 21);
-    const auto e2 = e.map(mul2);
-    REQUIRE(!e2);
-    REQUIRE(e2.error() == 21);
+    const auto v = 21;
+
+    {
+      beyond::Expected<int, int> e(beyond::unexpect, v);
+      auto ret = e.map(mul2);
+      REQUIRE(!ret);
+      REQUIRE(ret.error() == v);
+    }
+
+    {
+      const beyond::Expected<int, int> e(beyond::unexpect, v);
+      const auto e2 = e.map(mul2);
+      REQUIRE(!e2);
+      REQUIRE(e2.error() == v);
+    }
+
+    {
+      beyond::Expected<int, int> e(beyond::unexpect, v);
+      auto ret = std::move(e).map(mul2);
+      REQUIRE(!ret);
+      REQUIRE(ret.error() == v);
+    }
+
+    {
+      const beyond::Expected<int, int> e(beyond::unexpect, v);
+      auto ret = std::move(e).map(mul2);
+      REQUIRE(!ret);
+      REQUIRE(ret.error() == v);
+    }
   }
 
+  SECTION("map with a function that returns void")
   {
-    beyond::Expected<int, int> e = 21;
-    auto ret = e.map(mul2);
-    REQUIRE(ret);
-    REQUIRE(*ret == 42);
+    const auto v = 21;
+    {
+      beyond::Expected<int, int> e = v;
+      auto ret = e.map(ret_void);
+      REQUIRE(ret);
+      STATIC_REQUIRE(
+          std::is_same_v<decltype(ret), beyond::Expected<void, int>>);
+    }
+
+    {
+      const beyond::Expected<int, int> e = v;
+      auto ret = e.map(ret_void);
+      REQUIRE(ret);
+      STATIC_REQUIRE(
+          (std::is_same_v<decltype(ret), beyond::Expected<void, int>>));
+    }
+
+    {
+      beyond::Expected<int, int> e = v;
+      auto ret = std::move(e).map(ret_void);
+      REQUIRE(ret);
+      STATIC_REQUIRE(
+          (std::is_same_v<decltype(ret), beyond::Expected<void, int>>));
+    }
+
+    {
+      const beyond::Expected<int, int> e = v;
+      auto ret = std::move(e).map(ret_void);
+      REQUIRE(ret);
+      STATIC_REQUIRE(
+          (std::is_same_v<decltype(ret), beyond::Expected<void, int>>));
+    }
   }
 
+  SECTION("map with a function that returns void does not impact the error")
   {
-    const beyond::Expected<int, int> e = 21;
-    auto ret = e.map(mul2);
-    REQUIRE(ret);
-    REQUIRE(*ret == 42);
+    const auto v = 21;
+    {
+      beyond::Expected<int, int> e(beyond::unexpect, v);
+      auto ret = e.map(ret_void);
+      REQUIRE(!ret);
+      STATIC_REQUIRE(
+          (std::is_same_v<decltype(ret), beyond::Expected<void, int>>));
+    }
+
+    {
+      const beyond::Expected<int, int> e(beyond::unexpect, v);
+      auto ret = e.map(ret_void);
+      REQUIRE(!ret);
+      STATIC_REQUIRE(
+          (std::is_same_v<decltype(ret), beyond::Expected<void, int>>));
+    }
+
+    {
+      beyond::Expected<int, int> e(beyond::unexpect, v);
+      auto ret = std::move(e).map(ret_void);
+      REQUIRE(!ret);
+      STATIC_REQUIRE(
+          (std::is_same_v<decltype(ret), beyond::Expected<void, int>>));
+    }
+
+    {
+      const beyond::Expected<int, int> e(beyond::unexpect, v);
+      auto ret = std::move(e).map(ret_void);
+      REQUIRE(!ret);
+      STATIC_REQUIRE(
+          (std::is_same_v<decltype(ret), beyond::Expected<void, int>>));
+    }
   }
 
+  SECTION("mapping functions which return references")
   {
-    beyond::Expected<int, int> e = 21;
-    auto ret = std::move(e).map(mul2);
-    REQUIRE(ret);
-    REQUIRE(*ret == 42);
-  }
-
-  {
-    const beyond::Expected<int, int> e = 21;
-    auto ret = std::move(e).map(mul2);
-    REQUIRE(ret);
-    REQUIRE(*ret == 42);
-  }
-
-  {
-    beyond::Expected<int, int> e(beyond::unexpect, 21);
-    auto ret = e.map(mul2);
-    REQUIRE(!ret);
-    REQUIRE(ret.error() == 21);
-  }
-
-  {
-    const beyond::Expected<int, int> e(beyond::unexpect, 21);
-    auto ret = e.map(mul2);
-    REQUIRE(!ret);
-    REQUIRE(ret.error() == 21);
-  }
-
-  {
-    beyond::Expected<int, int> e(beyond::unexpect, 21);
-    auto ret = std::move(e).map(mul2);
-    REQUIRE(!ret);
-    REQUIRE(ret.error() == 21);
-  }
-
-  {
-    const beyond::Expected<int, int> e(beyond::unexpect, 21);
-    auto ret = std::move(e).map(mul2);
-    REQUIRE(!ret);
-    REQUIRE(ret.error() == 21);
-  }
-
-  {
-    beyond::Expected<int, int> e = 21;
-    auto ret = e.map(ret_void);
-    REQUIRE(ret);
-    STATIC_REQUIRE(std::is_same_v<decltype(ret), beyond::Expected<void, int>>);
-  }
-
-  {
-    const beyond::Expected<int, int> e = 21;
-    auto ret = e.map(ret_void);
-    REQUIRE(ret);
-    STATIC_REQUIRE(
-        (std::is_same_v<decltype(ret), beyond::Expected<void, int>>));
-  }
-
-  {
-    beyond::Expected<int, int> e = 21;
-    auto ret = std::move(e).map(ret_void);
-    REQUIRE(ret);
-    STATIC_REQUIRE(
-        (std::is_same_v<decltype(ret), beyond::Expected<void, int>>));
-  }
-
-  {
-    const beyond::Expected<int, int> e = 21;
-    auto ret = std::move(e).map(ret_void);
-    REQUIRE(ret);
-    STATIC_REQUIRE(
-        (std::is_same_v<decltype(ret), beyond::Expected<void, int>>));
-  }
-
-  {
-    beyond::Expected<int, int> e(beyond::unexpect, 21);
-    auto ret = e.map(ret_void);
-    REQUIRE(!ret);
-    STATIC_REQUIRE(
-        (std::is_same_v<decltype(ret), beyond::Expected<void, int>>));
-  }
-
-  {
-    const beyond::Expected<int, int> e(beyond::unexpect, 21);
-    auto ret = e.map(ret_void);
-    REQUIRE(!ret);
-    STATIC_REQUIRE(
-        (std::is_same_v<decltype(ret), beyond::Expected<void, int>>));
-  }
-
-  {
-    beyond::Expected<int, int> e(beyond::unexpect, 21);
-    auto ret = std::move(e).map(ret_void);
-    REQUIRE(!ret);
-    STATIC_REQUIRE(
-        (std::is_same_v<decltype(ret), beyond::Expected<void, int>>));
-  }
-
-  {
-    const beyond::Expected<int, int> e(beyond::unexpect, 21);
-    auto ret = std::move(e).map(ret_void);
-    REQUIRE(!ret);
-    STATIC_REQUIRE(
-        (std::is_same_v<decltype(ret), beyond::Expected<void, int>>));
-  }
-
-  // mapping functions which return references
-  {
-    beyond::Expected<int, int> e(42);
+    const auto v = 42;
+    beyond::Expected<int, int> e(v);
     auto ret = e.map([](int& i) -> int& { return i; });
     REQUIRE(ret);
-    REQUIRE(ret == 42);
+    REQUIRE(ret == v);
   }
 }
 
 TEST_CASE("Expected.and_then", "[beyond.core.utils.expected]")
 {
-
+  const auto fail_v = 17;
   auto succeed = [](int a) { return beyond::Expected<int, int>(a * 2); };
-  auto fail = [](int) {
-    return beyond::Expected<int, int>(beyond::unexpect, 17);
+  auto fail = [fail_v](int) {
+    return beyond::Expected<int, int>(beyond::unexpect, fail_v);
   };
 
   SECTION("and_then pip this expected with a function")
   {
-    beyond::Expected<int, int> e = 21;
-    auto ret = e.and_then(succeed);
-    REQUIRE(ret);
-    REQUIRE(*ret == 42);
+    const auto v = 21;
+    const auto v2 = 42;
+
+    {
+      beyond::Expected<int, int> e = v;
+      auto ret = e.and_then(succeed);
+      REQUIRE(ret);
+      REQUIRE(*ret == v2);
+    }
+
+    {
+      const beyond::Expected<int, int> e = v;
+      auto ret = e.and_then(succeed);
+      REQUIRE(ret);
+      REQUIRE(*ret == v2);
+    }
+
+    {
+      beyond::Expected<int, int> e = v;
+      auto ret = std::move(e).and_then(succeed);
+      REQUIRE(ret);
+      REQUIRE(*ret == v2);
+    }
+
+    {
+      const beyond::Expected<int, int> e = v;
+      auto ret = std::move(e).and_then(succeed);
+      REQUIRE(ret);
+      REQUIRE(*ret == v2);
+    }
   }
 
-  SECTION("and_then pip this expected with a function")
+  SECTION("and_then returns the expected of failing value")
   {
-    const beyond::Expected<int, int> e = 21;
-    auto ret = e.and_then(succeed);
-    REQUIRE(ret);
-    REQUIRE(*ret == 42);
-  }
-
-  SECTION(
-      "and_then returns the expected of failing value of the passed function")
-  {
-    const beyond::Expected<int, int> e = 21;
-    auto ret = e.and_then(fail);
-    REQUIRE(!ret);
-    REQUIRE(ret.error() == 17);
+    const auto v = 21;
+    {
+      beyond::Expected<int, int> e = v;
+      auto ret = e.and_then(fail);
+      REQUIRE(!ret);
+      REQUIRE(ret.error() == fail_v);
+    }
+    {
+      const beyond::Expected<int, int> e = v;
+      auto ret = e.and_then(fail);
+      REQUIRE(!ret);
+      REQUIRE(ret.error() == fail_v);
+    }
+    {
+      beyond::Expected<int, int> e = v;
+      auto ret = std::move(e).and_then(fail);
+      REQUIRE(!ret);
+      REQUIRE(ret.error() == fail_v);
+    }
+    {
+      const beyond::Expected<int, int> e = v;
+      auto ret = std::move(e).and_then(fail);
+      REQUIRE(!ret);
+      REQUIRE(ret.error() == fail_v);
+    }
   }
 
   SECTION("and_then pass the error of expected if it already contains one")
   {
-    const beyond::Expected<int, int> e(beyond::unexpect, 21);
-    auto ret = e.and_then(succeed);
-    REQUIRE(!ret);
-    REQUIRE(ret.error() == 21);
+    const auto v = 21;
+
+    {
+      beyond::Expected<int, int> e(beyond::unexpect, v);
+      auto ret = e.and_then(succeed);
+      REQUIRE(!ret);
+      REQUIRE(ret.error() == v);
+    }
+
+    {
+      const beyond::Expected<int, int> e(beyond::unexpect, v);
+      auto ret = e.and_then(succeed);
+      REQUIRE(!ret);
+      REQUIRE(ret.error() == v);
+    }
+
+    {
+      beyond::Expected<int, int> e(beyond::unexpect, v);
+      auto ret = std::move(e).and_then(succeed);
+      REQUIRE(!ret);
+      REQUIRE(ret.error() == v);
+    }
+
+    {
+      const beyond::Expected<int, int> e(beyond::unexpect, v);
+      auto ret = std::move(e).and_then(succeed);
+      REQUIRE(!ret);
+      REQUIRE(ret.error() == v);
+    }
   }
 }
 
 TEST_CASE("Expected.map_error", "[beyond.core.utils.expected]")
 {
   auto mul2 = [](int a) { return a * 2; };
-  auto ret_void = [](int a) {};
+  auto ret_void = [](int) {};
 
+  SECTION("map_error does not impact Expected contains a value")
   {
-    beyond::Expected<int, int> e = 21;
-    auto ret = e.map_error(mul2);
-    REQUIRE(ret);
-    REQUIRE(*ret == 21);
+    const auto v = 21;
+
+    {
+      beyond::Expected<int, int> e = v;
+      auto ret = e.map_error(mul2);
+      REQUIRE(ret);
+      REQUIRE(*ret == v);
+    }
+
+    {
+      const beyond::Expected<int, int> e = v;
+      auto ret = e.map_error(mul2);
+      REQUIRE(ret);
+      REQUIRE(*ret == v);
+    }
+
+    {
+      beyond::Expected<int, int> e = v;
+      auto ret = std::move(e).map_error(mul2);
+      REQUIRE(ret);
+      REQUIRE(*ret == v);
+    }
+
+    {
+      const beyond::Expected<int, int> e = v;
+      auto ret = std::move(e).map_error(mul2);
+      REQUIRE(ret);
+      REQUIRE(*ret == v);
+    }
   }
 
+  SECTION("map_error will map the error value of Expected")
   {
-    const beyond::Expected<int, int> e = 21;
-    auto ret = e.map_error(mul2);
-    REQUIRE(ret);
-    REQUIRE(*ret == 21);
+    const auto error = 21;
+    const auto error2 = 42;
+
+    {
+      beyond::Expected<int, int> e(beyond::unexpect, error);
+      auto ret = e.map_error(mul2);
+      REQUIRE(!ret);
+      REQUIRE(ret.error() == error2);
+    }
+
+    {
+      const beyond::Expected<int, int> e(beyond::unexpect, error);
+      auto ret = e.map_error(mul2);
+      REQUIRE(!ret);
+      REQUIRE(ret.error() == error2);
+    }
+
+    {
+      beyond::Expected<int, int> e(beyond::unexpect, error);
+      auto ret = std::move(e).map_error(mul2);
+      REQUIRE(!ret);
+      REQUIRE(ret.error() == error2);
+    }
+
+    {
+      const beyond::Expected<int, int> e(beyond::unexpect, error);
+      auto ret = std::move(e).map_error(mul2);
+      REQUIRE(!ret);
+      REQUIRE(ret.error() == error2);
+    }
   }
 
+  SECTION("map_error of void does not impact Expected contains a value")
   {
-    beyond::Expected<int, int> e = 21;
-    auto ret = std::move(e).map_error(mul2);
-    REQUIRE(ret);
-    REQUIRE(*ret == 21);
+    const auto v = 21;
+
+    {
+      beyond::Expected<int, int> e = v;
+      auto ret = e.map_error(ret_void);
+      REQUIRE(ret);
+    }
+
+    {
+      const beyond::Expected<int, int> e = v;
+      auto ret = e.map_error(ret_void);
+      REQUIRE(ret);
+    }
+
+    {
+      beyond::Expected<int, int> e = v;
+      auto ret = std::move(e).map_error(ret_void);
+      REQUIRE(ret);
+    }
+
+    {
+      const beyond::Expected<int, int> e = v;
+      auto ret = std::move(e).map_error(ret_void);
+      REQUIRE(ret);
+    }
   }
 
+  SECTION("map_error of void map the Expected contains of error to Expected<T, "
+          "void>")
   {
-    const beyond::Expected<int, int> e = 21;
-    auto ret = std::move(e).map_error(mul2);
-    REQUIRE(ret);
-    REQUIRE(*ret == 21);
-  }
+    const auto unex = 21;
+    {
+      beyond::Expected<int, int> e(beyond::unexpect, unex);
+      auto ret = e.map_error(ret_void);
+      REQUIRE(!ret);
+    }
 
-  {
-    beyond::Expected<int, int> e(beyond::unexpect, 21);
-    auto ret = e.map_error(mul2);
-    REQUIRE(!ret);
-    REQUIRE(ret.error() == 42);
-  }
+    {
+      const beyond::Expected<int, int> e(beyond::unexpect, unex);
+      auto ret = e.map_error(ret_void);
+      REQUIRE(!ret);
+    }
 
-  {
-    const beyond::Expected<int, int> e(beyond::unexpect, 21);
-    auto ret = e.map_error(mul2);
-    REQUIRE(!ret);
-    REQUIRE(ret.error() == 42);
-  }
+    {
+      beyond::Expected<int, int> e(beyond::unexpect, unex);
+      auto ret = std::move(e).map_error(ret_void);
+      REQUIRE(!ret);
+    }
 
-  {
-    beyond::Expected<int, int> e(beyond::unexpect, 21);
-    auto ret = std::move(e).map_error(mul2);
-    REQUIRE(!ret);
-    REQUIRE(ret.error() == 42);
-  }
-
-  {
-    const beyond::Expected<int, int> e(beyond::unexpect, 21);
-    auto ret = std::move(e).map_error(mul2);
-    REQUIRE(!ret);
-    REQUIRE(ret.error() == 42);
-  }
-
-  {
-    beyond::Expected<int, int> e = 21;
-    auto ret = e.map_error(ret_void);
-    REQUIRE(ret);
-  }
-
-  {
-    const beyond::Expected<int, int> e = 21;
-    auto ret = e.map_error(ret_void);
-    REQUIRE(ret);
-  }
-
-  {
-    beyond::Expected<int, int> e = 21;
-    auto ret = std::move(e).map_error(ret_void);
-    REQUIRE(ret);
-  }
-
-  {
-    const beyond::Expected<int, int> e = 21;
-    auto ret = std::move(e).map_error(ret_void);
-    REQUIRE(ret);
-  }
-
-  {
-    beyond::Expected<int, int> e(beyond::unexpect, 21);
-    auto ret = e.map_error(ret_void);
-    REQUIRE(!ret);
-  }
-
-  {
-    const beyond::Expected<int, int> e(beyond::unexpect, 21);
-    auto ret = e.map_error(ret_void);
-    REQUIRE(!ret);
-  }
-
-  {
-    beyond::Expected<int, int> e(beyond::unexpect, 21);
-    auto ret = std::move(e).map_error(ret_void);
-    REQUIRE(!ret);
-  }
-
-  {
-    const beyond::Expected<int, int> e(beyond::unexpect, 21);
-    auto ret = std::move(e).map_error(ret_void);
-    REQUIRE(!ret);
+    {
+      const beyond::Expected<int, int> e(beyond::unexpect, unex);
+      auto ret = std::move(e).map_error(ret_void);
+      REQUIRE(!ret);
+    }
   }
 }
 
 TEST_CASE("Expected.or_else", "[beyond.core.utils.expected]")
 {
+  const auto error_v = 17;
   using eptr = std::unique_ptr<int>;
-  auto succeed = [](int) { return beyond::Expected<int, int>(21 * 2); };
-  auto succeedptr = [](eptr) { return beyond::Expected<int, eptr>(21 * 2); };
-  auto fail = [](int) {
-    return beyond::Expected<int, int>(beyond::unexpect, 17);
+  auto succeed = [](int v) { return beyond::Expected<int, int>(v * 2); };
+  auto succeedptr = [](eptr ptr) {
+    return beyond::Expected<int, eptr>(*ptr * 2);
   };
-  auto efail = [](eptr e) {
-    *e = 17;
-    return beyond::Expected<int, eptr>(beyond::unexpect, std::move(e));
+  auto fail = [error_v](int) {
+    return beyond::Expected<int, int>(beyond::unexpect, error_v);
   };
-  auto failptr = [](eptr e) {
+  auto efail = [error_v](eptr e) {
+    *e = error_v;
     return beyond::Expected<int, eptr>(beyond::unexpect, std::move(e));
   };
   auto failvoid = [](int) {};
@@ -756,183 +869,213 @@ TEST_CASE("Expected.or_else", "[beyond.core.utils.expected]")
   auto consumeptr = [](eptr) {};
   auto make_u_int = [](int n) { return std::unique_ptr<int>(new int(n)); };
 
+  SECTION("or_else does not impact an Expected with a value")
   {
-    beyond::Expected<int, int> e = 21;
-    auto ret = e.or_else(succeed);
-    REQUIRE(ret);
-    REQUIRE(*ret == 21);
+    const auto v = 21;
+    {
+      beyond::Expected<int, int> e = v;
+      auto ret = e.or_else(succeed);
+      REQUIRE(ret);
+      REQUIRE(*ret == v);
+    }
+
+    {
+      const beyond::Expected<int, int> e = v;
+      auto ret = e.or_else(succeed);
+      REQUIRE(ret);
+      REQUIRE(*ret == v);
+    }
+
+    {
+      beyond::Expected<int, int> e = v;
+      auto ret = std::move(e).or_else(succeed);
+      REQUIRE(ret);
+      REQUIRE(*ret == v);
+    }
+
+    {
+      beyond::Expected<int, eptr> e = v;
+      auto ret = std::move(e).or_else(succeedptr);
+      REQUIRE(ret);
+      REQUIRE(*ret == v);
+    }
+
+    {
+      const beyond::Expected<int, int> e = v;
+      auto ret = std::move(e).or_else(succeed);
+      REQUIRE(ret);
+      REQUIRE(*ret == v);
+    }
+
+    {
+      beyond::Expected<int, int> e = v;
+      auto ret = e.or_else(fail);
+      REQUIRE(ret);
+      REQUIRE(*ret == v);
+    }
+
+    {
+      const beyond::Expected<int, int> e = v;
+      auto ret = e.or_else(fail);
+      REQUIRE(ret);
+      REQUIRE(*ret == v);
+    }
+
+    {
+      beyond::Expected<int, int> e = v;
+      auto ret = std::move(e).or_else(fail);
+      REQUIRE(ret);
+      REQUIRE(ret == v);
+    }
+
+    {
+      beyond::Expected<int, eptr> e = v;
+      auto ret = std::move(e).or_else(efail);
+      REQUIRE(ret);
+      REQUIRE(ret == v);
+    }
+
+    {
+      const beyond::Expected<int, int> e = v;
+      auto ret = std::move(e).or_else(fail);
+      REQUIRE(ret);
+      REQUIRE(*ret == v);
+    }
   }
 
+  SECTION("or_else with succeeding function will convert an Expected with "
+          "error value to an Expected that contains a value")
   {
-    const beyond::Expected<int, int> e = 21;
-    auto ret = e.or_else(succeed);
-    REQUIRE(ret);
-    REQUIRE(*ret == 21);
+    const auto v = 21;
+    const auto v2 = 42;
+
+    {
+      beyond::Expected<int, int> e(beyond::unexpect, v);
+      auto ret = e.or_else(succeed);
+      REQUIRE(ret);
+      REQUIRE(*ret == v2);
+    }
+
+    {
+      const beyond::Expected<int, int> e(beyond::unexpect, v);
+      auto ret = e.or_else(succeed);
+      REQUIRE(ret);
+      REQUIRE(*ret == v2);
+    }
+
+    {
+      beyond::Expected<int, int> e(beyond::unexpect, v);
+      auto ret = std::move(e).or_else(succeed);
+      REQUIRE(ret);
+      REQUIRE(*ret == v2);
+    }
+
+    {
+      beyond::Expected<int, eptr> e(beyond::unexpect, make_u_int(v));
+      auto ret = std::move(e).or_else(succeedptr);
+      REQUIRE(ret);
+      REQUIRE(*ret == v2);
+    }
+
+    {
+      const beyond::Expected<int, int> e(beyond::unexpect, v);
+      auto ret = std::move(e).or_else(succeed);
+      REQUIRE(ret);
+      REQUIRE(*ret == v2);
+    }
   }
 
+  SECTION("or_else with failing function will returns an Expected with the "
+          "error value")
   {
-    beyond::Expected<int, int> e = 21;
-    auto ret = std::move(e).or_else(succeed);
-    REQUIRE(ret);
-    REQUIRE(*ret == 21);
-  }
+    const auto v = 21;
 
-  {
-    beyond::Expected<int, eptr> e = 21;
-    auto ret = std::move(e).or_else(succeedptr);
-    REQUIRE(ret);
-    REQUIRE(*ret == 21);
-  }
+    {
+      beyond::Expected<int, int> e(beyond::unexpect, v);
+      auto ret = e.or_else(fail);
+      REQUIRE(!ret);
+      REQUIRE(ret.error() == error_v);
+    }
 
-  {
-    const beyond::Expected<int, int> e = 21;
-    auto ret = std::move(e).or_else(succeed);
-    REQUIRE(ret);
-    REQUIRE(*ret == 21);
-  }
+    {
+      beyond::Expected<int, int> e(beyond::unexpect, v);
+      auto ret = e.or_else(failvoid);
+      REQUIRE(!ret);
+      REQUIRE(ret.error() == v);
+    }
 
-  {
-    beyond::Expected<int, int> e = 21;
-    auto ret = e.or_else(fail);
-    REQUIRE(ret);
-    REQUIRE(*ret == 21);
-  }
+    {
+      const beyond::Expected<int, int> e(beyond::unexpect, v);
+      auto ret = e.or_else(fail);
+      REQUIRE(!ret);
+      REQUIRE(ret.error() == error_v);
+    }
 
-  {
-    const beyond::Expected<int, int> e = 21;
-    auto ret = e.or_else(fail);
-    REQUIRE(ret);
-    REQUIRE(*ret == 21);
-  }
+    {
+      const beyond::Expected<int, int> e(beyond::unexpect, v);
+      auto ret = e.or_else(failvoid);
+      REQUIRE(!ret);
+      REQUIRE(ret.error() == v);
+    }
 
-  {
-    beyond::Expected<int, int> e = 21;
-    auto ret = std::move(e).or_else(fail);
-    REQUIRE(ret);
-    REQUIRE(ret == 21);
-  }
+    {
+      beyond::Expected<int, int> e(beyond::unexpect, v);
+      auto ret = std::move(e).or_else(fail);
+      REQUIRE(!ret);
+      REQUIRE(ret.error() == error_v);
+    }
 
-  {
-    beyond::Expected<int, eptr> e = 21;
-    auto ret = std::move(e).or_else(efail);
-    REQUIRE(ret);
-    REQUIRE(ret == 21);
-  }
+    {
+      beyond::Expected<int, int> e(beyond::unexpect, v);
+      auto ret = std::move(e).or_else(failvoid);
+      REQUIRE(!ret);
+      REQUIRE(ret.error() == v);
+    }
 
-  {
-    const beyond::Expected<int, int> e = 21;
-    auto ret = std::move(e).or_else(fail);
-    REQUIRE(ret);
-    REQUIRE(*ret == 21);
-  }
+    {
+      beyond::Expected<int, eptr> e(beyond::unexpect, make_u_int(v));
+      auto ret = std::move(e).or_else(failvoidptr);
+      REQUIRE(!ret);
+      REQUIRE(*ret.error() == v);
+    }
 
-  {
-    beyond::Expected<int, int> e(beyond::unexpect, 21);
-    auto ret = e.or_else(succeed);
-    REQUIRE(ret);
-    REQUIRE(*ret == 42);
-  }
+    {
+      beyond::Expected<int, eptr> e(beyond::unexpect, make_u_int(v));
+      auto ret = std::move(e).or_else(consumeptr);
+      REQUIRE(!ret);
+      REQUIRE(ret.error() == nullptr);
+    }
 
-  {
-    const beyond::Expected<int, int> e(beyond::unexpect, 21);
-    auto ret = e.or_else(succeed);
-    REQUIRE(ret);
-    REQUIRE(*ret == 42);
-  }
+    {
+      const beyond::Expected<int, int> e(beyond::unexpect, v);
+      auto ret = std::move(e).or_else(fail);
+      REQUIRE(!ret);
+      REQUIRE(ret.error() == error_v);
+    }
 
-  {
-    beyond::Expected<int, int> e(beyond::unexpect, 21);
-    auto ret = std::move(e).or_else(succeed);
-    REQUIRE(ret);
-    REQUIRE(*ret == 42);
-  }
-
-  {
-    beyond::Expected<int, eptr> e(beyond::unexpect, make_u_int(21));
-    auto ret = std::move(e).or_else(succeedptr);
-    REQUIRE(ret);
-    REQUIRE(*ret == 42);
-  }
-
-  {
-    const beyond::Expected<int, int> e(beyond::unexpect, 21);
-    auto ret = std::move(e).or_else(succeed);
-    REQUIRE(ret);
-    REQUIRE(*ret == 42);
-  }
-
-  {
-    beyond::Expected<int, int> e(beyond::unexpect, 21);
-    auto ret = e.or_else(fail);
-    REQUIRE(!ret);
-    REQUIRE(ret.error() == 17);
-  }
-
-  {
-    beyond::Expected<int, int> e(beyond::unexpect, 21);
-    auto ret = e.or_else(failvoid);
-    REQUIRE(!ret);
-    REQUIRE(ret.error() == 21);
-  }
-
-  {
-    const beyond::Expected<int, int> e(beyond::unexpect, 21);
-    auto ret = e.or_else(fail);
-    REQUIRE(!ret);
-    REQUIRE(ret.error() == 17);
-  }
-
-  {
-    const beyond::Expected<int, int> e(beyond::unexpect, 21);
-    auto ret = e.or_else(failvoid);
-    REQUIRE(!ret);
-    REQUIRE(ret.error() == 21);
-  }
-
-  {
-    beyond::Expected<int, int> e(beyond::unexpect, 21);
-    auto ret = std::move(e).or_else(fail);
-    REQUIRE(!ret);
-    REQUIRE(ret.error() == 17);
-  }
-
-  {
-    beyond::Expected<int, int> e(beyond::unexpect, 21);
-    auto ret = std::move(e).or_else(failvoid);
-    REQUIRE(!ret);
-    REQUIRE(ret.error() == 21);
-  }
-
-  {
-    beyond::Expected<int, eptr> e(beyond::unexpect, make_u_int(21));
-    auto ret = std::move(e).or_else(failvoidptr);
-    REQUIRE(!ret);
-    REQUIRE(*ret.error() == 21);
-  }
-
-  {
-    beyond::Expected<int, eptr> e(beyond::unexpect, make_u_int(21));
-    auto ret = std::move(e).or_else(consumeptr);
-    REQUIRE(!ret);
-    REQUIRE(ret.error() == nullptr);
-  }
-
-  {
-    const beyond::Expected<int, int> e(beyond::unexpect, 21);
-    auto ret = std::move(e).or_else(fail);
-    REQUIRE(!ret);
-    REQUIRE(ret.error() == 17);
-  }
-
-  {
-    const beyond::Expected<int, int> e(beyond::unexpect, 21);
-    auto ret = std::move(e).or_else(failvoid);
-    REQUIRE(!ret);
-    REQUIRE(ret.error() == 21);
+    {
+      const beyond::Expected<int, int> e(beyond::unexpect, v);
+      auto ret = std::move(e).or_else(failvoid);
+      REQUIRE(!ret);
+      REQUIRE(ret.error() == v);
+    }
   }
 }
 
-TEST_CASE("Unexpected", "[beyond.core.utils.expected]")
+TEST_CASE("Unexpected construction", "[beyond.core.utils.expected]")
 {
   REQUIRE(beyond::make_unexpected(2).value() == 2);
+}
+
+TEST_CASE("Unexpected Equality", "[beyond.core.utils.expected]")
+{
+  const auto v1 = 2;
+  const auto v2 = 3;
+
+  REQUIRE(beyond::make_unexpected(v1) == beyond::make_unexpected(v1));
+  REQUIRE(beyond::make_unexpected(v1) != beyond::make_unexpected(v2));
+  REQUIRE(beyond::make_unexpected(v1) < beyond::make_unexpected(v2));
+  REQUIRE(beyond::make_unexpected(v1) <= beyond::make_unexpected(v2));
+  REQUIRE(beyond::make_unexpected(v2) > beyond::make_unexpected(v1));
+  REQUIRE(beyond::make_unexpected(v2) >= beyond::make_unexpected(v1));
 }

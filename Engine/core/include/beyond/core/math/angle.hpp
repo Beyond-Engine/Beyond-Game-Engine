@@ -1,7 +1,7 @@
 #ifndef BEYOND_CORE_MATH_ANGLE_HPP
 #define BEYOND_CORE_MATH_ANGLE_HPP
 
-#include <iosfwd>
+#include <iostream>
 #include <type_traits>
 
 #include "constants.hpp"
@@ -442,7 +442,7 @@ template <typename T>
 template <typename T>
 auto operator<<(std::ostream& os, Degree<T> r) -> std::ostream&
 {
-  os << r.value() << "_Degree";
+  os << r.value() << "_degree";
   return os;
 }
 

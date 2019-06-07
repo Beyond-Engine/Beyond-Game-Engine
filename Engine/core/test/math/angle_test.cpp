@@ -1,5 +1,7 @@
 #include <catch2/catch.hpp>
 
+#include <sstream>
+
 #include "beyond/core/math/angle.hpp"
 #include "beyond/core/math/constants.hpp"
 
@@ -134,7 +136,7 @@ TEST_CASE("Radian", "[beyond.core.math.angle]")
 
   SECTION("Converts from radian of another type")
   {
-    const Radian<double> r{pi};
+    const Radian<double> r{static_cast<double>(pi)};
     REQUIRE(Radian<float>{r}.value() == Approx(pi));
   }
 }
@@ -290,5 +292,23 @@ TEST_CASE("Conversion between Radian and Degree", "[beyond.core.math.angle]")
     {
       REQUIRE(Radian<float>{d}.value() == Approx(pi / 2));
     }
+  }
+}
+
+TEST_CASE("Streaming test", "[beyond.core.math.angle]")
+{
+  std::stringstream ss;
+  SECTION("Output Radian to a stream")
+  {
+    const Radian<float> r{1};
+    ss << r;
+    REQUIRE(ss.str() == "1_radian");
+  }
+
+  SECTION("Output Degree to a stream")
+  {
+    const Degree<float> r{90};
+    ss << r;
+    REQUIRE(ss.str() == "90_degree");
   }
 }

@@ -1,14 +1,7 @@
 /// @file expected.hpp
 /// @brief expected - An implementation of std::expected with extensions
 /// Written in 2017 by Simon Brand (\@TartanLlama)
-/// Adopted by Lesley Lai in 2018 for the Embedded ML project
-// To the extent possible under law, the author(s) have dedicated all
-// copyright and related and neighboring rights to this software to the
-// public domain worldwide. This software is distributed without any warranty.
-//
-// You should have received a copy of the CC0 Public Domain Dedication
-// along with this software. If not, see
-// <http://creativecommons.org/publicdomain/zero/1.0/>.
+/// Adopted by Lesley Lai
 
 #ifndef BEYOND_CORE_UTILS_EXPECTED_HPP
 #define BEYOND_CORE_UTILS_EXPECTED_HPP
@@ -31,13 +24,9 @@ namespace beyond {
 
 template <class T, class E> class Expected;
 
-#ifndef BEYOND_MONOSTATE_INPLACE_MUTEX
-#define BEYOND_MONOSTATE_INPLACE_MUTEX
 /// @brief Used to represent an expected with no data
 class monostate {
 };
-
-#endif
 
 /// Used as a wrapper to store the Unexpected value
 template <class E> class Unexpected {
