@@ -104,7 +104,6 @@ script:
   - sudo pip3 install --upgrade setuptools
   - sudo pip3 install conan
   - mkdir build && cd build
-  - conan install .. -s $CONAN_INSTALL_SETTING --build fmt
   - cmake .. $CMAKE_OPTIONS
   - make
   - if [ "${BUILD_ONLY}" != "1" ]; then ctest --verbose; fi
