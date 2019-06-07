@@ -3,3 +3,5 @@ CMakeLists.txt.user
 bin
 build
 .DS_Store
+.vs
+CMakeSettings.json
