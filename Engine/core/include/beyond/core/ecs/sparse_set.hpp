@@ -80,9 +80,9 @@ public:
 private:
   static constexpr std::size_t page_shift = 12;
   static_assert(Trait::entity_shift > page_shift);
-  static constexpr SizeType page_count = 1
+  static constexpr SizeType page_count = 1u
                                          << (Trait::entity_shift - page_shift);
-  static constexpr SizeType page_size = 1 << page_shift; // Entity per page
+  static constexpr SizeType page_size = 1u << page_shift; // Entity per page
   using Page = std::array<std::optional<SizeType>, page_size>;
 
 public:
@@ -229,8 +229,7 @@ private:
   // Given an entity, get its location inside the reverse array
   [[nodiscard]] auto page_index_of(Entity entity) const noexcept
   {
-    const SizeType identifier =
-        static_cast<SizeType>(entity & Trait::entity_mask);
+    const auto identifier = static_cast<SizeType>(entity & Trait::entity_mask);
     const SizeType page = identifier / page_size;
     const SizeType offset = identifier & (page_size - 1);
     return std::make_pair(page, offset);
