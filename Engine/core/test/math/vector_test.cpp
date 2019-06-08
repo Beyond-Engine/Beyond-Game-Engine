@@ -361,6 +361,7 @@ TEST_CASE("Vector Swizzling", "[beyond.core.math.vec]")
 {
   constexpr float a = 2.1f;
   constexpr float b = 4.2f;
+  constexpr float c = 6.3f;
 
   beyond::Vector2f v1{a, b};
 
@@ -415,29 +416,69 @@ TEST_CASE("Vector Swizzling", "[beyond.core.math.vec]")
     SECTION("Addition")
     {
       const beyond::Vector2f result1 = v1.xy + v1.yx;
-      CHECK(result1.x == Approx(v1.x + v1.y));
-      CHECK(result1.y == Approx(v1.x + v1.y));
+      SECTION("Binary additions")
+      {
+        CHECK(result1.x == Approx(v1.x + v1.y));
+        CHECK(result1.y == Approx(v1.x + v1.y));
 
-      const auto result2 = v1.xy + v1;
-      CHECK(result2.x == Approx(v1.x * 2));
-      CHECK(result2.y == Approx(v1.y * 2));
+        const auto result2 = v1.xy + v1;
+        CHECK(result2.x == Approx(v1.x * 2));
+        CHECK(result2.y == Approx(v1.y * 2));
 
-      const auto result3 = v1 + v1.xy;
-      CHECK(result3 == result2);
+        const auto result3 = v1 + v1.xy;
+        CHECK(result3 == result2);
+      }
+
+      SECTION("Self increment")
+      {
+        v1.yx += v1;
+        REQUIRE(v1 == result1);
+      }
+
+      SECTION("Self increment with another swizzler")
+      {
+        v1.yx += v1.xy;
+        REQUIRE(v1 == result1);
+      }
     }
 
     SECTION("Subtraction")
     {
       const beyond::Vector2f result1 = v1.xy - v1.yx;
-      CHECK(result1.x == Approx(v1.x - v1.y));
-      CHECK(result1.y == Approx(v1.y - v1.x));
 
-      const auto result2 = v1.xy - v1;
-      CHECK(result2.x == Approx(0));
-      CHECK(result2.y == Approx(0));
+      SECTION("Binary additions")
+      {
+        CHECK(result1.x == Approx(v1.x - v1.y));
+        CHECK(result1.y == Approx(v1.y - v1.x));
 
-      const auto result3 = v1 - v1.xy;
-      CHECK(result3 == result2);
+        const auto result2 = v1.xy - v1;
+        CHECK(result2.x == Approx(0));
+        CHECK(result2.y == Approx(0));
+
+        const auto result3 = v1 - v1.xy;
+        CHECK(result3 == result2);
+      }
+
+      SECTION("Self decrement")
+      {
+        v1.yx -= v1;
+        REQUIRE(v1 == result1);
+      }
+
+      SECTION("Self decrement with another swizzler")
+      {
+        v1.yx -= v1.xy;
+        REQUIRE(v1 == result1);
+      }
+    }
+
+    SECTION("dot product")
+    {
+      const beyond::Vector2f v2{b, a};
+      const auto result = 2 * a * b;
+      CHECK(dot(v1.xy, v2.xy) == Approx(result));
+      CHECK(dot(v1.xy, v2) == Approx(result));
+      CHECK(dot(v1, v2.xy) == Approx(result));
     }
   }
 }

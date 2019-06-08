@@ -198,6 +198,20 @@ struct Subvector {
     return (*this);
   }
 
+  constexpr auto operator+=(typename Trait::VectorType v) noexcept -> Subvector&
+  {
+    std::size_t i = 0;
+    ((elem[indices] += v[i++]), ...);
+    return (*this);
+  }
+
+  constexpr auto operator-=(typename Trait::VectorType v) noexcept -> Subvector&
+  {
+    std::size_t i = 0;
+    ((elem[indices] -= v[i++]), ...);
+    return (*this);
+  }
+
   template <typename T>
   constexpr auto operator*=(T scalar) noexcept -> Subvector&
   {
@@ -331,6 +345,33 @@ operator-(const typename Trait::VectorType& v2,
 {
   std::size_t i = 0;
   return typename Trait::VectorType{(v2.elem[i++] - v1.elem[indices1])...};
+}
+
+template <typename Trait, std::size_t dimensions, std::size_t... indices1>
+[[nodiscard]] constexpr auto
+dot(const Subvector<Trait, dimensions, indices1...>& v1,
+    const typename Trait::VectorType& v2) noexcept
+{
+  std::size_t i = 0;
+  return (... + (v1.elem[indices1] * v2[i++]));
+}
+
+template <typename Trait, std::size_t dimensions, std::size_t... indices1>
+[[nodiscard]] constexpr auto
+dot(const typename Trait::VectorType& v2,
+    const Subvector<Trait, dimensions, indices1...>& v1) noexcept
+{
+  std::size_t i = 0;
+  return (... + (v1.elem[indices1] * v2[i++]));
+}
+
+template <typename Trait, std::size_t dimensions, std::size_t... indices1,
+          std::size_t... indices2>
+[[nodiscard]] constexpr auto
+dot(const Subvector<Trait, dimensions, indices1...>& v1,
+    const Subvector<Trait, dimensions, indices2...>& v2) noexcept
+{
+  return (... + (v1.elem[indices1] * v2.elem[indices2]));
 }
 
 } // namespace detail
@@ -732,8 +773,7 @@ template <typename T, typename U, std::size_t... Ns,
  * @related Vector
  */
 template <typename T, typename U>
-[[nodiscard]] constexpr auto cross(const Vector<T, 3>& v1,
-                                   const Vector<U, 3>& v2) noexcept
+[[nodiscard]] constexpr auto cross(Vector<T, 3> v1, Vector<U, 3> v2) noexcept
     -> Vector<std::common_type_t<T, U>, 3>
 {
   return {(v1.y * v2.z) - (v1.z * v2.y), (v1.z * v2.x) - (v1.x * v2.z),
