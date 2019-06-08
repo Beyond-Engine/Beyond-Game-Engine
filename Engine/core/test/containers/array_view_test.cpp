@@ -10,6 +10,7 @@ TEST_CASE("ArrayView constructors", "[beyond.core.containers.array_view]")
   SECTION("Default constructor")
   {
     beyond::ArrayView<int> view;
+    REQUIRE(view.empty());
     REQUIRE(view.size() == 0);
   }
 
@@ -19,6 +20,7 @@ TEST_CASE("ArrayView constructors", "[beyond.core.containers.array_view]")
     const int data[size] = {0, 1, 2};
 
     beyond::ArrayView<int> view{static_cast<const int*>(data), size};
+    REQUIRE(!view.empty());
     REQUIRE(view.size() == size);
     CHECK(view.data()[0] == 0);
     CHECK(view.data()[1] == 1);
@@ -70,4 +72,34 @@ TEST_CASE("ArrayView constructors", "[beyond.core.containers.array_view]")
     CHECK(view.data()[1] == v[1]);
     CHECK(view.data()[2] == v[2]);
   }
+}
+
+TEST_CASE("ArrayView accessors", "[beyond.core.containers.array_view]")
+{
+
+  std::array a{0, 1, 2};
+  beyond::ArrayView<int> view{a};
+
+  SECTION("index accessor")
+  {
+    REQUIRE(view[0] == 0);
+    REQUIRE(view(1) == 1);
+  }
+
+  SECTION("front and back")
+  {
+    REQUIRE(view.front() == 0);
+    REQUIRE(view.back() == 2);
+  }
+}
+
+TEST_CASE("ArrayView iterator", "[beyond.core.containers.array_view]")
+{
+
+  std::array a{0, 1, 2};
+  beyond::ArrayView<int> view{a};
+
+  CHECK(*view.begin() == 0);
+  CHECK(*(view.end() - 1) == 2);
+  CHECK(view.end() - view.begin() == 3);
 }
