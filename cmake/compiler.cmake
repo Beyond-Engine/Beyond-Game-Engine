@@ -8,6 +8,16 @@ set(compiler_included true)
 # Link this 'library' to use the standard warnings
 add_library(compiler_warnings INTERFACE)
 
+add_library(coverage INTERFACE)
+target_compile_options(coverage
+                       INTERFACE
+                       -fprofile-arcs
+                       -ftest-coverage
+                       -fno-inline
+                       -fno-inline-small-functions
+                       -fno-default-inline)
+target_link_libraries(coverage INTERFACE gcov)
+
 if(MSVC)
   target_compile_options(compiler_warnings INTERFACE "/permissive-")
   if(BEYOND_WARNING_AS_ERROR)

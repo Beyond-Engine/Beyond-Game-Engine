@@ -32,8 +32,8 @@ namespace beyond {
  * @tparam Angle The type of the angle, can be either degree or radian
  * @note Unlike the standard library conterpart, this function only accept
  * either Degree or Radian
- * @related Degree
- * @related Radian
+ * @see Degree
+ * @see Radian
  */
 template <typename Angle>
 [[nodiscard]] inline auto sin(Angle arg) noexcept -> typename Angle::ValueType
@@ -47,8 +47,8 @@ template <typename Angle>
  * @tparam Angle The type of the angle, can be either degree or radian
  * @note Unlike the standard library conterpart, this function only accept
  * either Degree or Radian
- * @related Degree
- * @related Radian
+ * @see Degree
+ * @see Radian
  */
 template <typename Angle>
 [[nodiscard]] inline auto cos(Angle arg) noexcept -> typename Angle::ValueType
@@ -62,8 +62,8 @@ template <typename Angle>
  * @tparam Angle The type of the angle, can be either degree or radian
  * @note Unlike the standard library conterpart, this function only accept
  * either Degree or Radian
- * @related Degree
- * @related Radian
+ * @see Degree
+ * @see Radian
  */
 template <typename Angle>
 [[nodiscard]] inline auto tan(Angle arg) noexcept -> typename Angle::ValueType
@@ -75,7 +75,7 @@ template <typename Angle>
 /**
  * @brief Computes the principal value of the arc sine of arg
  * @tparam T A floating-point type
- * @related Radian
+ * @see Radian
  */
 template <typename T, typename = std::enable_if_t<std::is_floating_point_v<T>>>
 [[nodiscard]] inline auto asin(T arg) noexcept -> Radian<T>
@@ -86,7 +86,7 @@ template <typename T, typename = std::enable_if_t<std::is_floating_point_v<T>>>
 /**
  * @overload
  * @tparam T An integral type
- * @related Radian
+ * @see Radian
  */
 template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
 [[nodiscard]] inline auto asin(T arg) noexcept -> Radian<double>
@@ -97,7 +97,7 @@ template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
 /**
  * @brief Computes the principal value of the arc cosine of arg
  * @tparam T A floating-point type
- * @related Radian
+ * @see Radian
  */
 template <typename T, typename = std::enable_if_t<std::is_floating_point_v<T>>>
 [[nodiscard]] inline auto acos(T arg) noexcept -> Radian<T>
@@ -108,7 +108,7 @@ template <typename T, typename = std::enable_if_t<std::is_floating_point_v<T>>>
 /**
  * @overload
  * @tparam T An integral type
- * @related Radian
+ * @see Radian
  */
 template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
 [[nodiscard]] inline auto acos(T arg) noexcept -> Radian<double>
@@ -119,7 +119,7 @@ template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
 /**
  * @brief Computes the principal value of the arc tangent of arg
  * @tparam T A floating-point type
- * @related Radian
+ * @see Radian
  */
 template <typename T, typename = std::enable_if_t<std::is_floating_point_v<T>>>
 [[nodiscard]] inline auto atan(T arg) noexcept -> Radian<T>
@@ -130,7 +130,7 @@ template <typename T, typename = std::enable_if_t<std::is_floating_point_v<T>>>
 /**
  * @overload
  * @tparam T An integral type
- * @related Radian
+ * @see Radian
  */
 template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
 [[nodiscard]] inline auto atan(T arg) noexcept -> Radian<double>
@@ -143,13 +143,19 @@ template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
  * determine the correct quadrant.
  * @tparam T1 A floating-point type for y
  * @tparam T2 A floating-point type for x
- * @related Radian
+ * @see Radian
  */
-template <typename T1, typename T2>
+template <typename T1, typename T2,
+          typename = std::enable_if_t<std::conjunction_v<
+              std::is_arithmetic<T1>, std::is_arithmetic<T2>>>>
 [[nodiscard]] inline auto atan2(T1 y, T2 x) noexcept
-    -> Radian<std::common_type_t<T1, T2>>
 {
-  return Radian<std::common_type_t<T1, T2>>{std::atan2(y, x)};
+  using PromotedType = std::common_type_t<T1, T2>;
+  if constexpr (std::is_integral_v<PromotedType>) {
+    return Radian<double>{std::atan2(y, x)};
+  } else {
+    return Radian<PromotedType>{std::atan2(y, x)};
+  }
 }
 
 /**

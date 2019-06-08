@@ -2,3 +2,7 @@ CMakeLists.txt.user
 .idea
 bin
 build
+.DS_Store
+.vs
+CMakeSettings.json
+cpp.hint

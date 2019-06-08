@@ -5,7 +5,7 @@
 using NamedDouble = beyond::NamedType<double, struct NamedDoubleTag>;
 using NamedDoubleR = beyond::NamedType<double&, struct NamedDoubleTag>;
 using NamedDoubleCR = beyond::NamedType<const double&, struct NamedDoubleTag>;
-TEST_CASE("NamedType basic usage", "[beyond.core.meta.named_type]")
+TEST_CASE("NamedType basic usage", "[beyond.core.utils.named_type]")
 {
   SECTION("Constructs from prvalue")
   {
@@ -27,7 +27,7 @@ TEST_CASE("NamedType basic usage", "[beyond.core.meta.named_type]")
   }
 }
 
-TEST_CASE("NamedType of References", "[beyond.core.meta.named_type]")
+TEST_CASE("NamedType of References", "[beyond.core.utils.named_type]")
 {
   SECTION("Constructs from lvalue")
   {
@@ -106,7 +106,7 @@ TEST_CASE("Arithmatic Operations", "[beyond.core.meta.named_type]")
   }
 }
 
-TEST_CASE("Comparison Operations", "[beyond.core.meta.named_type]")
+TEST_CASE("Comparison Operations", "[beyond.core.utils.named_type]")
 {
   SECTION("Equality")
   {

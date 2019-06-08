@@ -27,7 +27,6 @@ before_build:
   - pip.exe install conan
   - mkdir Build
   - cd Build
-  - conan install ..
   - cd ..
   - cmake -H. -BBuild -A%PLATFORM% -DBEYOND_BUILD_TESTS=ON
 

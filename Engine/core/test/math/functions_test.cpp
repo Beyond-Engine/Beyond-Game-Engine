@@ -62,6 +62,15 @@ TEST_CASE("Trig functions", "[beyond.core.math]")
     const auto expected2 = std::atan(1);
     REQUIRE(beyond::atan(1).value() == Approx(expected2));
   }
+
+  SECTION("atan2")
+  {
+    // Floating points overload
+    const auto expected = std::atan2(2., 1);
+    REQUIRE(beyond::atan2(2., 1).value() == Approx(expected));
+    // Integer overload
+    REQUIRE(beyond::atan2(2, 1).value() == Approx(expected));
+  }
 }
 
 TEST_CASE("lerp", "[beyond.core.math]")

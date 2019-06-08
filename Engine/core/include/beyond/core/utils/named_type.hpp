@@ -222,14 +222,14 @@ public:
   }
 
   /// @brief Converts to the NamedType of the reference of the underlying type
-  [[nodiscard]] constexpr operator Ref()
+  [[nodiscard]] constexpr operator Ref() // NOLINT
   {
     return Ref{value_};
   }
 
   /// @brief Converts to the NamedType of the const reference of the underlying
   /// type
-  [[nodiscard]] constexpr operator ConstRef() const
+  [[nodiscard]] constexpr operator ConstRef() const // NOLINT
   {
     return ConstRef{value_};
   }
