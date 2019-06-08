@@ -361,35 +361,141 @@ TEST_CASE("Vector Swizzling", "[beyond.core.math.vec]")
 {
   constexpr float a = 2.1f;
   constexpr float b = 4.2f;
+  constexpr float c = 6.3f;
+  constexpr float d = 8.4f;
 
-  SECTION("2D Vector Swizzling")
+  beyond::Vector2f v1{a, b};
+  beyond::Vector3f v2{a, b, c};
+  beyond::Vector4f v3{a, b, c, d};
+
+  SECTION("Equality test")
   {
-    beyond::Vector2f v1{a, b};
+    const beyond::Vector2f v2 = v1.xy;
+    CHECK(v1 == v2);
+    CHECK(v1 == v1.xy);
+    CHECK(v1.xy == v1.xy);
 
-    SECTION("Equality test")
+    const beyond::Vector2f v3{v1.yx};
+    CHECK(v1 != v3);
+    CHECK(v1 != v3.xy);
+    CHECK(v1.xy != v1.yx);
+  }
+
+  SECTION("Swizzle assignment")
+  {
+    v1.yx = v1;
+    CHECK(v1.x == Approx(b));
+    CHECK(v1.y == Approx(a));
+
+    v1.yx = v1.xy;
+    CHECK(v1.x == Approx(a));
+    CHECK(v1.y == Approx(b));
+
+    v2 = v2.yxz;
+    CHECK(v2.x == Approx(b));
+    CHECK(v2.y == Approx(a));
+    CHECK(v2.z == Approx(c));
+
+    v3 = v3.wzyx;
+    CHECK(v3.x == Approx(d));
+    CHECK(v3.y == Approx(c));
+    CHECK(v3.z == Approx(b));
+    CHECK(v3.w == Approx(a));
+  }
+
+  SECTION("Arithmetics on swizzed structures")
+  {
+    SECTION("Scalar multiplication")
     {
-      const beyond::Vector2f v2 = v1.xy;
-      REQUIRE(v1 == v2);
-      REQUIRE(v1 == v1.xy);
-      REQUIRE(v1.xy == v1.xy);
+      const beyond::Vector2f result1 = v1.xy * 2;
+      const beyond::Vector2f result2 = 2 * v1.xy;
+      CHECK(result1.x == Approx(v1.x * 2));
+      CHECK(result1.y == Approx(v1.y * 2));
+      CHECK(result1 == result2);
 
-      const beyond::Vector2f v3{v1.yx};
-      REQUIRE(v1 != v3);
-      REQUIRE(v1 != v3.xy);
-      REQUIRE(v1.xy != v1.yx);
+      v1.xy *= 2;
+      CHECK(result1 == v1);
     }
 
-    SECTION("Arithmetics on swizzed structures")
+    SECTION("Scalar division")
     {
-      //      SECTION("Scalar multiplication")
-      //      {
-      //        const beyond::Vector2f result1 = v1.xy * 2;
-      //        const beyond::Vector2f result2 = 2 * v1.xy;
-      //        REQUIRE(result1.x == Approx(v1.x * 2));
-      //        REQUIRE(result1.y == Approx(v1.y * 2));
-      //        REQUIRE(result2.x == Approx(v1.x * 2));
-      //        REQUIRE(result2.y == Approx(v1.y * 2));
-      //      }
+      const beyond::Vector2f result1 = v1.xy / 2;
+      CHECK(result1.x == Approx(v1.x / 2));
+      CHECK(result1.y == Approx(v1.y / 2));
+
+      v1.xy /= 2;
+      CHECK(result1 == v1);
+    }
+
+    SECTION("Addition")
+    {
+      const beyond::Vector2f result1 = v1.xy + v1.yx;
+      SECTION("Binary additions")
+      {
+        CHECK(result1.x == Approx(v1.x + v1.y));
+        CHECK(result1.y == Approx(v1.x + v1.y));
+
+        const auto result2 = v1.xy + v1;
+        CHECK(result2.x == Approx(v1.x * 2));
+        CHECK(result2.y == Approx(v1.y * 2));
+
+        const auto result3 = v1 + v1.xy;
+        CHECK(result3 == result2);
+      }
+
+      SECTION("Self increment")
+      {
+        v1.yx += v1;
+        REQUIRE(v1 == result1);
+      }
+
+      SECTION("Self increment with another swizzler")
+      {
+        v1.yx += v1.xy;
+        REQUIRE(v1 == result1);
+      }
+    }
+
+    SECTION("Subtraction")
+    {
+      const beyond::Vector2f result1 = v1.xy - v1.yx;
+
+      SECTION("Binary additions")
+      {
+        CHECK(result1.x == Approx(v1.x - v1.y));
+        CHECK(result1.y == Approx(v1.y - v1.x));
+
+        const auto result2 = v1.xy - v1;
+        CHECK(result2.x == Approx(0));
+        CHECK(result2.y == Approx(0));
+
+        const auto result3 = v1 - v1.xy;
+        CHECK(result3 == result2);
+      }
+
+      SECTION("Self decrement")
+      {
+        v1.yx -= v1;
+        REQUIRE(v1 == result1);
+      }
+
+      SECTION("Self decrement with another swizzler")
+      {
+        v1.yx -= v1.xy;
+        REQUIRE(v1 == result1);
+      }
+    }
+
+    SECTION("dot product")
+    {
+      const beyond::Vector2f v2{b, a};
+      const auto result = 2 * a * b;
+
+      CHECK(dot(v1.xy, v2.xy) == Approx(result));
+
+      CHECK(dot(v1.xy, v2) == Approx(result));
+
+      CHECK(dot(v1, v2.xy) == Approx(result));
     }
   }
 }
