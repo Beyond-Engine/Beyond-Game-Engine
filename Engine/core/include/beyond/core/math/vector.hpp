@@ -172,6 +172,81 @@ template <typename Trait> struct VectorConverter<Trait, 2, 3> {
   }
 };
 
+template <typename Trait, std::size_t index_x, std::size_t index_y,
+          std::size_t index_z>
+struct VectorConverter<Trait, index_x, index_y, index_z> {
+  using ValueType = typename Trait::ValueType;
+  using VectorType = typename Trait::VectorType;
+
+  [[nodiscard]] static constexpr auto convert(const ValueType* data) noexcept
+      -> VectorType
+  {
+    return VectorType(data[index_x], data[index_y], data[index_z]);
+  }
+};
+
+template <typename Trait> struct VectorConverter<Trait, 0, 1, 2> {
+  using ValueType = typename Trait::ValueType;
+  using VectorType = typename Trait::VectorType;
+
+  [[nodiscard]] static constexpr auto convert(const ValueType* data) noexcept
+      -> const VectorType&
+  {
+    return (*bit_cast<const VectorType*>(data));
+  }
+
+  [[nodiscard]] static constexpr auto convert(ValueType* data) -> VectorType&
+  {
+    return (*bit_cast<VectorType*>(data));
+  }
+};
+
+template <typename Trait> struct VectorConverter<Trait, 1, 2, 3> {
+  using ValueType = typename Trait::ValueType;
+  using VectorType = typename Trait::VectorType;
+
+  [[nodiscard]] static constexpr auto convert(const ValueType* data) noexcept
+      -> const VectorType&
+  {
+    return (*bit_cast<const VectorType*>(data + 1));
+  }
+
+  [[nodiscard]] static constexpr auto convert(ValueType* data) -> VectorType&
+  {
+    return (*bit_cast<VectorType*>(data + 1));
+  }
+};
+
+template <typename Trait, std::size_t index_x, std::size_t index_y,
+          std::size_t index_z, std::size_t index_w>
+struct VectorConverter<Trait, index_x, index_y, index_z, index_w> {
+  using ValueType = typename Trait::ValueType;
+  using VectorType = typename Trait::VectorType;
+
+  [[nodiscard]] static constexpr auto convert(const ValueType* data) noexcept
+      -> VectorType
+  {
+    return VectorType(data[index_x], data[index_y], data[index_z],
+                      data[index_w]);
+  }
+};
+
+template <typename Trait> struct VectorConverter<Trait, 0, 1, 2, 3> {
+  using ValueType = typename Trait::ValueType;
+  using VectorType = typename Trait::VectorType;
+
+  [[nodiscard]] static constexpr auto convert(const ValueType* data) noexcept
+      -> const VectorType&
+  {
+    return (*bit_cast<const VectorType*>(data));
+  }
+
+  [[nodiscard]] static constexpr auto convert(ValueType* data) -> VectorType&
+  {
+    return (*bit_cast<VectorType*>(data));
+  }
+};
+
 template <typename Trait, std::size_t dimensions, std::size_t... indices>
 struct Subvector {
   using ValueType = typename Trait::ValueType;
@@ -443,6 +518,68 @@ template <typename Derived> struct VectorStorage<Derived, 4> {
     detail::VectorComponent<Trait, 1> y;
     detail::VectorComponent<Trait, 2> z;
     detail::VectorComponent<Trait, 3> w;
+    detail::Subvector2<VectorTrait<Vector<ValueType, 2>>, 0, 1> xy;
+    detail::Subvector2<VectorTrait<Vector<ValueType, 2>>, 1, 0> yx;
+    detail::Subvector2<VectorTrait<Vector<ValueType, 2>>, 0, 2> xz;
+    detail::Subvector2<VectorTrait<Vector<ValueType, 2>>, 2, 0> zx;
+    detail::Subvector2<VectorTrait<Vector<ValueType, 2>>, 1, 2> yz;
+    detail::Subvector2<VectorTrait<Vector<ValueType, 2>>, 2, 1> zy;
+    detail::Subvector2<VectorTrait<Vector<ValueType, 2>>, 0, 3> xw;
+    detail::Subvector2<VectorTrait<Vector<ValueType, 2>>, 1, 3> yw;
+    detail::Subvector2<VectorTrait<Vector<ValueType, 2>>, 2, 3> zw;
+    detail::Subvector2<VectorTrait<Vector<ValueType, 2>>, 3, 0> wx;
+    detail::Subvector2<VectorTrait<Vector<ValueType, 2>>, 3, 1> wy;
+    detail::Subvector2<VectorTrait<Vector<ValueType, 2>>, 3, 2> wz;
+
+    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 0, 1, 2> xyz;
+    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 0, 1, 3> xyw;
+    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 0, 2, 1> xzy;
+    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 0, 2, 3> xzw;
+    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 0, 3, 1> xwy;
+    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 0, 3, 2> xwz;
+    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 1, 0, 2> yxz;
+    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 1, 0, 3> yxw;
+    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 1, 2, 0> yzx;
+    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 1, 2, 3> yzw;
+    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 1, 3, 0> ywx;
+    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 1, 3, 2> ywz;
+    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 2, 0, 1> zxy;
+    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 2, 0, 3> zxw;
+    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 2, 1, 0> zyx;
+    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 2, 1, 3> zyw;
+    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 2, 3, 0> zwx;
+    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 2, 3, 1> zwy;
+    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 3, 0, 1> wxy;
+    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 3, 0, 2> wxz;
+    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 3, 1, 0> wyx;
+    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 3, 1, 2> wyz;
+    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 3, 2, 0> wzx;
+    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 3, 2, 1> wzy;
+
+    detail::Subvector4<Trait, 0, 1, 2, 3> xyzw;
+    detail::Subvector4<Trait, 0, 1, 3, 2> xywz;
+    detail::Subvector4<Trait, 0, 2, 1, 3> xzyw;
+    detail::Subvector4<Trait, 0, 2, 3, 1> xzwy;
+    detail::Subvector4<Trait, 0, 3, 1, 2> xwyz;
+    detail::Subvector4<Trait, 0, 3, 2, 1> xwzy;
+    detail::Subvector4<Trait, 1, 0, 2, 3> yxzw;
+    detail::Subvector4<Trait, 1, 0, 3, 2> yxwz;
+    detail::Subvector4<Trait, 1, 2, 0, 3> yzxw;
+    detail::Subvector4<Trait, 1, 2, 3, 0> yzwx;
+    detail::Subvector4<Trait, 1, 3, 0, 2> ywxz;
+    detail::Subvector4<Trait, 1, 3, 2, 0> ywzx;
+    detail::Subvector4<Trait, 2, 0, 1, 3> zxyw;
+    detail::Subvector4<Trait, 2, 0, 3, 1> zxwy;
+    detail::Subvector4<Trait, 2, 1, 0, 3> zyxw;
+    detail::Subvector4<Trait, 2, 1, 3, 0> zywx;
+    detail::Subvector4<Trait, 2, 3, 0, 1> zwxy;
+    detail::Subvector4<Trait, 2, 3, 1, 0> zwyx;
+    detail::Subvector4<Trait, 3, 0, 1, 2> wxyz;
+    detail::Subvector4<Trait, 3, 0, 2, 1> wxzy;
+    detail::Subvector4<Trait, 3, 1, 0, 2> wyxz;
+    detail::Subvector4<Trait, 3, 1, 2, 0> wyzx;
+    detail::Subvector4<Trait, 3, 2, 0, 1> wzxy;
+    detail::Subvector4<Trait, 3, 2, 1, 0> wzyx;
   };
 };
 
@@ -773,7 +910,8 @@ template <typename T, typename U, std::size_t... Ns,
  * @related Vector
  */
 template <typename T, typename U>
-[[nodiscard]] constexpr auto cross(Vector<T, 3> v1, Vector<U, 3> v2) noexcept
+[[nodiscard]] constexpr auto cross(const Vector<T, 3>& v1,
+                                   const Vector<U, 3>& v2) noexcept
     -> Vector<std::common_type_t<T, U>, 3>
 {
   return {(v1.y * v2.z) - (v1.z * v2.y), (v1.z * v2.x) - (v1.x * v2.z),

@@ -362,8 +362,11 @@ TEST_CASE("Vector Swizzling", "[beyond.core.math.vec]")
   constexpr float a = 2.1f;
   constexpr float b = 4.2f;
   constexpr float c = 6.3f;
+  constexpr float d = 8.4f;
 
   beyond::Vector2f v1{a, b};
+  beyond::Vector3f v2{a, b, c};
+  beyond::Vector4f v3{a, b, c, d};
 
   SECTION("Equality test")
   {
@@ -387,6 +390,17 @@ TEST_CASE("Vector Swizzling", "[beyond.core.math.vec]")
     v1.yx = v1.xy;
     CHECK(v1.x == Approx(a));
     CHECK(v1.y == Approx(b));
+
+    v2 = v2.yxz;
+    CHECK(v2.x == Approx(b));
+    CHECK(v2.y == Approx(a));
+    CHECK(v2.z == Approx(c));
+
+    v3 = v3.wzyx;
+    CHECK(v3.x == Approx(d));
+    CHECK(v3.y == Approx(c));
+    CHECK(v3.z == Approx(b));
+    CHECK(v3.w == Approx(a));
   }
 
   SECTION("Arithmetics on swizzed structures")
