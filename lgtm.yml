@@ -4,24 +4,22 @@ extraction:
       packages:
         - python-pip
         - pkg-config
-        - gcc-9
+        - clang
     after_prepare:    # Customizable step used by all languages.
       - pip3 install wheel
       - pip3 install cmake conan
       - export "PATH=$PATH:~/.local/bin"
+      - export "CC=/usr/bin/clang"
+      - export "CXX=/usr/bin/clang++"
       - conan --version
       - cmake --version
-      - sudo ln -s /usr/bin/gcc-9 /usr/local/bin/gcc
-      - sudo ln -s /usr/bin/g++-9 /usr/local/bin/g++
-      - sudo ln -s /usr/bin/gcov-9 /usr/local/bin/gcov
       - conan profile new default --detect
-      - conan profile update settings.compiler.version=9 default
-      - conan profile update settings.compiler.libcxx=libstdc++11 default
+      - conan profile update settings.compiler=clang default
       - conan remote update conan-center https://conan.bintray.com False
       - conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan False
       - mkdir $LGTM_SRC/_lgtm_build_dir
       - cd $LGTM_SRC/_lgtm_build_dir
-      - conan install -g cmake ..
+      - conan install -g cmake .. --build missing
       - cd -
     configure:
       command:
