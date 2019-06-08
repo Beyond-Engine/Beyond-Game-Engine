@@ -5,6 +5,7 @@ add_library(core
     include/beyond/core/utils/arrow_proxy.hpp
     include/beyond/core/utils/bit_cast.hpp
     include/beyond/core/utils/crtp.hpp
+    include/beyond/core/utils/functional.hpp
     include/beyond/core/utils/named_type.hpp
     include/beyond/core/utils/panic.hpp
     src/utils/panic.cpp

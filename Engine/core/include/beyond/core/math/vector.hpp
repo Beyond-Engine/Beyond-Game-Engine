@@ -9,12 +9,13 @@
 
 #include <array>
 #include <cmath>
-#include <iostream>
+#include <iosfwd>
 #include <type_traits>
 #include <utility>
 
 #include "beyond/core/utils/assert.hpp"
 #include "beyond/core/utils/bit_cast.hpp"
+#include "beyond/core/utils/functional.hpp"
 
 namespace beyond {
 
@@ -266,25 +267,22 @@ struct Subvector {
     return (detail::VectorConverter<Trait, indices...>::convert(elem.data()));
   }
 
-  constexpr auto operator=(VectorType value) noexcept -> Subvector&
+  constexpr auto operator=(VectorType v) noexcept -> Subvector&
   {
-    std::size_t i = 0;
-    ((elem[indices] = value[i++]), ...);
-    return (*this);
+    return assignment_impl(v, Assign<ValueType>{},
+                           std::make_index_sequence<dimensions>{});
   }
 
   constexpr auto operator+=(typename Trait::VectorType v) noexcept -> Subvector&
   {
-    std::size_t i = 0;
-    ((elem[indices] += v[i++]), ...);
-    return (*this);
+    return assignment_impl(v, PlusEqual<ValueType>{},
+                           std::make_index_sequence<dimensions>{});
   }
 
   constexpr auto operator-=(typename Trait::VectorType v) noexcept -> Subvector&
   {
-    std::size_t i = 0;
-    ((elem[indices] -= v[i++]), ...);
-    return (*this);
+    return assignment_impl(v, MinusEqual<ValueType>{},
+                           std::make_index_sequence<dimensions>{});
   }
 
   template <typename T>
@@ -307,6 +305,17 @@ struct Subvector {
       -> Subvector&
   {
     ((elem[indices] = value.elem[indices2]), ...);
+    return (*this);
+  }
+
+private:
+  // Implementation helper for assignment operations
+  template <typename Func, std::size_t... indices2>
+  constexpr auto assignment_impl(VectorType v, Func f,
+                                 std::index_sequence<indices2...>) noexcept
+      -> Subvector&
+  {
+    (f(elem[indices], v[indices2]), ...);
     return (*this);
   }
 };
@@ -422,13 +431,22 @@ operator-(const typename Trait::VectorType& v2,
   return typename Trait::VectorType{(v2.elem[i++] - v1.elem[indices1])...};
 }
 
-template <typename Trait, std::size_t dimensions, std::size_t... indices1>
+template <typename Trait, std::size_t dimensions, std::size_t... indices1,
+          std::size_t... indices2>
+[[nodiscard]] constexpr auto
+dot_impl(const Subvector<Trait, dimensions, indices1...>& v1,
+         const typename Trait::VectorType& v2, std::index_sequence<indices2...>)
+{
+  return (... + (v1.elem[indices1] * v2[indices2]));
+}
+
+template <typename Trait, std::size_t dimensions, std::size_t... indices1,
+          typename Incices = std::make_index_sequence<dimensions>>
 [[nodiscard]] constexpr auto
 dot(const Subvector<Trait, dimensions, indices1...>& v1,
     const typename Trait::VectorType& v2) noexcept
 {
-  std::size_t i = 0;
-  return (... + (v1.elem[indices1] * v2[i++]));
+  return dot_impl(v1, v2, std::make_index_sequence<dimensions>{});
 }
 
 template <typename Trait, std::size_t dimensions, std::size_t... indices1>
@@ -436,8 +454,7 @@ template <typename Trait, std::size_t dimensions, std::size_t... indices1>
 dot(const typename Trait::VectorType& v2,
     const Subvector<Trait, dimensions, indices1...>& v1) noexcept
 {
-  std::size_t i = 0;
-  return (... + (v1.elem[indices1] * v2[i++]));
+  return dot_impl(v1, v2, std::make_index_sequence<dimensions>{});
 }
 
 template <typename Trait, std::size_t dimensions, std::size_t... indices1,

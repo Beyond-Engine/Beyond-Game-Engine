@@ -490,8 +490,11 @@ TEST_CASE("Vector Swizzling", "[beyond.core.math.vec]")
     {
       const beyond::Vector2f v2{b, a};
       const auto result = 2 * a * b;
+
       CHECK(dot(v1.xy, v2.xy) == Approx(result));
+
       CHECK(dot(v1.xy, v2) == Approx(result));
+
       CHECK(dot(v1, v2.xy) == Approx(result));
     }
   }
