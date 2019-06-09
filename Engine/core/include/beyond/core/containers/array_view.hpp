@@ -21,11 +21,36 @@ namespace beyond {
  * @{
  */
 
+static constexpr std::size_t dynamic_extent =
+    std::numeric_limits<std::size_t>::max();
+
+namespace detail {
+template <typename T, std::size_t extent> struct ArrayViewStorage {
+  const T* data_ = nullptr;
+
+  ArrayViewStorage() noexcept = default;
+  ArrayViewStorage(const T* data, std::size_t) noexcept : data_{data} {}
+};
+
+template <typename T> struct ArrayViewStorage<T, dynamic_extent> {
+  std::size_t size_ = 0;
+  const T* data_ = nullptr;
+
+  ArrayViewStorage() noexcept = default;
+  ArrayViewStorage(const T* data, std::size_t size) noexcept
+      : size_{size}, data_{data}
+  {
+  }
+};
+
+} // namespace detail
+
 /**
  * @brief ArrayView is an immutable view of an array
  * @warning Modification of the underlying array can invalidates the view
  */
-template <typename T> class ArrayView {
+template <typename T, std::size_t extent = dynamic_extent>
+class ArrayView : public detail::ArrayViewStorage<T, extent> {
 public:
   using Iterator = const T*;
 
@@ -36,14 +61,26 @@ public:
   /// @warning If the `size` is greater than the actual number of the elements
   /// inside `data`, accessing this ArrayView will cause undefined behavior
   constexpr ArrayView(const T* data, std::size_t size) noexcept
-      : size_{size}, data_{data}
+      : detail::ArrayViewStorage<T, extent>{data, size}
   {
   }
 
   //// @brief Constructs an ArrayView from a raw array
   template <typename U, std::size_t size>
   explicit constexpr ArrayView(U (&data)[size]) noexcept
-      : size_{size}, data_{data}
+      : detail::ArrayViewStorage<T, extent>{data, size}
+  {
+  }
+
+  /**
+   * @brief Constructs from another ArrayView
+   * @note Will only participant in overload resolution if constructing a
+   * dynamic extent ArrayView
+   */
+  template <class U, std::size_t other_extent, std::size_t E = extent,
+            typename std::enable_if_t<(E == dynamic_extent)> = 0>
+  constexpr ArrayView(const beyond::ArrayView<U, other_extent>& other) noexcept
+      : detail::ArrayViewStorage<T, extent>{other.size(), other.data()}
   {
   }
 
@@ -55,7 +92,7 @@ public:
    */
   template <typename ArrayLike>
   explicit constexpr ArrayView(const ArrayLike& array) noexcept
-      : size_{array.size()}, data_{array.data()}
+      : detail::ArrayViewStorage<T, extent>{array.data(), array.size()}
   {
   }
 
@@ -67,19 +104,23 @@ public:
   /// @brief Returns true if the ArrayView is empty
   [[nodiscard]] constexpr auto empty() const noexcept -> bool
   {
-    return size_ == 0;
+    return size() == 0;
   }
 
   /// @brief Gets the size of the ArrayView
   [[nodiscard]] constexpr auto size() const noexcept -> std::size_t
   {
-    return size_;
+    if constexpr (extent == dynamic_extent) {
+      return this->size_;
+    } else {
+      return extent;
+    }
   }
 
   /// @brief Gets the pointer to the raw buffer of the ArrayView
   [[nodiscard]] constexpr auto data() const noexcept -> const T*
   {
-    return data_;
+    return this->data_;
   }
 
   /// @brief Accesses an element
@@ -88,8 +129,8 @@ public:
   [[nodiscard]] constexpr auto operator[](std::size_t idx) const noexcept
       -> const T&
   {
-    BEYOND_ASSERT(idx < size_);
-    return data_[idx];
+    BEYOND_ASSERT(idx < size());
+    return data()[idx];
   }
 
   /// @brief Accesses an element
@@ -98,40 +139,53 @@ public:
   [[nodiscard]] constexpr auto operator()(std::size_t idx) const noexcept
       -> const T&
   {
-    BEYOND_ASSERT(idx < size_);
-    return data_[idx];
+    BEYOND_ASSERT(idx < size());
+    return data()[idx];
   }
 
   /// @brief Returns an iterator points to the beginning of the `ArrayView`
   [[nodiscard]] constexpr auto begin() const noexcept -> Iterator
   {
-    return data_;
+    return data();
   }
 
   /// @brief Returns an iterator points to the end of the ArrayView
   [[nodiscard]] constexpr auto end() const noexcept -> Iterator
   {
-    return data_ + size_;
+    return data() + size();
   }
 
   /// @brief Returns the first element of the ArrayView
   /// @warning If the ArrayView is empty, the result is undefined
   [[nodiscard]] constexpr auto front() const noexcept -> const T&
   {
-    return *data_;
+    return *data();
   }
 
   /// @brief Returns the last element of the ArrayView
   /// @warning If the ArrayView is empty, the result is undefined
   [[nodiscard]] constexpr auto back() const noexcept -> const T&
   {
-    return *(data_ + size_ - 1);
+    return *(data() + size() - 1);
   }
-
-private:
-  std::size_t size_ = 0;
-  const T* data_ = nullptr;
 };
+
+/// @brief ArrayView deduction guide for pointer size
+template <typename T>
+ArrayView(const T* data, std::size_t size)->ArrayView<T, dynamic_extent>;
+
+/// @brief ArrayView deduction guide for raw array
+template <typename T, std::size_t size>
+ArrayView(T (&data)[size])->ArrayView<T, size>;
+
+/// @brief ArrayView deduction guide for std::array
+template <typename T, std::size_t size>
+ArrayView(const std::array<T, size>&)->ArrayView<T, size>;
+
+/// @brief ArrayView deduction guide for dynamic sized containers
+template <typename Container>
+ArrayView(const Container&)
+    ->ArrayView<typename Container::value_type, dynamic_extent>;
 
 /** @}@} */
 
