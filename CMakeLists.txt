@@ -23,7 +23,7 @@ option(BEYOND_BUILD_DOCUMENTATION
     "Build the documentation of the Beyond game engine" OFF)
 
 if (BEYOND_BUILD_DOCUMENTATION)
-    include("doxygen")
+    add_subdirectory("docs")
 endif()
 
 include("compiler")
