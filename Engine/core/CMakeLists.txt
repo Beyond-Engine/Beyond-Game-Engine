@@ -1,4 +1,5 @@
 add_library(core
+    include/beyond/core/containers/array_view.hpp
     include/beyond/core/ecs/sparse_map.hpp
     include/beyond/core/ecs/sparse_set.hpp
     include/beyond/core/utils/assert.hpp
@@ -33,7 +34,7 @@ endif()
 target_include_directories(core
     PUBLIC
         $<INSTALL_INTERFACE:include>
-        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Engine/core/include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
 )

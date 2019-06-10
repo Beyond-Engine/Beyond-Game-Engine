@@ -24,6 +24,7 @@ if(MSVC)
     target_compile_options(compiler_warnings INTERFACE /WX)
   endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  SET(CMAKE_CXX_FLAGS_DEBUG  "-Og -g")
   target_compile_options(compiler_warnings
                          INTERFACE -Wall
                                    -Wextra
