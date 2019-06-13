@@ -81,8 +81,6 @@ template <typename Value> struct VectorTrait<Vector<Value, 4>> {
  */
 template <typename Derived, std::size_t size> struct VectorStorage;
 
-namespace detail {
-
 /**
  * @brief Abstraction of vector component
  */
@@ -110,6 +108,8 @@ template <typename Trait, size_t index> struct VectorComponent {
 private:
   ValueType data_[1];
 };
+
+namespace detail {
 
 template <typename Trait, std::size_t... indices> struct VectorConverter;
 
@@ -247,6 +247,8 @@ template <typename Trait> struct VectorConverter<Trait, 0, 1, 2, 3> {
     return (*bit_cast<VectorType*>(data));
   }
 };
+
+} // namespace detail
 
 template <typename Trait, std::size_t dimensions, std::size_t... indices>
 struct Subvector {
@@ -466,7 +468,39 @@ dot(const Subvector<Trait, dimensions, indices1...>& v1,
   return (... + (v1.elem[indices1] * v2.elem[indices2]));
 }
 
-} // namespace detail
+template <typename Trait, std::size_t idx1, std::size_t idy1, std::size_t idz1,
+          std::size_t idx2, std::size_t idy2, std::size_t idz2>
+[[nodiscard]] constexpr auto
+cross(const Subvector<Trait, 3, idx1, idy1, idz1>& v1,
+      const Subvector<Trait, 3, idx2, idy2, idz2>& v2) noexcept
+{
+  return typename Trait::VectorType{
+      (v1.elem[idy1] * v2.elem[idz2]) - (v1.elem[idz1] * v2.elem[idy2]),
+      (v1.elem[idz1] * v2.elem[idx2]) - (v1.elem[idx1] * v2.elem[idz2]),
+      (v1.elem[idx1] * v2.elem[idy2]) - (v1.elem[idy1] * v2.elem[idx2])};
+}
+
+template <typename Trait, std::size_t idx2, std::size_t idy2, std::size_t idz2>
+[[nodiscard]] constexpr auto
+cross(const typename Trait::VectorType& v1,
+      const Subvector<Trait, 3, idx2, idy2, idz2>& v2) noexcept
+{
+  return typename Trait::VectorType{
+      (v1.y * v2.elem[idz2]) - (v1.z * v2.elem[idy2]),
+      (v1.z * v2.elem[idx2]) - (v1.x * v2.elem[idz2]),
+      (v1.x * v2.elem[idy2]) - (v1.y * v2.elem[idx2])};
+}
+
+template <typename Trait, std::size_t idx1, std::size_t idy1, std::size_t idz1>
+[[nodiscard]] constexpr auto
+cross(const Subvector<Trait, 3, idx1, idy1, idz1>& v1,
+      const typename Trait::VectorType& v2) noexcept
+{
+  return typename Trait::VectorType{
+      (v1.elem[idy1] * v2.z) - (v1.elem[idz1] * v2.y),
+      (v1.elem[idz1] * v2.x) - (v1.elem[idx1] * v2.z),
+      (v1.elem[idx1] * v2.y) - (v1.elem[idy1] * v2.x)};
+}
 
 template <typename Derived> struct VectorStorage<Derived, 2> {
   using Trait = VectorTrait<Derived>;
@@ -481,10 +515,10 @@ template <typename Derived> struct VectorStorage<Derived, 2> {
 
   union {
     std::array<ValueType, 2> elem;
-    detail::VectorComponent<Trait, 0> x;
-    detail::VectorComponent<Trait, 1> y;
-    detail::Subvector2<Trait, 0, 1> xy;
-    detail::Subvector2<Trait, 1, 0> yx;
+    VectorComponent<Trait, 0> x;
+    VectorComponent<Trait, 1> y;
+    Subvector2<Trait, 0, 1> xy;
+    Subvector2<Trait, 1, 0> yx;
   };
 };
 
@@ -501,21 +535,21 @@ template <typename Derived> struct VectorStorage<Derived, 3> {
 
   union {
     std::array<ValueType, 3> elem;
-    detail::VectorComponent<Trait, 0> x;
-    detail::VectorComponent<Trait, 1> y;
-    detail::VectorComponent<Trait, 2> z;
-    detail::Subvector2<VectorTrait<Vector<ValueType, 2>>, 0, 1> xy;
-    detail::Subvector2<VectorTrait<Vector<ValueType, 2>>, 1, 0> yx;
-    detail::Subvector2<VectorTrait<Vector<ValueType, 2>>, 0, 2> xz;
-    detail::Subvector2<VectorTrait<Vector<ValueType, 2>>, 2, 0> zx;
-    detail::Subvector2<VectorTrait<Vector<ValueType, 2>>, 1, 2> yz;
-    detail::Subvector2<VectorTrait<Vector<ValueType, 2>>, 2, 1> zy;
-    detail::Subvector3<Trait, 0, 1, 2> xyz;
-    detail::Subvector3<Trait, 0, 2, 1> xzy;
-    detail::Subvector3<Trait, 1, 0, 2> yxz;
-    detail::Subvector3<Trait, 1, 2, 0> yzx;
-    detail::Subvector3<Trait, 2, 0, 1> zxy;
-    detail::Subvector3<Trait, 2, 1, 0> zyx;
+    VectorComponent<Trait, 0> x;
+    VectorComponent<Trait, 1> y;
+    VectorComponent<Trait, 2> z;
+    Subvector2<VectorTrait<Vector<ValueType, 2>>, 0, 1> xy;
+    Subvector2<VectorTrait<Vector<ValueType, 2>>, 1, 0> yx;
+    Subvector2<VectorTrait<Vector<ValueType, 2>>, 0, 2> xz;
+    Subvector2<VectorTrait<Vector<ValueType, 2>>, 2, 0> zx;
+    Subvector2<VectorTrait<Vector<ValueType, 2>>, 1, 2> yz;
+    Subvector2<VectorTrait<Vector<ValueType, 2>>, 2, 1> zy;
+    Subvector3<Trait, 0, 1, 2> xyz;
+    Subvector3<Trait, 0, 2, 1> xzy;
+    Subvector3<Trait, 1, 0, 2> yxz;
+    Subvector3<Trait, 1, 2, 0> yzx;
+    Subvector3<Trait, 2, 0, 1> zxy;
+    Subvector3<Trait, 2, 1, 0> zyx;
   };
 };
 
@@ -531,72 +565,72 @@ template <typename Derived> struct VectorStorage<Derived, 4> {
   }
   union {
     std::array<ValueType, 4> elem;
-    detail::VectorComponent<Trait, 0> x;
-    detail::VectorComponent<Trait, 1> y;
-    detail::VectorComponent<Trait, 2> z;
-    detail::VectorComponent<Trait, 3> w;
-    detail::Subvector2<VectorTrait<Vector<ValueType, 2>>, 0, 1> xy;
-    detail::Subvector2<VectorTrait<Vector<ValueType, 2>>, 1, 0> yx;
-    detail::Subvector2<VectorTrait<Vector<ValueType, 2>>, 0, 2> xz;
-    detail::Subvector2<VectorTrait<Vector<ValueType, 2>>, 2, 0> zx;
-    detail::Subvector2<VectorTrait<Vector<ValueType, 2>>, 1, 2> yz;
-    detail::Subvector2<VectorTrait<Vector<ValueType, 2>>, 2, 1> zy;
-    detail::Subvector2<VectorTrait<Vector<ValueType, 2>>, 0, 3> xw;
-    detail::Subvector2<VectorTrait<Vector<ValueType, 2>>, 1, 3> yw;
-    detail::Subvector2<VectorTrait<Vector<ValueType, 2>>, 2, 3> zw;
-    detail::Subvector2<VectorTrait<Vector<ValueType, 2>>, 3, 0> wx;
-    detail::Subvector2<VectorTrait<Vector<ValueType, 2>>, 3, 1> wy;
-    detail::Subvector2<VectorTrait<Vector<ValueType, 2>>, 3, 2> wz;
+    VectorComponent<Trait, 0> x;
+    VectorComponent<Trait, 1> y;
+    VectorComponent<Trait, 2> z;
+    VectorComponent<Trait, 3> w;
+    Subvector2<VectorTrait<Vector<ValueType, 2>>, 0, 1> xy;
+    Subvector2<VectorTrait<Vector<ValueType, 2>>, 1, 0> yx;
+    Subvector2<VectorTrait<Vector<ValueType, 2>>, 0, 2> xz;
+    Subvector2<VectorTrait<Vector<ValueType, 2>>, 2, 0> zx;
+    Subvector2<VectorTrait<Vector<ValueType, 2>>, 1, 2> yz;
+    Subvector2<VectorTrait<Vector<ValueType, 2>>, 2, 1> zy;
+    Subvector2<VectorTrait<Vector<ValueType, 2>>, 0, 3> xw;
+    Subvector2<VectorTrait<Vector<ValueType, 2>>, 1, 3> yw;
+    Subvector2<VectorTrait<Vector<ValueType, 2>>, 2, 3> zw;
+    Subvector2<VectorTrait<Vector<ValueType, 2>>, 3, 0> wx;
+    Subvector2<VectorTrait<Vector<ValueType, 2>>, 3, 1> wy;
+    Subvector2<VectorTrait<Vector<ValueType, 2>>, 3, 2> wz;
 
-    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 0, 1, 2> xyz;
-    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 0, 1, 3> xyw;
-    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 0, 2, 1> xzy;
-    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 0, 2, 3> xzw;
-    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 0, 3, 1> xwy;
-    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 0, 3, 2> xwz;
-    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 1, 0, 2> yxz;
-    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 1, 0, 3> yxw;
-    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 1, 2, 0> yzx;
-    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 1, 2, 3> yzw;
-    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 1, 3, 0> ywx;
-    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 1, 3, 2> ywz;
-    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 2, 0, 1> zxy;
-    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 2, 0, 3> zxw;
-    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 2, 1, 0> zyx;
-    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 2, 1, 3> zyw;
-    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 2, 3, 0> zwx;
-    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 2, 3, 1> zwy;
-    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 3, 0, 1> wxy;
-    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 3, 0, 2> wxz;
-    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 3, 1, 0> wyx;
-    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 3, 1, 2> wyz;
-    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 3, 2, 0> wzx;
-    detail::Subvector3<VectorTrait<Vector<ValueType, 3>>, 3, 2, 1> wzy;
+    Subvector3<VectorTrait<Vector<ValueType, 3>>, 0, 1, 2> xyz;
+    Subvector3<VectorTrait<Vector<ValueType, 3>>, 0, 1, 3> xyw;
+    Subvector3<VectorTrait<Vector<ValueType, 3>>, 0, 2, 1> xzy;
+    Subvector3<VectorTrait<Vector<ValueType, 3>>, 0, 2, 3> xzw;
+    Subvector3<VectorTrait<Vector<ValueType, 3>>, 0, 3, 1> xwy;
+    Subvector3<VectorTrait<Vector<ValueType, 3>>, 0, 3, 2> xwz;
+    Subvector3<VectorTrait<Vector<ValueType, 3>>, 1, 0, 2> yxz;
+    Subvector3<VectorTrait<Vector<ValueType, 3>>, 1, 0, 3> yxw;
+    Subvector3<VectorTrait<Vector<ValueType, 3>>, 1, 2, 0> yzx;
+    Subvector3<VectorTrait<Vector<ValueType, 3>>, 1, 2, 3> yzw;
+    Subvector3<VectorTrait<Vector<ValueType, 3>>, 1, 3, 0> ywx;
+    Subvector3<VectorTrait<Vector<ValueType, 3>>, 1, 3, 2> ywz;
+    Subvector3<VectorTrait<Vector<ValueType, 3>>, 2, 0, 1> zxy;
+    Subvector3<VectorTrait<Vector<ValueType, 3>>, 2, 0, 3> zxw;
+    Subvector3<VectorTrait<Vector<ValueType, 3>>, 2, 1, 0> zyx;
+    Subvector3<VectorTrait<Vector<ValueType, 3>>, 2, 1, 3> zyw;
+    Subvector3<VectorTrait<Vector<ValueType, 3>>, 2, 3, 0> zwx;
+    Subvector3<VectorTrait<Vector<ValueType, 3>>, 2, 3, 1> zwy;
+    Subvector3<VectorTrait<Vector<ValueType, 3>>, 3, 0, 1> wxy;
+    Subvector3<VectorTrait<Vector<ValueType, 3>>, 3, 0, 2> wxz;
+    Subvector3<VectorTrait<Vector<ValueType, 3>>, 3, 1, 0> wyx;
+    Subvector3<VectorTrait<Vector<ValueType, 3>>, 3, 1, 2> wyz;
+    Subvector3<VectorTrait<Vector<ValueType, 3>>, 3, 2, 0> wzx;
+    Subvector3<VectorTrait<Vector<ValueType, 3>>, 3, 2, 1> wzy;
 
-    detail::Subvector4<Trait, 0, 1, 2, 3> xyzw;
-    detail::Subvector4<Trait, 0, 1, 3, 2> xywz;
-    detail::Subvector4<Trait, 0, 2, 1, 3> xzyw;
-    detail::Subvector4<Trait, 0, 2, 3, 1> xzwy;
-    detail::Subvector4<Trait, 0, 3, 1, 2> xwyz;
-    detail::Subvector4<Trait, 0, 3, 2, 1> xwzy;
-    detail::Subvector4<Trait, 1, 0, 2, 3> yxzw;
-    detail::Subvector4<Trait, 1, 0, 3, 2> yxwz;
-    detail::Subvector4<Trait, 1, 2, 0, 3> yzxw;
-    detail::Subvector4<Trait, 1, 2, 3, 0> yzwx;
-    detail::Subvector4<Trait, 1, 3, 0, 2> ywxz;
-    detail::Subvector4<Trait, 1, 3, 2, 0> ywzx;
-    detail::Subvector4<Trait, 2, 0, 1, 3> zxyw;
-    detail::Subvector4<Trait, 2, 0, 3, 1> zxwy;
-    detail::Subvector4<Trait, 2, 1, 0, 3> zyxw;
-    detail::Subvector4<Trait, 2, 1, 3, 0> zywx;
-    detail::Subvector4<Trait, 2, 3, 0, 1> zwxy;
-    detail::Subvector4<Trait, 2, 3, 1, 0> zwyx;
-    detail::Subvector4<Trait, 3, 0, 1, 2> wxyz;
-    detail::Subvector4<Trait, 3, 0, 2, 1> wxzy;
-    detail::Subvector4<Trait, 3, 1, 0, 2> wyxz;
-    detail::Subvector4<Trait, 3, 1, 2, 0> wyzx;
-    detail::Subvector4<Trait, 3, 2, 0, 1> wzxy;
-    detail::Subvector4<Trait, 3, 2, 1, 0> wzyx;
+    Subvector4<Trait, 0, 1, 2, 3> xyzw;
+    Subvector4<Trait, 0, 1, 3, 2> xywz;
+    Subvector4<Trait, 0, 2, 1, 3> xzyw;
+    Subvector4<Trait, 0, 2, 3, 1> xzwy;
+    Subvector4<Trait, 0, 3, 1, 2> xwyz;
+    Subvector4<Trait, 0, 3, 2, 1> xwzy;
+    Subvector4<Trait, 1, 0, 2, 3> yxzw;
+    Subvector4<Trait, 1, 0, 3, 2> yxwz;
+    Subvector4<Trait, 1, 2, 0, 3> yzxw;
+    Subvector4<Trait, 1, 2, 3, 0> yzwx;
+    Subvector4<Trait, 1, 3, 0, 2> ywxz;
+    Subvector4<Trait, 1, 3, 2, 0> ywzx;
+    Subvector4<Trait, 2, 0, 1, 3> zxyw;
+    Subvector4<Trait, 2, 0, 3, 1> zxwy;
+    Subvector4<Trait, 2, 1, 0, 3> zyxw;
+    Subvector4<Trait, 2, 1, 3, 0> zywx;
+    Subvector4<Trait, 2, 3, 0, 1> zwxy;
+    Subvector4<Trait, 2, 3, 1, 0> zwyx;
+    Subvector4<Trait, 3, 0, 1, 2> wxyz;
+    Subvector4<Trait, 3, 0, 2, 1> wxzy;
+    Subvector4<Trait, 3, 1, 0, 2> wyxz;
+    Subvector4<Trait, 3, 1, 2, 0> wyzx;
+    Subvector4<Trait, 3, 2, 0, 1> wzxy;
+    Subvector4<Trait, 3, 2, 1, 0> wzyx;
   };
 };
 

@@ -185,30 +185,6 @@ TEST_CASE("All Vector types test", "[beyond.core.math.vec]")
   }
 }
 
-TEST_CASE("Cross product", "[beyond.core.math.vec]")
-{
-  GIVEN("Two vectors")
-  {
-    const beyond::Vector3f a{1, 2, 3};
-    const beyond::Vector3f b{2, 3, 4};
-    THEN("Cross(a,b) == [-1, 2, -1]")
-    {
-      const beyond::Vector3f result1 = beyond::cross(a, b);
-      REQUIRE(result1.x == Approx(-1));
-      REQUIRE(result1.y == Approx(2));
-      REQUIRE(result1.z == Approx(-1));
-    }
-
-    THEN("Cross(b, a) == [1, -2, 1]")
-    {
-      const beyond::Vector3f result2 = beyond::cross(b, a);
-      REQUIRE(result2.x == Approx(1));
-      REQUIRE(result2.y == Approx(-2));
-      REQUIRE(result2.z == Approx(1));
-    }
-  }
-}
-
 TEST_CASE("Floating point Vector only test", "[beyond.core.math.vec]")
 {
   using Catch::literals::operator""_a;
@@ -496,6 +472,45 @@ TEST_CASE("Vector Swizzling", "[beyond.core.math.vec]")
       CHECK(dot(v1.xy, v2) == Approx(result));
 
       CHECK(dot(v1, v2.xy) == Approx(result));
+    }
+  }
+}
+
+TEST_CASE("Cross product", "[beyond.core.math.vec]")
+{
+  GIVEN("Two vectors")
+  {
+    const beyond::Vector3f a{1, 2, 3};
+    const beyond::Vector3f b{2, 3, 4};
+    THEN("cross(a,b) == [-1, 2, -1]")
+    {
+      const beyond::Vector3f result1 = beyond::cross(a, b);
+      REQUIRE(result1.x == Approx(-1));
+      REQUIRE(result1.y == Approx(2));
+      REQUIRE(result1.z == Approx(-1));
+
+      AND_THEN("cross(a.xyz, b.xyz) == cross(a, b)")
+      {
+        REQUIRE(beyond::cross(a.xyz, b.xyz) == beyond::cross(a, b));
+      }
+
+      AND_THEN("cross(a.xyz, b) == cross(a, b)")
+      {
+        REQUIRE(beyond::cross(a.xyz, b) == beyond::cross(a, b));
+      }
+
+      AND_THEN("cross(a, b.xyz) == cross(a, b)")
+      {
+        REQUIRE(beyond::cross(a, b.xyz) == beyond::cross(a, b));
+      }
+    }
+
+    THEN("cross(b, a) == [1, -2, 1]")
+    {
+      const beyond::Vector3f result2 = beyond::cross(b, a);
+      REQUIRE(result2.x == Approx(1));
+      REQUIRE(result2.y == Approx(-2));
+      REQUIRE(result2.z == Approx(1));
     }
   }
 }
