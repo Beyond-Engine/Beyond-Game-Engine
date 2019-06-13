@@ -2,7 +2,6 @@ set(TEST_TARGET_NAME ${PROJECT_NAME}CoreTest)
 
 add_executable(${TEST_TARGET_NAME}
     "main.cpp"
-    "containers/array_view_test.cpp"
     "ecs/sparse_set_test.cpp"
     "ecs/sparse_map_test.cpp"
     "math/angle_test.cpp"

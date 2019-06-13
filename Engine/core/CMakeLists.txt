@@ -1,5 +1,4 @@
 add_library(core
-    include/beyond/core/containers/array_view.hpp
     include/beyond/core/ecs/sparse_map.hpp
     include/beyond/core/ecs/sparse_set.hpp
     include/beyond/core/utils/assert.hpp
@@ -43,6 +42,7 @@ target_include_directories(core
 target_link_libraries(core PRIVATE compiler_warnings
     PUBLIC
     CONAN_PKG::fmt
+    CONAN_PKG::gsl_microsoft
     )
 
 if(${BEYOND_BUILD_TESTS})
