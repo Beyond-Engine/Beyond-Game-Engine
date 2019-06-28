@@ -7,6 +7,7 @@ add_library(core
     include/beyond/core/utils/crtp.hpp
     include/beyond/core/utils/expected.hpp
     include/beyond/core/utils/functional.hpp
+    include/beyond/core/utils/function_ref.hpp
     include/beyond/core/utils/named_type.hpp
     include/beyond/core/utils/panic.hpp
     src/utils/panic.cpp

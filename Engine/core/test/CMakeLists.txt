@@ -10,6 +10,7 @@ add_executable(${TEST_TARGET_NAME}
     "utils/expected_test.cpp"
     "utils/named_type_test.cpp"
     "utils/functional_test.cpp"
+    "utils/function_ref_test.cpp"
     )
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
