@@ -65,7 +65,7 @@ matrix:
       - bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports";
 
   # Clang-tidy
-    - os: linux
+  - os: linux
     compiler: clang
     name: Clang 8 with Unit Test
     env: CC="/usr/bin/clang-8" CXX="/usr/bin/clang++-8" CMAKE_OPTIONS="-DCMAKE_BUILD_TYPE=Release -DBEYOND_ENABLE_CLANG_TIDY=On" CONAN_INSTALL_SETTING="build_type=Release"
