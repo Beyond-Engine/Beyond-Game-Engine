@@ -1,35 +1,27 @@
-#include <GLFW/glfw3.h>
+#include <fmt/format.h>
+
+#include <beyond/platform/platform.hpp>
 
 int main(void)
 {
-  GLFWwindow* window;
+  beyond::Platform platform;
 
-  /* Initialize the library */
-  if (!glfwInit()) {
-    return -1;
-  }
+  platform.create_window(1024, 800, "Test")
+      .map([&platform](beyond::Window& window) {
+        platform.make_context_current(window);
 
-  /* Create a windowed mode window and its OpenGL context */
-  window = glfwCreateWindow(1024, 800, "Test", nullptr, nullptr);
-  if (!window) {
-    glfwTerminate();
-    return -1;
-  }
+        while (!window.should_close()) {
+          // render
+          window.swap_buffers();
+          platform.poll_events();
+        }
+      })
+      .map_error([](beyond::PlatformError error) {
+        switch (error) {
+        case beyond::PlatformError::cannot_create_window:
+          fmt::print("Cannot create window\n");
+        }
+      });
 
-  /* Make the window's context current */
-  glfwMakeContextCurrent(window);
-
-  /* Loop until the user closes the window */
-  while (!glfwWindowShouldClose(window)) {
-    /* Render here */
-
-    /* Swap front and back buffers */
-    glfwSwapBuffers(window);
-
-    /* Poll for and process events */
-    glfwPollEvents();
-  }
-
-  glfwTerminate();
   return 0;
 }
