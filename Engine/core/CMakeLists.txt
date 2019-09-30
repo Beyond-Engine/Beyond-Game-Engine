@@ -44,6 +44,7 @@ target_link_libraries(core PRIVATE compiler_warnings
     CONAN_PKG::fmt
     CONAN_PKG::gsl_microsoft
     tl-expected
+    unique_function
     )
 
 if(${BEYOND_BUILD_TESTS})
