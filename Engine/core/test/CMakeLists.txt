@@ -7,7 +7,6 @@ add_executable(${TEST_TARGET_NAME}
     "math/angle_test.cpp"
     "math/functions_test.cpp"
     "math/vector_test.cpp"
-    "utils/expected_test.cpp"
     "utils/named_type_test.cpp"
     "utils/functional_test.cpp"
     "utils/function_ref_test.cpp"

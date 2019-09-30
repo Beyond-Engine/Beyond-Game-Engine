@@ -1,6 +1,6 @@
 #include <GLFW/glfw3.h>
 
-#include "../include/beyond/platform/platform.hpp"
+#include "beyond/platform/platform.hpp"
 #include <beyond/core/utils/panic.hpp>
 
 namespace beyond {
@@ -48,14 +48,14 @@ struct WindowImpl {
 
 [[nodiscard]] auto Platform::create_window(int width, int height,
                                            std::string_view title) noexcept
-    -> beyond::Expected<Window, PlatformError>
+    -> tl::expected<Window, PlatformError>
 {
   auto glfw_window =
       glfwCreateWindow(width, height, title.data(), nullptr, nullptr);
   if (glfw_window) {
     return Window{std::make_unique<WindowImpl>(glfw_window)};
   } else {
-    return Unexpected{PlatformError::cannot_create_window};
+    return tl::unexpected{PlatformError::cannot_create_window};
   }
 }
 

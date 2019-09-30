@@ -5,8 +5,8 @@
 
 #include <memory>
 
-#include "beyond/core/utils/expected.hpp"
 #include <string_view>
+#include <tl/expected.hpp>
 
 namespace beyond {
 
@@ -29,7 +29,7 @@ public:
 
   [[nodiscard]] auto create_window(int width, int height,
                                    std::string_view title) noexcept
-      -> beyond::Expected<Window, PlatformError>;
+      -> tl::expected<Window, PlatformError>;
 
   auto make_context_current(const Window& window) noexcept -> void;
 

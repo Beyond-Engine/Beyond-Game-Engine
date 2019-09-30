@@ -5,7 +5,6 @@ add_library(core
     include/beyond/core/utils/arrow_proxy.hpp
     include/beyond/core/utils/bit_cast.hpp
     include/beyond/core/utils/crtp.hpp
-    include/beyond/core/utils/expected.hpp
     include/beyond/core/utils/functional.hpp
     include/beyond/core/utils/function_ref.hpp
     include/beyond/core/utils/named_type.hpp
@@ -44,6 +43,7 @@ target_link_libraries(core PRIVATE compiler_warnings
     PUBLIC
     CONAN_PKG::fmt
     CONAN_PKG::gsl_microsoft
+    tl-expected
     )
 
 if(${BEYOND_BUILD_TESTS})

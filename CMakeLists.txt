@@ -55,5 +55,6 @@ if(${BEYOND_BUILD_TESTS})
 enable_testing()
 endif()
 
+add_subdirectory(third-party)
 add_subdirectory(Engine)
 
