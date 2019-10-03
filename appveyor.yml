@@ -12,6 +12,7 @@ init:
   # Set build version to git commit-hash
   - ps: Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_BRANCH) - $($env:APPVEYOR_REPO_COMMIT)"
 
+
 # This allows us to pass %PLATFORM% to CMake -A.
 platform:
   - x64
@@ -21,14 +22,15 @@ configuration:
   - Debug
   - Release
 
+install:
+  - git submodule update --init --recursive
+
 #Cmake will autodetect the compiler, but we set the arch
 before_build:
   - set PATH=%PATH%;%PYTHON%/Scripts/
   - pip.exe install conan
   - mkdir Build
-  - cd Build
-  - cd ..
-  - cmake -H. -BBuild -A%PLATFORM% -DBEYOND_BUILD_TESTS=ON
+  - cmake -H. -BBuild -A%PLATFORM% -DBEYOND_BUILD_TESTS=ON -DBEYOND_BUILD_VULKAN_BACKEND=OFF
 
 # build with MSBuild
 build:
