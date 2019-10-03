@@ -2,12 +2,14 @@
 
 #include <beyond/platform/platform.hpp>
 
-int main(void)
+constexpr int initial_width = 1024;
+constexpr int initial_height = 800;
+
+int main()
 {
   beyond::Platform platform;
-
-  platform.create_window(1024, 800, "Test")
-      .map([&platform](beyond::Window& window) {
+  platform.create_window(initial_width, initial_height, "Test")
+      .map([&platform](beyond::Window&& window) {
         platform.make_context_current(window);
 
         while (!window.should_close()) {

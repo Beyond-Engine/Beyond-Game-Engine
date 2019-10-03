@@ -23,8 +23,9 @@ namespace beyond {
  */
 [[noreturn]] auto panic(std::string_view msg) -> void;
 
+/** @}@} */
+
 } // namespace beyond
 
-/** @}@} */
 
 #endif // BEYOND_CORE_UTILS_PANIC_HPP
