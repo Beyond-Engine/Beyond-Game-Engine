@@ -27,6 +27,3 @@ if (${BEYOND_PLATFORM_GLFW})
         PRIVATE CONAN_PKG::glfw)
 endif()
 
-add_executable(TestApp "main.cpp")
-target_link_libraries(TestApp
-    PRIVATE core platform)

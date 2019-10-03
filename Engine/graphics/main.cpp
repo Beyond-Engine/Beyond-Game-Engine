@@ -1,5 +1,6 @@
 #include <fmt/format.h>
 
+#include <beyond/graphics/graphics_backend.hpp>
 #include <beyond/platform/platform.hpp>
 
 constexpr int initial_width = 1024;
@@ -11,6 +12,7 @@ int main()
   platform.create_window(initial_width, initial_height, "Test")
       .map([&platform](beyond::Window&& window) {
         platform.make_context_current(window);
+        const auto graphics_context = beyond::graphics::create_context(window);
 
         while (!window.should_close()) {
           // render
@@ -22,6 +24,7 @@ int main()
         switch (error) {
         case beyond::PlatformError::cannot_create_window:
           fmt::print("Cannot create window\n");
+          std::exit(1);
         }
       });
 

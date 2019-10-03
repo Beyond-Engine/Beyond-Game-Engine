@@ -51,9 +51,16 @@ public:
 
   auto swap_buffers() -> void;
 
+  /// @brief Gets the title of the window
+  [[nodiscard]] auto title() const -> std::string
+  {
+    return title_;
+  }
+
 private:
+  std::string title_;
   std::unique_ptr<struct WindowImpl> pimpl_;
-  Window(std::unique_ptr<WindowImpl>&& impl) noexcept;
+  Window(std::string title, std::unique_ptr<WindowImpl>&& impl) noexcept;
 
   friend Platform;
 };

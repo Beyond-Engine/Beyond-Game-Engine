@@ -53,7 +53,8 @@ struct WindowImpl {
   auto glfw_window =
       glfwCreateWindow(width, height, title.data(), nullptr, nullptr);
   if (glfw_window != nullptr) {
-    return Window{std::make_unique<WindowImpl>(glfw_window)};
+    return Window{std::string{title},
+                  std::make_unique<WindowImpl>(glfw_window)};
   } else {
     return tl::unexpected{PlatformError::cannot_create_window};
   }
@@ -64,8 +65,8 @@ void Platform::make_context_current(const Window& window) noexcept
   glfwMakeContextCurrent(window.pimpl_->data_);
 }
 
-Window::Window(std::unique_ptr<WindowImpl>&& impl) noexcept
-    : pimpl_{std::move(impl)}
+Window::Window(std::string title, std::unique_ptr<WindowImpl>&& impl) noexcept
+    : title_{std::move(title)}, pimpl_{std::move(impl)}
 {
 }
 
