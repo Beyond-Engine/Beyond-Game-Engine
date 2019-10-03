@@ -2,7 +2,7 @@ set(BEYOND_PLATFORM_GLFW ON)
 
 add_library(platform)
 target_sources(platform
-    INTERFACE
+    PUBLIC
         "${CMAKE_CURRENT_SOURCE_DIR}/include/beyond/platform/platform.hpp"
     PRIVATE
         $<$<BOOL:${BEYOND_PLATFORM_GLFW}>:src/glfw_platform_impl.cpp>
@@ -27,3 +27,6 @@ if (${BEYOND_PLATFORM_GLFW})
         PRIVATE CONAN_PKG::glfw)
 endif()
 
+if (${BEYOND_BUILD_VULKAN_BACKEND})
+    target_compile_definitions(platform PUBLIC BEYOND_GRAPHICS_BACKEND_VULKAN)
+endif()

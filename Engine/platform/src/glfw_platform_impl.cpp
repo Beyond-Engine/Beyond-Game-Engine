@@ -1,7 +1,7 @@
 #include <GLFW/glfw3.h>
 
-#include "beyond/platform/platform.hpp"
 #include <beyond/core/utils/panic.hpp>
+#include <beyond/platform/platform.hpp>
 
 namespace beyond {
 
@@ -34,30 +34,20 @@ struct WindowImpl {
   GLFWwindow* data_ = nullptr;
 
   WindowImpl(GLFWwindow* data) : data_{data} {}
-
-  auto swap_buffers() -> void
-  {
-    glfwSwapBuffers(data_);
-  }
-
-  [[nodiscard]] auto should_close() const noexcept -> bool
-  {
-    return static_cast<bool>(glfwWindowShouldClose(data_));
-  }
 };
 
 [[nodiscard]] auto Platform::create_window(int width, int height,
                                            std::string_view title) noexcept
-    -> tl::expected<Window, PlatformError>
+    -> Window
 {
   auto glfw_window =
       glfwCreateWindow(width, height, title.data(), nullptr, nullptr);
-  if (glfw_window != nullptr) {
-    return Window{std::string{title},
-                  std::make_unique<WindowImpl>(glfw_window)};
-  } else {
-    return tl::unexpected{PlatformError::cannot_create_window};
+
+  if (!glfw_window) {
+    beyond::panic("Cannot Create a GLFW Window");
   }
+
+  return Window{std::string{title}, std::make_unique<WindowImpl>(glfw_window)};
 }
 
 void Platform::make_context_current(const Window& window) noexcept
@@ -72,12 +62,25 @@ Window::Window(std::string title, std::unique_ptr<WindowImpl>&& impl) noexcept
 
 auto Window::swap_buffers() -> void
 {
-  pimpl_->swap_buffers();
+  glfwSwapBuffers(pimpl_->data_);
 }
 
 [[nodiscard]] auto Window::should_close() const noexcept -> bool
 {
-  return pimpl_->should_close();
+  return static_cast<bool>(glfwWindowShouldClose(pimpl_->data_));
 }
+
+#ifdef BEYOND_GRAPHICS_BACKEND_VULKAN
+/// @brief Get the extensions needed for the vulkan instance
+[[nodiscard]] auto Window::get_required_instance_extensions() const noexcept
+    -> gsl::span<const char*>
+{
+  uint32_t glfwExtensionCount = 0;
+  const char** glfwExtensions;
+  glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+
+  return gsl::span(glfwExtensions, glfwExtensionCount);
+}
+#endif
 
 } // namespace beyond

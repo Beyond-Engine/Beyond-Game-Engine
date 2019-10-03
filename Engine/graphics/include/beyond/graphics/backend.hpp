@@ -15,7 +15,13 @@ namespace beyond::graphics {
 /**
  * @addtogroup graphics
  * @{
- * @addtogroup backend
+ */
+
+/**
+ * @defgroup backend Backend
+ * @brief Interface between the underlying graphics API and high level graphics
+ * codes
+ *
  * @{
  */
 
@@ -23,7 +29,7 @@ namespace beyond::graphics {
 struct Context;
 
 /// @brief Create a graphics context
-[[nodiscard]] auto create_context(const Window &window) noexcept -> Context*;
+[[nodiscard]] auto create_context(const Window& window) noexcept -> Context*;
 
 /// @brief destory a graphics context
 auto destory_context(Context* context) noexcept -> void;

@@ -5,7 +5,6 @@ target_include_directories(graphics_backend
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
 
-
 if (${BEYOND_BUILD_VULKAN_BACKEND})
   add_subdirectory(vulkan)
   add_executable(TestApp "main.cpp")

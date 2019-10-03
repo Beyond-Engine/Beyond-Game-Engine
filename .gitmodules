@@ -1,3 +1,6 @@
 [submodule "third-party/unique_function"]
 	path = Engine/core/unique_function
 	url = https://github.com/LesleyLai/unique_function
+[submodule "third-party/volk"]
+	path = third-party/volk
+	url = https://github.com/zeux/volk.git

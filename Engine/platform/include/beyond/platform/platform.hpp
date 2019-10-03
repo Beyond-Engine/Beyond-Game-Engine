@@ -5,8 +5,8 @@
 
 #include <memory>
 
+#include <gsl/span>
 #include <string_view>
-#include <tl/expected.hpp>
 
 namespace beyond {
 
@@ -28,8 +28,7 @@ public:
   auto poll_events() noexcept -> void;
 
   [[nodiscard]] auto create_window(int width, int height,
-                                   std::string_view title) noexcept
-      -> tl::expected<Window, PlatformError>;
+                                   std::string_view title) noexcept -> Window;
 
   auto make_context_current(const Window& window) noexcept -> void;
 
@@ -56,6 +55,12 @@ public:
   {
     return title_;
   }
+
+#ifdef BEYOND_GRAPHICS_BACKEND_VULKAN
+  /// @brief Get the extensions needed for the vulkan instance
+  [[nodiscard]] auto get_required_instance_extensions() const noexcept
+      -> gsl::span<const char*>;
+#endif
 
 private:
   std::string title_;

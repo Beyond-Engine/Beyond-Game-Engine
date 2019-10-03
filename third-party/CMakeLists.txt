@@ -10,3 +10,9 @@ target_include_directories(tl-expected
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/expected>
 )
 
+if(${BEYOND_BUILD_VULKAN_BACKEND})
+  if(${WIN32})
+    set(VOLK_STATIC_DEFINES VK_USE_PLATFORM_WIN32_KHR)
+  endif()
+  add_subdirectory(volk)
+endif()
