@@ -1,3 +1,3 @@
 [submodule "third-party/unique_function"]
-	path = third-party/unique_function
+	path = Engine/core/unique_function
 	url = https://github.com/LesleyLai/unique_function

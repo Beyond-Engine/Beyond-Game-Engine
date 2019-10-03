@@ -10,4 +10,3 @@ target_include_directories(tl-expected
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/expected>
 )
 
-add_subdirectory(unique_function)
