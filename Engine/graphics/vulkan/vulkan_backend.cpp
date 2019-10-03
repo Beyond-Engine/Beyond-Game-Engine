@@ -1,34 +1,14 @@
 #include <vulkan/vulkan.h>
 
-#include "beyond/graphics/graphics_backend.hpp"
+#include "beyond/graphics/backend.hpp"
+
+#include "beyond/core/utils/panic.hpp"
 
 #include <cstdio>
 
 namespace beyond::graphics {
 
-Context::Context(std::unique_ptr<ContextImpl>&& impl) : impl_{std::move(impl)}
-{
-}
-Context::~Context() = default;
-
-class ContextImpl {
-public:
-  ContextImpl(VkInstance instance) : instance_{instance} {}
-
-  ~ContextImpl()
-  {
-    vkDestroyInstance(instance_, nullptr);
-  }
-
-  ContextImpl(const ContextImpl&) = delete;
-  auto operator=(const ContextImpl&) -> ContextImpl& = delete;
-
-  ContextImpl(ContextImpl&&) = delete;
-  auto operator=(ContextImpl &&) -> ContextImpl& = delete;
-
-  friend auto create_context(Window& window) noexcept -> Context;
-
-private:
+struct Context {
   VkInstance instance_;
 };
 
@@ -57,21 +37,29 @@ private:
 
   createInfo.enabledLayerCount = 0;
 
-  vkCreateInstance(&createInfo, nullptr, &instance);
+  if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
+    panic("Cannot create vulkan instance!");
+  }
 
   std::puts("Created vulkan instance!");
   std::fflush(stdout);
 
   return instance;
-  //  if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
-  //    throw std::runtime_error("failed to create instance!");
-  //  }
 }
 
-[[nodiscard]] auto create_context(Window& window) noexcept -> Context
+/// @brief Create a graphics context
+[[nodiscard]] auto create_context(const Window& window) noexcept -> Context*
 {
-  const auto instance = create_instance(window.title());
-  return Context{std::make_unique<ContextImpl>(instance)};
+  auto* context = new Context;
+  context->instance_ = create_instance(window.title());
+  return context;
+}
+
+/// @brief destory a graphics context
+auto destory_context(Context* context) noexcept -> void
+{
+  vkDestroyInstance(context->instance_, nullptr);
+  delete context;
 }
 
 } // namespace beyond::graphics

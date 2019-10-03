@@ -1,6 +1,6 @@
 #include <fmt/format.h>
 
-#include <beyond/graphics/graphics_backend.hpp>
+#include <beyond/graphics/unique_handles.hpp>
 #include <beyond/platform/platform.hpp>
 
 constexpr int initial_width = 1024;
@@ -12,7 +12,8 @@ int main()
   platform.create_window(initial_width, initial_height, "Test")
       .map([&platform](beyond::Window&& window) {
         platform.make_context_current(window);
-        const auto graphics_context = beyond::graphics::create_context(window);
+        const auto graphics_context =
+            beyond::graphics::make_unique_context(window);
 
         while (!window.should_close()) {
           // render
