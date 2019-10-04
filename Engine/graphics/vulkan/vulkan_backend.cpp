@@ -2,10 +2,63 @@
 
 #include <fmt/format.h>
 
+#include <algorithm>
+#include <numeric>
+#include <optional>
 #include <vector>
 
 #include <beyond/core/utils/panic.hpp>
 #include <beyond/graphics/backend.hpp>
+
+namespace {
+
+// Transform the two stage query vulkan function into directly return vector
+template <typename T, typename F> auto get_vector_with(F func) -> std::vector<T>
+{
+  std::uint32_t count;
+  func(&count, nullptr);
+
+  std::vector<T> vec(count);
+  func(&count, vec.data());
+
+  return vec;
+}
+
+} // namespace
+
+namespace beyond::vulkan {
+
+struct QueueFamilyIndices {
+  std::uint32_t graphics_family;
+};
+
+[[nodiscard]] auto find_queue_families(VkPhysicalDevice device) noexcept
+    -> std::optional<QueueFamilyIndices>
+{
+  std::optional<std::uint32_t> graphics_family;
+
+  const auto queue_families = get_vector_with<VkQueueFamilyProperties>(
+      [device](uint32_t* count, VkQueueFamilyProperties* data) {
+        vkGetPhysicalDeviceQueueFamilyProperties(device, count, data);
+      });
+
+  for (std::uint32_t i = 0; i < queue_families.size(); ++i) {
+    const auto& queue_family = queue_families[i];
+
+    if (queue_family.queueCount > 0 &&
+        queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+      graphics_family = i;
+    }
+
+    if (graphics_family) {
+      return QueueFamilyIndices{*graphics_family};
+    }
+  }
+
+  return {};
+}
+
+} // namespace beyond::vulkan
 
 namespace {
 
@@ -20,6 +73,29 @@ constexpr bool enable_validation_layers = false;
 template <typename T> constexpr auto to_u32(T value) noexcept -> std::uint32_t
 {
   return static_cast<std::uint32_t>(value);
+}
+
+// Higher is better, negative means not suitable
+[[nodiscard]] auto rate_physical_device(VkPhysicalDevice device) noexcept -> int
+{
+
+  const auto maybe_indices = beyond::vulkan::find_queue_families(device);
+  if (!maybe_indices) {
+    return -1000;
+  }
+
+  VkPhysicalDeviceProperties properties;
+  vkGetPhysicalDeviceProperties(device, &properties);
+
+  VkPhysicalDeviceFeatures features;
+  vkGetPhysicalDeviceFeatures(device, &features);
+
+  int score = 0;
+  if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+    score += 100;
+  }
+
+  return score;
 }
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
@@ -43,8 +119,12 @@ namespace beyond::graphics {
     -> VkDebugUtilsMessengerEXT;
 #endif
 
+[[nodiscard]] auto pick_physical_device(VkInstance instance) noexcept
+    -> VkPhysicalDevice;
+
 struct Context {
   VkInstance instance;
+  VkPhysicalDevice physical_device;
 #ifdef BEYOND_VULKAN_ENABLE_VALIDATION_LAYER
   VkDebugUtilsMessengerEXT debug_messager;
 #endif
@@ -57,6 +137,12 @@ struct Context {
 
     instance = create_instance(window);
     volkLoadInstance(instance);
+    physical_device = pick_physical_device(instance);
+
+    VkPhysicalDeviceProperties properties;
+    vkGetPhysicalDeviceProperties(physical_device, &properties);
+    fmt::print("GPU: {}\n", properties.deviceName);
+    std::fflush(stdout);
 
 #ifdef BEYOND_VULKAN_ENABLE_VALIDATION_LAYER
     debug_messager = create_debug_messager(instance);
@@ -91,28 +177,18 @@ constexpr auto populate_debug_messenger_create_info() noexcept
 
 auto check_validation_layer_support() noexcept -> bool
 {
-  std::uint32_t layer_count;
-  vkEnumerateInstanceLayerProperties(&layer_count, nullptr);
+  const auto available =
+      get_vector_with<VkLayerProperties>(vkEnumerateInstanceLayerProperties);
 
-  std::vector<VkLayerProperties> available_layers(layer_count);
-  vkEnumerateInstanceLayerProperties(&layer_count, available_layers.data());
-
-  for (const char* layer_name : validation_layers) {
-    bool layer_found = false;
-
-    for (const auto& layerProperties : available_layers) {
-      if (strcmp(layer_name, layerProperties.layerName) == 0) {
-        layer_found = true;
-        break;
-      }
-    }
-
-    if (!layer_found) {
-      return false;
-    }
-  }
-
-  return true;
+  return std::all_of(std::begin(validation_layers), std::end(validation_layers),
+                     [&](const char* layer_name) {
+                       return std::find_if(
+                                  std::begin(available), std::end(available),
+                                  [&](const auto& layer_properties) {
+                                    return strcmp(layer_name,
+                                                  layer_properties.layerName);
+                                  }) != std::end(available);
+                     });
 }
 
 [[nodiscard]] auto create_instance(const Window& window) noexcept -> VkInstance
@@ -157,7 +233,41 @@ auto check_validation_layer_support() noexcept -> bool
   }
 
   return instance;
-} // namespace beyond::graphics
+}
+
+[[nodiscard]] auto pick_physical_device(VkInstance instance) noexcept
+    -> VkPhysicalDevice
+{
+  const auto avaliable_devices = get_vector_with<VkPhysicalDevice>(
+      [instance](uint32_t* count, VkPhysicalDevice* data) {
+        return vkEnumeratePhysicalDevices(instance, count, data);
+      });
+  if (avaliable_devices.empty()) {
+    panic("failed to find GPUs with Vulkan support!");
+  }
+
+  using ScoredPair = std::pair<int, VkPhysicalDevice>;
+  std::vector<ScoredPair> scored_pairs;
+  scored_pairs.reserve(avaliable_devices.size());
+  for (const auto& device : avaliable_devices) {
+    const auto score = rate_physical_device(device);
+    if (score > 0) {
+      scored_pairs.emplace_back(score, device);
+    }
+  }
+
+  if (scored_pairs.empty()) {
+    panic("Vulkan failed to find GPUs with enough nessesory graphics support!");
+  }
+
+  std::sort(std::begin(scored_pairs), std::end(scored_pairs),
+            [](const ScoredPair& lhs, const ScoredPair& rhs) {
+              return lhs.first > rhs.first;
+            });
+
+  // Returns the pair with highest score
+  return scored_pairs.front().second;
+}
 
 #ifdef BEYOND_VULKAN_ENABLE_VALIDATION_LAYER
 [[nodiscard]] auto create_debug_messager(VkInstance instance) noexcept
