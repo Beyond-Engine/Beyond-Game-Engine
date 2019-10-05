@@ -1,4 +1,8 @@
-add_library(vulkan_backend "vulkan_backend.cpp")
+add_library(vulkan_backend
+    "vulkan_backend.cpp"
+    "vulkan_context.hpp"
+    "vulkan_context.cpp"
+    "vulkan_utils.hpp")
 
 set(BEYOND_VULKAN_ENABLE_VALIDATION_LAYER AUTO CACHE STRING "The policy of enabling
     assertion or not in beyond game engine core.

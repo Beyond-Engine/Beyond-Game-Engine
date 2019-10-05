@@ -26,7 +26,9 @@ namespace beyond::graphics {
  */
 
 /// @brief Graphics context
-struct Context;
+///
+/// The actual definition is depend on the rendering backend.
+class Context;
 
 /// @brief Create a graphics context
 [[nodiscard]] auto create_context(const Window& window) noexcept -> Context*;
