@@ -3,8 +3,9 @@
 #include <fmt/format.h>
 
 #include <algorithm>
-#include <numeric>
+#include <array>
 #include <optional>
+#include <set>
 #include <vector>
 
 #include <beyond/core/utils/panic.hpp>
@@ -30,6 +31,11 @@ namespace beyond::vulkan {
 
 struct QueueFamilyIndices {
   std::uint32_t graphics_family;
+
+  [[nodiscard]] auto to_set() const noexcept -> std::set<std::uint32_t>
+  {
+    return std::set{graphics_family};
+  }
 };
 
 [[nodiscard]] auto find_queue_families(VkPhysicalDevice device) noexcept
@@ -98,6 +104,7 @@ template <typename T> constexpr auto to_u32(T value) noexcept -> std::uint32_t
   return score;
 }
 
+#ifdef BEYOND_VULKAN_ENABLE_VALIDATION_LAYER
 static VKAPI_ATTR VkBool32 VKAPI_CALL
 debug_callback(VkDebugUtilsMessageSeverityFlagBitsEXT /*messageSeverity*/,
                VkDebugUtilsMessageTypeFlagsEXT /*messageType*/,
@@ -107,57 +114,6 @@ debug_callback(VkDebugUtilsMessageSeverityFlagBitsEXT /*messageSeverity*/,
   fmt::print("validation layer: {}\n", p_callback_data->pMessage);
   return VK_FALSE;
 }
-
-} // anonymous namespace
-
-namespace beyond::graphics {
-
-[[nodiscard]] auto create_instance(const Window& window) noexcept -> VkInstance;
-
-#ifdef BEYOND_VULKAN_ENABLE_VALIDATION_LAYER
-[[nodiscard]] auto create_debug_messager(VkInstance instance) noexcept
-    -> VkDebugUtilsMessengerEXT;
-#endif
-
-[[nodiscard]] auto pick_physical_device(VkInstance instance) noexcept
-    -> VkPhysicalDevice;
-
-struct Context {
-  VkInstance instance;
-  VkPhysicalDevice physical_device;
-#ifdef BEYOND_VULKAN_ENABLE_VALIDATION_LAYER
-  VkDebugUtilsMessengerEXT debug_messager;
-#endif
-
-  Context(const Window& window)
-  {
-    if (volkInitialize() != VK_SUCCESS) {
-      panic("Cannot find a Vulkan Loader in the system!");
-    }
-
-    instance = create_instance(window);
-    volkLoadInstance(instance);
-    physical_device = pick_physical_device(instance);
-
-    VkPhysicalDeviceProperties properties;
-    vkGetPhysicalDeviceProperties(physical_device, &properties);
-    fmt::print("GPU: {}\n", properties.deviceName);
-    std::fflush(stdout);
-
-#ifdef BEYOND_VULKAN_ENABLE_VALIDATION_LAYER
-    debug_messager = create_debug_messager(instance);
-#endif
-  }
-
-  ~Context()
-  {
-#ifdef BEYOND_VULKAN_ENABLE_VALIDATION_LAYER
-    vkDestroyDebugUtilsMessengerEXT(instance, debug_messager, nullptr);
-#endif
-
-    vkDestroyInstance(instance, nullptr);
-  }
-};
 
 constexpr auto populate_debug_messenger_create_info() noexcept
     -> VkDebugUtilsMessengerCreateInfoEXT
@@ -174,6 +130,82 @@ constexpr auto populate_debug_messenger_create_info() noexcept
   create_info.pfnUserCallback = debug_callback;
   return create_info;
 }
+#endif
+
+[[nodiscard]] auto create_instance(const beyond::Window& window) noexcept
+    -> VkInstance;
+
+#ifdef BEYOND_VULKAN_ENABLE_VALIDATION_LAYER
+[[nodiscard]] auto create_debug_messager(VkInstance instance) noexcept
+    -> VkDebugUtilsMessengerEXT;
+#endif
+
+[[nodiscard]] auto pick_physical_device(VkInstance instance) noexcept
+    -> VkPhysicalDevice;
+
+[[nodiscard]] auto create_logical_device(
+    VkPhysicalDevice pd,
+    const beyond::vulkan::QueueFamilyIndices& indices) noexcept -> VkDevice;
+
+} // anonymous namespace
+
+namespace beyond::graphics {
+
+struct Context {
+  VkInstance instance;
+  VkPhysicalDevice physical_device;
+  vulkan::QueueFamilyIndices queue_family_indices;
+  VkDevice device;
+
+#ifdef BEYOND_VULKAN_ENABLE_VALIDATION_LAYER
+  VkDebugUtilsMessengerEXT debug_messager;
+#endif
+
+  Context(const Window& window)
+  {
+    if (volkInitialize() != VK_SUCCESS) {
+      panic("Cannot find a Vulkan Loader in the system!");
+    }
+
+    instance = create_instance(window);
+    volkLoadInstance(instance);
+
+#ifdef BEYOND_VULKAN_ENABLE_VALIDATION_LAYER
+    debug_messager = create_debug_messager(instance);
+#endif
+
+    physical_device = pick_physical_device(instance);
+
+    queue_family_indices = *vulkan::find_queue_families(physical_device);
+    device = create_logical_device(physical_device, queue_family_indices);
+    volkLoadDevice(device);
+  }
+
+  ~Context()
+  {
+    vkDestroyDevice(device, nullptr);
+
+#ifdef BEYOND_VULKAN_ENABLE_VALIDATION_LAYER
+    vkDestroyDebugUtilsMessengerEXT(instance, debug_messager, nullptr);
+#endif
+
+    vkDestroyInstance(instance, nullptr);
+  }
+};
+
+[[nodiscard]] auto create_context(const Window& window) noexcept -> Context*
+{
+  return new Context(window);
+}
+
+auto destory_context(Context* context) noexcept -> void
+{
+  delete context;
+}
+
+} // namespace beyond::graphics
+
+namespace {
 
 auto check_validation_layer_support() noexcept -> bool
 {
@@ -191,10 +223,11 @@ auto check_validation_layer_support() noexcept -> bool
                      });
 }
 
-[[nodiscard]] auto create_instance(const Window& window) noexcept -> VkInstance
+[[nodiscard]] auto create_instance(const beyond::Window& window) noexcept
+    -> VkInstance
 {
   if (enable_validation_layers && !check_validation_layer_support()) {
-    panic("validation layers requested, but not available!");
+    beyond::panic("validation layers requested, but not available!");
   }
 
   VkInstance instance;
@@ -211,7 +244,11 @@ auto check_validation_layer_support() noexcept -> bool
   create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
   create_info.pApplicationInfo = &app_info;
 
-  const auto extensions = window.get_required_instance_extensions();
+  auto extensions = window.get_required_instance_extensions();
+#ifdef BEYOND_VULKAN_ENABLE_VALIDATION_LAYER
+  extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+#endif
+
   create_info.enabledExtensionCount = to_u32(extensions.size());
   create_info.ppEnabledExtensionNames = extensions.data();
 
@@ -229,7 +266,7 @@ auto check_validation_layer_support() noexcept -> bool
 #endif
 
   if (vkCreateInstance(&create_info, nullptr, &instance) != VK_SUCCESS) {
-    panic("Cannot create vulkan instance!");
+    beyond::panic("Cannot create vulkan instance!");
   }
 
   return instance;
@@ -243,7 +280,7 @@ auto check_validation_layer_support() noexcept -> bool
         return vkEnumeratePhysicalDevices(instance, count, data);
       });
   if (avaliable_devices.empty()) {
-    panic("failed to find GPUs with Vulkan support!");
+    beyond::panic("failed to find GPUs with Vulkan support!");
   }
 
   using ScoredPair = std::pair<int, VkPhysicalDevice>;
@@ -257,7 +294,8 @@ auto check_validation_layer_support() noexcept -> bool
   }
 
   if (scored_pairs.empty()) {
-    panic("Vulkan failed to find GPUs with enough nessesory graphics support!");
+    beyond::panic(
+        "Vulkan failed to find GPUs with enough nessesory graphics support!");
   }
 
   std::sort(std::begin(scored_pairs), std::end(scored_pairs),
@@ -265,8 +303,60 @@ auto check_validation_layer_support() noexcept -> bool
               return lhs.first > rhs.first;
             });
 
+  const auto physical_device = scored_pairs.front().second;
+
+  VkPhysicalDeviceProperties properties;
+  vkGetPhysicalDeviceProperties(physical_device, &properties);
+  fmt::print("GPU: {}\n", properties.deviceName);
+  std::fflush(stdout);
+
   // Returns the pair with highest score
-  return scored_pairs.front().second;
+  return physical_device;
+}
+
+[[nodiscard]] auto create_logical_device(
+    VkPhysicalDevice pd,
+    const beyond::vulkan::QueueFamilyIndices& indices) noexcept -> VkDevice
+{
+  const auto unique_indices = indices.to_set();
+
+  std::vector<VkDeviceQueueCreateInfo> queue_create_infos;
+  queue_create_infos.resize(unique_indices.size());
+
+  float queue_priority = 1.0f;
+  std::transform(std::begin(unique_indices), std::end(unique_indices),
+                 std::begin(queue_create_infos), [&](uint32_t index) {
+                   VkDeviceQueueCreateInfo queue_create_info = {};
+                   queue_create_info.sType =
+                       VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+                   queue_create_info.queueFamilyIndex = index;
+                   queue_create_info.queueCount = 1;
+                   queue_create_info.pQueuePriorities = &queue_priority;
+                   return queue_create_info;
+                 });
+
+  const VkPhysicalDeviceFeatures features = {};
+
+  VkDeviceCreateInfo create_info = {};
+  create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+  create_info.queueCreateInfoCount = to_u32(queue_create_infos.size());
+  create_info.pQueueCreateInfos = queue_create_infos.data();
+  create_info.pEnabledFeatures = &features;
+  create_info.enabledExtensionCount = 0;
+
+#ifdef BEYOND_VULKAN_ENABLE_VALIDATION_LAYER
+  create_info.enabledLayerCount = to_u32(validation_layers.size());
+  create_info.ppEnabledLayerNames = validation_layers.data();
+#else
+  create_info.enabledLayerCount = 0;
+#endif
+
+  VkDevice device = nullptr;
+  if (vkCreateDevice(pd, &create_info, nullptr, &device) != VK_SUCCESS) {
+    beyond::panic("Vulkan: failed to create logical device!");
+  }
+
+  return device;
 }
 
 #ifdef BEYOND_VULKAN_ENABLE_VALIDATION_LAYER
@@ -278,23 +368,14 @@ auto check_validation_layer_support() noexcept -> bool
       populate_debug_messenger_create_info();
 
   VkDebugUtilsMessengerEXT debug_mesenger;
-  if (vkCreateDebugUtilsMessengerEXT(instance, &create_info, nullptr,
-                                     &debug_mesenger) != VK_SUCCESS) {
-    panic("failed to set up debug messenger!");
+  auto result = vkCreateDebugUtilsMessengerEXT(instance, &create_info, nullptr,
+                                               &debug_mesenger);
+  if (result != VK_SUCCESS) {
+    beyond::panic("failed to set up debug messenger!");
   }
 
   return debug_mesenger;
 }
 #endif
 
-[[nodiscard]] auto create_context(const Window& window) noexcept -> Context*
-{
-  return new Context(window);
-}
-
-auto destory_context(Context* context) noexcept -> void
-{
-  delete context;
-}
-
-} // namespace beyond::graphics
+} // anonymous namespace

@@ -1,5 +1,7 @@
 #include <GLFW/glfw3.h>
 
+#include <algorithm>
+
 #include <beyond/core/utils/panic.hpp>
 #include <beyond/platform/platform.hpp>
 
@@ -73,13 +75,16 @@ auto Window::swap_buffers() -> void
 #ifdef BEYOND_GRAPHICS_BACKEND_VULKAN
 /// @brief Get the extensions needed for the vulkan instance
 [[nodiscard]] auto Window::get_required_instance_extensions() const noexcept
-    -> gsl::span<const char*>
+    -> std::vector<const char*>
 {
-  uint32_t glfwExtensionCount = 0;
-  const char** glfwExtensions;
-  glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+  uint32_t glfw_extension_count = 0;
+  const char** glfw_extensions;
+  glfw_extensions = glfwGetRequiredInstanceExtensions(&glfw_extension_count);
 
-  return gsl::span(glfwExtensions, glfwExtensionCount);
+  std::vector<const char*> extensions;
+  std::copy_n(glfw_extensions, glfw_extension_count,
+              std::back_inserter(extensions));
+  return extensions;
 }
 #endif
 

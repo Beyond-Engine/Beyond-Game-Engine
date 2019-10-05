@@ -5,8 +5,8 @@
 
 #include <memory>
 
-#include <gsl/span>
 #include <string_view>
+#include <vector>
 
 namespace beyond {
 
@@ -59,7 +59,7 @@ public:
 #ifdef BEYOND_GRAPHICS_BACKEND_VULKAN
   /// @brief Get the extensions needed for the vulkan instance
   [[nodiscard]] auto get_required_instance_extensions() const noexcept
-      -> gsl::span<const char*>;
+      -> std::vector<const char*>;
 #endif
 
 private:
