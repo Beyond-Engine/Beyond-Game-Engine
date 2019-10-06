@@ -3,12 +3,14 @@
 #ifndef BEYOND_GRAPHICS_VULKAN_CONTEXT_HPP
 #define BEYOND_GRAPHICS_VULKAN_CONTEXT_HPP
 
+#include <vulkan_fwd.hpp>
+
 #include <volk.h>
 
 #include <beyond/core/utils/panic.hpp>
 #include <beyond/platform/platform.hpp>
 
-#include "vulkan_utils.hpp"
+#include <beyond/graphics/backend.hpp>
 
 #include <fmt/format.h>
 
@@ -18,8 +20,7 @@
 #include <set>
 #include <vector>
 
-namespace beyond::graphics {
-namespace vulkan {
+namespace beyond::graphics::vulkan {
 
 struct QueueFamilyIndices {
   std::uint32_t graphics_family;
@@ -32,17 +33,11 @@ struct QueueFamilyIndices {
 
 [[nodiscard]] auto find_queue_families(VkPhysicalDevice device) noexcept
     -> std::optional<QueueFamilyIndices>;
-} // namespace vulkan
 
-class Context {
+class VulkanContext : public Context {
 public:
-  Context(const Window& window);
-  ~Context();
-
-  Context(const Context&) = delete;
-  auto operator=(const Context&) -> Context& = delete;
-  Context(Context&&) = delete;
-  auto operator=(Context &&) -> Context& = delete;
+  VulkanContext(const Window& window);
+  ~VulkanContext();
 
 private:
   VkInstance instance_;
@@ -56,6 +51,6 @@ private:
   VkDevice device_;
 };
 
-} // namespace beyond::graphics
+} // namespace beyond::graphics::vulkan
 
 #endif // BEYOND_GRAPHICS_VULKAN_CONTEXT_HPP

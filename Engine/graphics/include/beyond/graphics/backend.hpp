@@ -8,6 +8,8 @@
  * @brief Interface of the graphics backend
  */
 
+#include <memory>
+
 #include "beyond/platform/platform.hpp"
 
 namespace beyond::graphics {
@@ -25,16 +27,33 @@ namespace beyond::graphics {
  * @{
  */
 
-/// @brief Graphics context
-///
-/// The actual definition is depend on the rendering backend.
-class Context;
+enum class Backend {
+  mock = 0,
+#ifdef BEYOND_BUILD_VULKAN_BACKEND
+  vulkan
+#endif
+};
+
+/**
+ * @brief Interface of the graphics context
+ */
+class Context {
+public:
+  virtual ~Context() = default;
+
+  Context(const Context&) = delete;
+  auto operator=(const Context&) -> Context& = delete;
+  Context(Context&&) = delete;
+  auto operator=(Context &&) -> Context& = delete;
+
+protected:
+  Context() = default;
+};
 
 /// @brief Create a graphics context
-[[nodiscard]] auto create_context(const Window& window) noexcept -> Context*;
-
-/// @brief destory a graphics context
-auto destory_context(Context* context) noexcept -> void;
+[[nodiscard]] auto create_context(Backend backend,
+                                  const Window& window) noexcept
+    -> std::unique_ptr<Context>;
 
 /** @}@} */
 

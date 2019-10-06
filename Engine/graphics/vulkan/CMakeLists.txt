@@ -1,8 +1,8 @@
 add_library(vulkan_backend
-    "vulkan_backend.cpp"
-    "vulkan_context.hpp"
-    "vulkan_context.cpp"
-    "vulkan_utils.hpp")
+    "include/beyond/vulkan/vulkan_fwd.hpp"
+    "src/vulkan_context.hpp"
+    "src/vulkan_context.cpp"
+    "src/vulkan_utils.hpp")
 
 set(BEYOND_VULKAN_ENABLE_VALIDATION_LAYER AUTO CACHE STRING "The policy of enabling
     assertion or not in beyond game engine core.
@@ -24,5 +24,13 @@ target_link_libraries(vulkan_backend
     core platform graphics_backend
     volk
     )
+
+target_include_directories(vulkan_backend
+    PUBLIC
+        $<INSTALL_INTERFACE:include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/beyond/vulkan
+)
 
 target_compile_definitions(vulkan_backend PRIVATE VK_NO_PROTOTYPES)

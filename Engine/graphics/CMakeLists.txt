@@ -7,7 +7,27 @@ target_include_directories(graphics_backend
 
 if (${BEYOND_BUILD_VULKAN_BACKEND})
   add_subdirectory(vulkan)
-  add_executable(TestApp "main.cpp")
-  target_link_libraries(TestApp
-    PRIVATE core platform compiler_warnings graphics_backend vulkan_backend)
 endif()
+
+add_library(graphics
+    "include/beyond/graphics/backend.hpp"
+    "src/backend.cpp")
+target_include_directories(graphics
+    PUBLIC
+        $<INSTALL_INTERFACE:include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+if (${BEYOND_BUILD_VULKAN_BACKEND})
+  target_compile_definitions(graphics PUBLIC BEYOND_BUILD_VULKAN_BACKEND)
+endif()
+
+target_link_libraries(graphics
+    PUBLIC core platform
+    PRIVATE compiler_warnings vulkan_backend)
+
+add_executable(TestApp "main.cpp")
+target_link_libraries(TestApp
+    PRIVATE graphics compiler_warnings)

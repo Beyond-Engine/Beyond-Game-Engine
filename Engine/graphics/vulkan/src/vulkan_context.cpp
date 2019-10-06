@@ -1,4 +1,5 @@
 #include "vulkan_context.hpp"
+#include "vulkan_utils.hpp"
 
 namespace vulkan = beyond::graphics::vulkan;
 using vulkan::QueueFamilyIndices;
@@ -81,7 +82,17 @@ create_logical_device(VkPhysicalDevice pd,
 
 } // anonymous namespace
 
-beyond::graphics::Context::Context(const Window& window)
+namespace beyond::graphics {
+
+namespace vulkan {
+
+[[nodiscard]] auto create_vulkan_context(const Window& window) noexcept
+    -> std::unique_ptr<Context>
+{
+  return std::make_unique<VulkanContext>(window);
+}
+
+VulkanContext::VulkanContext(const Window& window)
 {
   if (volkInitialize() != VK_SUCCESS) {
     panic("Cannot find a Vulkan Loader in the system!");
@@ -101,7 +112,7 @@ beyond::graphics::Context::Context(const Window& window)
   volkLoadDevice(device_);
 }
 
-beyond::graphics::Context::~Context()
+VulkanContext::~VulkanContext()
 {
   vkDestroyDevice(device_, nullptr);
 
@@ -111,6 +122,10 @@ beyond::graphics::Context::~Context()
 
   vkDestroyInstance(instance_, nullptr);
 }
+
+} // namespace vulkan
+
+} // namespace beyond::graphics
 
 namespace {
 

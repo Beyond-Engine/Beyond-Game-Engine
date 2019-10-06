@@ -1,6 +1,7 @@
 #include <fmt/format.h>
 
-#include <beyond/graphics/unique_handles.hpp>
+#include <beyond/graphics/backend.hpp>
+
 #include <beyond/platform/platform.hpp>
 
 constexpr int initial_width = 1024;
@@ -11,7 +12,8 @@ int main()
   beyond::Platform platform;
   auto window = platform.create_window(initial_width, initial_height, "Test");
   platform.make_context_current(window);
-  const auto graphics_context = beyond::graphics::make_unique_context(window);
+  const auto graphics_context = beyond::graphics::create_context(
+      beyond::graphics::Backend::vulkan, window);
 
   while (!window.should_close()) {
     // render

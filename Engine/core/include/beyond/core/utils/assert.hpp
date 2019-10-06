@@ -50,8 +50,8 @@
 // code is never reached.
 #define BEYOND_UNREACHABLE()                                                   \
   do {                                                                         \
-    panic(fmt::format("[{}:{}] Reach unreachable code {}: {}\n", __FILE__,     \
-                      __LINE__, __func__, message));                           \
+    panic(fmt::format("[{}:{}] Reach unreachable code {}\n", __FILE__,         \
+                      __LINE__, __func__));                                    \
   } while (0)
 #else
 #define BEYOND_ASSERT(condition)                                               \
@@ -68,7 +68,7 @@
 #elif defined(__GNUC__) || defined(__GNUG__) || defined(__clang__)
 #define BEYOND_UNREACHABLE() __builtin_unreachable()
 #else
-#define BEYOND_UNREACHABLE()
+#define BEYOND_UNREACHABLE() std::terminate()
 #endif
 #endif
 
