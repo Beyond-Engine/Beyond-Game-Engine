@@ -20,13 +20,15 @@ target_include_directories(graphics
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-if (${BEYOND_BUILD_VULKAN_BACKEND})
-  target_compile_definitions(graphics PUBLIC BEYOND_BUILD_VULKAN_BACKEND)
-endif()
-
 target_link_libraries(graphics
     PUBLIC core platform
-    PRIVATE compiler_warnings vulkan_backend)
+    PRIVATE
+    compiler_warnings
+    )
+
+if (${BEYOND_BUILD_VULKAN_BACKEND})
+  target_link_libraries(graphics PRIVATE vulkan_backend)
+endif()
 
 add_executable(TestApp "main.cpp")
 target_link_libraries(TestApp

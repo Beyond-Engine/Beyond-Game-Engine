@@ -12,7 +12,12 @@ namespace beyond {
 
 class Window;
 
-enum class PlatformError : char { cannot_create_window };
+enum class GraphicsBackend {
+  mock = 0,
+#ifdef BEYOND_GRAPHICS_BACKEND_VULKAN
+  vulkan
+#endif
+};
 
 class Platform {
 public:
@@ -27,8 +32,18 @@ public:
 
   auto poll_events() noexcept -> void;
 
+  /**
+   * @brief Creates a window with default graphics backend
+   */
   [[nodiscard]] auto create_window(int width, int height,
                                    std::string_view title) noexcept -> Window;
+
+  /**
+   * @brief Creates a window and specify what graphics backend to use
+   */
+  [[nodiscard]] auto create_window(int width, int height,
+                                   std::string_view title,
+                                   GraphicsBackend backend) noexcept -> Window;
 
   auto make_context_current(const Window& window) noexcept -> void;
 
@@ -56,6 +71,13 @@ public:
     return title_;
   }
 
+  /// @brief Gets the Graphics Backend of the window
+  [[nodiscard]] auto backend() const -> GraphicsBackend
+  {
+    return backend_;
+  }
+
+// TODO(llai): An extension mechanism for Window
 #ifdef BEYOND_GRAPHICS_BACKEND_VULKAN
   /// @brief Get the extensions needed for the vulkan instance
   [[nodiscard]] auto get_required_instance_extensions() const noexcept
@@ -64,8 +86,10 @@ public:
 
 private:
   std::string title_;
+  GraphicsBackend backend_;
   std::unique_ptr<struct WindowImpl> pimpl_;
-  Window(std::string title, std::unique_ptr<WindowImpl>&& impl) noexcept;
+  Window(std::string title, GraphicsBackend backend,
+         std::unique_ptr<WindowImpl>&& impl) noexcept;
 
   friend Platform;
 };

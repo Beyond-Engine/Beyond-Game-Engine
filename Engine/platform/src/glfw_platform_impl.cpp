@@ -42,6 +42,25 @@ struct WindowImpl {
                                            std::string_view title) noexcept
     -> Window
 {
+#ifdef BEYOND_GRAPHICS_BACKEND_VULKAN
+  return create_window(width, height, title, GraphicsBackend::vulkan);
+#else
+  return create_window(width, height, title, GraphicsBackend::mock);
+#endif
+}
+
+[[nodiscard]] auto Platform::create_window(int width, int height,
+                                           std::string_view title,
+                                           GraphicsBackend backend) noexcept
+    -> Window
+{
+#ifdef BEYOND_GRAPHICS_BACKEND_VULKAN
+  if (backend == GraphicsBackend::vulkan) {
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+  }
+#endif
+
+  glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
   auto glfw_window =
       glfwCreateWindow(width, height, title.data(), nullptr, nullptr);
 
@@ -49,7 +68,8 @@ struct WindowImpl {
     beyond::panic("Cannot Create a GLFW Window");
   }
 
-  return Window{std::string{title}, std::make_unique<WindowImpl>(glfw_window)};
+  return Window{std::string{title}, backend,
+                std::make_unique<WindowImpl>(glfw_window)};
 }
 
 void Platform::make_context_current(const Window& window) noexcept
@@ -57,8 +77,9 @@ void Platform::make_context_current(const Window& window) noexcept
   glfwMakeContextCurrent(window.pimpl_->data_);
 }
 
-Window::Window(std::string title, std::unique_ptr<WindowImpl>&& impl) noexcept
-    : title_{std::move(title)}, pimpl_{std::move(impl)}
+Window::Window(std::string title, GraphicsBackend backend,
+               std::unique_ptr<WindowImpl>&& impl) noexcept
+    : title_{std::move(title)}, backend_{backend}, pimpl_{std::move(impl)}
 {
 }
 

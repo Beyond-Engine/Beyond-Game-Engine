@@ -27,13 +27,6 @@ namespace beyond::graphics {
  * @{
  */
 
-enum class Backend {
-  mock = 0,
-#ifdef BEYOND_BUILD_VULKAN_BACKEND
-  vulkan
-#endif
-};
-
 /**
  * @brief Interface of the graphics context
  */
@@ -51,8 +44,7 @@ protected:
 };
 
 /// @brief Create a graphics context
-[[nodiscard]] auto create_context(Backend backend,
-                                  const Window& window) noexcept
+[[nodiscard]] auto create_context(const Window& window) noexcept
     -> std::unique_ptr<Context>;
 
 /** @}@} */

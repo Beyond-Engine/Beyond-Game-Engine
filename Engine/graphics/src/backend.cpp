@@ -1,7 +1,9 @@
 #include <beyond/core/utils/assert.hpp>
 #include <beyond/graphics/backend.hpp>
 
+#ifdef BEYOND_GRAPHICS_BACKEND_VULKAN
 #include <beyond/vulkan/vulkan_fwd.hpp>
+#endif
 
 namespace beyond::graphics {
 
@@ -9,16 +11,15 @@ struct MockContext : Context {
   MockContext(const Window&) {}
 };
 
-[[nodiscard]] auto create_context(Backend backend,
-                                  const Window& window) noexcept
+[[nodiscard]] auto create_context(const Window& window) noexcept
     -> std::unique_ptr<Context>
 {
-  switch (backend) {
-  case Backend::mock:
+  switch (window.backend()) {
+  case GraphicsBackend::mock:
     return std::make_unique<MockContext>(window);
 
-#ifdef BEYOND_BUILD_VULKAN_BACKEND
-  case Backend::vulkan:
+#ifdef BEYOND_GRAPHICS_BACKEND_VULKAN
+  case GraphicsBackend::vulkan:
     return beyond::graphics::vulkan::create_vulkan_context(window);
 #endif
   }
