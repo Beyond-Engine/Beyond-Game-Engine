@@ -14,11 +14,45 @@ constexpr bool enable_validation_layers = true;
 constexpr bool enable_validation_layers = false;
 #endif
 
+auto find_queue_families(VkPhysicalDevice device, VkSurfaceKHR surface) noexcept
+    -> std::optional<vulkan::QueueFamilyIndices>
+{
+  std::optional<std::uint32_t> graphics_family;
+  std::optional<std::uint32_t> present_family;
+
+  const auto queue_families = vulkan::get_vector_with<VkQueueFamilyProperties>(
+      [device](uint32_t* count, VkQueueFamilyProperties* data) {
+        vkGetPhysicalDeviceQueueFamilyProperties(device, count, data);
+      });
+
+  for (std::uint32_t i = 0; i < queue_families.size(); ++i) {
+    const auto& queue_family = queue_families[i];
+
+    if (queue_family.queueCount > 0 &&
+        ((queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0u)) {
+      graphics_family = i;
+    }
+
+    VkBool32 present_support = false;
+    vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &present_support);
+    if (queue_family.queueCount > 0 && present_support) {
+      present_family = i;
+    }
+
+    if (graphics_family && graphics_family) {
+      return QueueFamilyIndices{*graphics_family, *present_family};
+    }
+  }
+
+  return {};
+}
+
 // Higher is better, negative means not suitable
-[[nodiscard]] auto rate_physical_device(VkPhysicalDevice device) noexcept -> int
+[[nodiscard]] auto rate_physical_device(VkPhysicalDevice device,
+                                        VkSurfaceKHR surface) noexcept -> int
 {
 
-  const auto maybe_indices = vulkan::find_queue_families(device);
+  const auto maybe_indices = find_queue_families(device, surface);
   if (!maybe_indices) {
     return -1000;
   }
@@ -73,7 +107,8 @@ constexpr auto populate_debug_messenger_create_info() noexcept
     -> VkDebugUtilsMessengerEXT;
 #endif
 
-[[nodiscard]] auto pick_physical_device(VkInstance instance) noexcept
+[[nodiscard]] auto pick_physical_device(VkInstance instance,
+                                        VkSurfaceKHR surface) noexcept
     -> VkPhysicalDevice;
 
 [[nodiscard]] auto
@@ -105,11 +140,15 @@ VulkanContext::VulkanContext(const Window& window)
   debug_messager_ = create_debug_messager(instance_);
 #endif
 
-  physical_device_ = pick_physical_device(instance_);
-
-  queue_family_indices_ = *vulkan::find_queue_families(physical_device_);
+  physical_device_ = pick_physical_device(instance_, surface_);
+  queue_family_indices_ = *find_queue_families(physical_device_, surface_);
   device_ = create_logical_device(physical_device_, queue_family_indices_);
   volkLoadDevice(device_);
+
+  vkGetDeviceQueue(device_, queue_family_indices_.graphics_family, 0,
+                   &graphics_queue_);
+  vkGetDeviceQueue(device_, queue_family_indices_.present_family, 0,
+                   &present_queue_);
 }
 
 VulkanContext::~VulkanContext()
@@ -124,7 +163,7 @@ VulkanContext::~VulkanContext()
   vkDestroyInstance(instance_, nullptr);
 }
 
-} // namespace beyond::graphics
+} // namespace beyond::graphics::vulkan
 
 namespace {
 
@@ -133,15 +172,16 @@ auto check_validation_layer_support() noexcept -> bool
   const auto available = vulkan::get_vector_with<VkLayerProperties>(
       vkEnumerateInstanceLayerProperties);
 
-  return std::all_of(std::begin(validation_layers), std::end(validation_layers),
-                     [&](const char* layer_name) {
-                       return std::find_if(
-                                  std::begin(available), std::end(available),
-                                  [&](const auto& layer_properties) {
-                                    return strcmp(layer_name,
-                                                  static_cast<const char*>(layer_properties.layerName));
-                                  }) != std::end(available);
-                     });
+  return std::all_of(
+      std::begin(validation_layers), std::end(validation_layers),
+      [&](const char* layer_name) {
+        return std::find_if(std::begin(available), std::end(available),
+                            [&](const auto& layer_properties) {
+                              return strcmp(layer_name,
+                                            static_cast<const char*>(
+                                                layer_properties.layerName));
+                            }) != std::end(available);
+      });
 }
 
 [[nodiscard]] auto create_instance(const beyond::Window& window) noexcept
@@ -193,7 +233,8 @@ auto check_validation_layer_support() noexcept -> bool
   return instance;
 }
 
-[[nodiscard]] auto pick_physical_device(VkInstance instance) noexcept
+[[nodiscard]] auto pick_physical_device(VkInstance instance,
+                                        VkSurfaceKHR surface) noexcept
     -> VkPhysicalDevice
 {
   const auto avaliable_devices = vulkan::get_vector_with<VkPhysicalDevice>(
@@ -208,7 +249,7 @@ auto check_validation_layer_support() noexcept -> bool
   std::vector<ScoredPair> scored_pairs;
   scored_pairs.reserve(avaliable_devices.size());
   for (const auto& device : avaliable_devices) {
-    const auto score = rate_physical_device(device);
+    const auto score = rate_physical_device(device, surface);
     if (score > 0) {
       scored_pairs.emplace_back(score, device);
     }
@@ -300,29 +341,3 @@ create_logical_device(VkPhysicalDevice pd,
 #endif
 
 } // anonymous namespace
-
-auto vulkan::find_queue_families(VkPhysicalDevice device) noexcept
-    -> std::optional<vulkan::QueueFamilyIndices>
-{
-  std::optional<std::uint32_t> graphics_family;
-
-  const auto queue_families = get_vector_with<VkQueueFamilyProperties>(
-      [device](uint32_t* count, VkQueueFamilyProperties* data) {
-        vkGetPhysicalDeviceQueueFamilyProperties(device, count, data);
-      });
-
-  for (std::uint32_t i = 0; i < queue_families.size(); ++i) {
-    const auto& queue_family = queue_families[i];
-
-    if (queue_family.queueCount > 0 &&
-        ((queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0u)) {
-      graphics_family = i;
-    }
-
-    if (graphics_family) {
-      return QueueFamilyIndices{*graphics_family};
-    }
-  }
-
-  return {};
-}

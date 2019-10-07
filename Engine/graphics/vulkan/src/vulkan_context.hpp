@@ -24,15 +24,13 @@ namespace beyond::graphics::vulkan {
 
 struct QueueFamilyIndices {
   std::uint32_t graphics_family;
+  std::uint32_t present_family;
 
   [[nodiscard]] auto to_set() const noexcept -> std::set<std::uint32_t>
   {
-    return std::set{graphics_family};
+    return std::set{graphics_family, present_family};
   }
 };
-
-[[nodiscard]] auto find_queue_families(VkPhysicalDevice device) noexcept
-    -> std::optional<QueueFamilyIndices>;
 
 class VulkanContext : public Context {
 public:
@@ -51,6 +49,9 @@ private:
   VkPhysicalDevice physical_device_;
   vulkan::QueueFamilyIndices queue_family_indices_;
   VkDevice device_;
+
+  VkQueue graphics_queue_;
+  VkQueue present_queue_;
 };
 
 } // namespace beyond::graphics::vulkan
