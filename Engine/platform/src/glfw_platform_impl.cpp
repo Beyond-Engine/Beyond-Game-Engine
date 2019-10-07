@@ -18,7 +18,7 @@ namespace beyond {
 struct PlatformImpl {
   PlatformImpl() noexcept
   {
-    if (!glfwInit()) {
+    if (glfwInit() == 0) {
       beyond::panic("Cannot initialize GLFW platform");
     }
   }
@@ -43,7 +43,7 @@ Window::~Window() noexcept = default;
 struct WindowImpl {
   GLFWwindow* data_ = nullptr;
 
-  WindowImpl(GLFWwindow* data) : data_{data} {}
+  explicit WindowImpl(GLFWwindow* data) : data_{data} {}
 };
 
 [[nodiscard]] auto Platform::create_window(int width, int height,

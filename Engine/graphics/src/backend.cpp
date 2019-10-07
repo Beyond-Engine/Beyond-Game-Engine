@@ -8,7 +8,7 @@
 namespace beyond::graphics {
 
 struct MockContext : Context {
-  MockContext(const Window&) {}
+  explicit MockContext(const Window&) {}
 };
 
 [[nodiscard]] auto create_context(const Window& window) noexcept

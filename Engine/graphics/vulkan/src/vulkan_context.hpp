@@ -37,7 +37,7 @@ struct QueueFamilyIndices {
 class VulkanContext : public Context {
 public:
   VulkanContext(const Window& window);
-  ~VulkanContext();
+  ~VulkanContext() override;
 
 private:
   VkInstance instance_;

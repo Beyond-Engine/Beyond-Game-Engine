@@ -2,11 +2,15 @@
 Checks:          '*,
 -clang-analyzer-deadcode.DeadStores,
 -clang-analyzer-alpha.*,
+-cppcoreguidelines-macro-usage,
+-cppcoreguidelines-special-member-functions,
 -cppcoreguidelines-pro-bounds-constant-array-index,
 -cppcoreguidelines-pro-bounds-pointer-arithmetic,
 -cppcoreguidelines-pro-type-union-access,
 -cppcoreguidelines-avoid-c-arrays,
 -hicpp-avoid-c-arrays,
+-hicpp-special-member-functions,
+-hicpp-uppercase-literal-suffix,
 -misc-unconventional-assign-operator,
 -cppcoreguidelines-c-copy-assignment-signature,
 -modernize-avoid-c-arrays,
@@ -14,6 +18,7 @@ Checks:          '*,
 -readability-else-after-return,
 -readability-implicit-bool-cast,
 -readability-named-parameter,
+-readability-uppercase-literal-suffix,
 -llvm-include-order,
 -llvm-header-guard,
 -fuchsia-*,
@@ -30,6 +35,8 @@ CheckOptions:
     value:           '16'
   - key:             readability-function-size.StatementThreshold
     value:           '400'
+  - key:             readability-implicit-bool-conversion.AllowPointerConditions
+    value:           '1'
   - key:             misc-non-private-member-variables-in-classes.IgnorePublicMemberVariables
     value:           '1'
   - key:             cppcoreguidelines-avoid-magic-numbers.IgnoredIntegerValues

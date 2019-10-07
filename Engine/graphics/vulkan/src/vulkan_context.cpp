@@ -38,7 +38,7 @@ constexpr bool enable_validation_layers = false;
 }
 
 #ifdef BEYOND_VULKAN_ENABLE_VALIDATION_LAYER
-static VKAPI_ATTR VkBool32 VKAPI_CALL
+VKAPI_ATTR VkBool32 VKAPI_CALL
 debug_callback(VkDebugUtilsMessageSeverityFlagBitsEXT /*messageSeverity*/,
                VkDebugUtilsMessageTypeFlagsEXT /*messageType*/,
                const VkDebugUtilsMessengerCallbackDataEXT* p_callback_data,
@@ -82,9 +82,7 @@ create_logical_device(VkPhysicalDevice pd,
 
 } // anonymous namespace
 
-namespace beyond::graphics {
-
-namespace vulkan {
+namespace beyond::graphics::vulkan {
 
 [[nodiscard]] auto create_vulkan_context(const Window& window) noexcept
     -> std::unique_ptr<Context>
@@ -126,8 +124,6 @@ VulkanContext::~VulkanContext()
   vkDestroyInstance(instance_, nullptr);
 }
 
-} // namespace vulkan
-
 } // namespace beyond::graphics
 
 namespace {
@@ -143,7 +139,7 @@ auto check_validation_layer_support() noexcept -> bool
                                   std::begin(available), std::end(available),
                                   [&](const auto& layer_properties) {
                                     return strcmp(layer_name,
-                                                  layer_properties.layerName);
+                                                  static_cast<const char*>(layer_properties.layerName));
                                   }) != std::end(available);
                      });
 }
@@ -319,7 +315,7 @@ auto vulkan::find_queue_families(VkPhysicalDevice device) noexcept
     const auto& queue_family = queue_families[i];
 
     if (queue_family.queueCount > 0 &&
-        queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+        ((queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0u)) {
       graphics_family = i;
     }
 
