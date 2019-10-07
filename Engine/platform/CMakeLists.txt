@@ -29,4 +29,7 @@ endif()
 
 if (${BEYOND_BUILD_VULKAN_BACKEND})
     target_compile_definitions(platform PUBLIC BEYOND_GRAPHICS_BACKEND_VULKAN)
+
+    target_compile_definitions(platform PRIVATE VK_NO_PROTOTYPES)
+    target_link_libraries(platform PRIVATE volk)
 endif()

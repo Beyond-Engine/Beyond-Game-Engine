@@ -1,9 +1,17 @@
-#include <GLFW/glfw3.h>
+// Supress windows Macro redefinition of GLFW
+#ifdef WIN32
+#include <windows.h>
+#endif
 
 #include <algorithm>
 
 #include <beyond/core/utils/panic.hpp>
 #include <beyond/platform/platform.hpp>
+
+#ifdef BEYOND_GRAPHICS_BACKEND_VULKAN
+#define GLFW_INCLUDE_VULKAN
+#endif
+#include <GLFW/glfw3.h>
 
 namespace beyond {
 
@@ -106,6 +114,16 @@ auto Window::swap_buffers() -> void
   std::copy_n(glfw_extensions, glfw_extension_count,
               std::back_inserter(extensions));
   return extensions;
+}
+
+auto Window::create_vulkan_surface(VkInstance instance,
+                                   const VkAllocationCallbacks* allocator,
+                                   VkSurfaceKHR& surface) const noexcept -> void
+{
+  if (glfwCreateWindowSurface(instance, pimpl_->data_, allocator, &surface) !=
+      VK_SUCCESS) {
+    beyond::panic("Failed to create Vulkan window surface!");
+  }
 }
 #endif
 

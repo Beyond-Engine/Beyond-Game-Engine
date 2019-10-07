@@ -101,6 +101,8 @@ VulkanContext::VulkanContext(const Window& window)
   instance_ = create_instance(window);
   volkLoadInstance(instance_);
 
+  window.create_vulkan_surface(instance_, nullptr, surface_);
+
 #ifdef BEYOND_VULKAN_ENABLE_VALIDATION_LAYER
   debug_messager_ = create_debug_messager(instance_);
 #endif
@@ -120,6 +122,7 @@ VulkanContext::~VulkanContext()
   vkDestroyDebugUtilsMessengerEXT(instance_, debug_messager_, nullptr);
 #endif
 
+  vkDestroySurfaceKHR(instance_, surface_, nullptr);
   vkDestroyInstance(instance_, nullptr);
 }
 

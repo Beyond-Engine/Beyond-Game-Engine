@@ -4,9 +4,15 @@
 #define BEYOND_PLATFORM_PLATFORM_HPP
 
 #include <memory>
-
 #include <string_view>
 #include <vector>
+
+struct VkInstance_T;
+struct VkSurfaceKHR_T;
+struct VkAllocationCallbacks;
+
+typedef struct VkInstance_T* VkInstance;
+typedef struct VkSurfaceKHR_T* VkSurfaceKHR;
 
 namespace beyond {
 
@@ -82,6 +88,17 @@ public:
   /// @brief Get the extensions needed for the vulkan instance
   [[nodiscard]] auto get_required_instance_extensions() const noexcept
       -> std::vector<const char*>;
+
+  /**
+   * @brief Create a VkSurfaceKHR from Window
+   * @param[in] instance The Vulkan Instance
+   * @param[in] allocator The allocator to use, or `nullptr` to use the default
+   * allocator.
+   * @param[out] surface The Vulkan surface to create
+   */
+  auto create_vulkan_surface(VkInstance instance,
+                             const VkAllocationCallbacks* allocator,
+                             VkSurfaceKHR& surface) const noexcept -> void;
 #endif
 
 private:

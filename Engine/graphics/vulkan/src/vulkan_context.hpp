@@ -42,6 +42,8 @@ public:
 private:
   VkInstance instance_;
 
+  VkSurfaceKHR surface_;
+
 #ifdef BEYOND_VULKAN_ENABLE_VALIDATION_LAYER
   VkDebugUtilsMessengerEXT debug_messager_;
 #endif
