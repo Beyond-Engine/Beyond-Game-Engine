@@ -18,7 +18,7 @@ namespace beyond {
 /**
  * @addtogroup core
  * @{
- * @addtogroup handle
+ * @addtogroup ecs
  * @{
  */
 
@@ -31,10 +31,18 @@ struct HandleBase {
  * Resource handles act as none-owning references to a resource. It has
  * additional functionality to check for dangling.
  */
-template <typename Resource, typename Storage, std::size_t index_bits,
+template <typename Derived, typename Storage, std::size_t index_bits,
           std::size_t generation_bits>
 struct Handle : HandleBase {
 public:
+  using Index = Storage;
+  using Generation = Storage;
+  using DiffType = std::make_signed_t<Index>;
+
+  /// @brief The shift of index bits
+  static constexpr std::size_t shift = index_bits;
+  static constexpr std::size_t index_mask = ~(~Storage{0} >> shift << shift);
+
   static_assert(std::is_unsigned_v<Storage>,
                 "The storage must an unsigned integer");
   static_assert(index_bits + generation_bits == 8 * sizeof(Storage));
@@ -46,21 +54,22 @@ public:
 
   [[nodiscard]] auto index() const -> Storage
   {
-    static constexpr auto index_mask = ~(~0 >> index_bits << index_bits);
     return data_ & index_mask;
   }
 
   [[nodiscard]] auto generation() const -> Storage
   {
-    return data_ >> index_bits;
+    return data_ >> shift;
   }
 
-  [[nodiscard]] friend constexpr auto operator==(Handle lhs, Handle rhs) -> bool
+  [[nodiscard]] friend constexpr auto operator==(Derived lhs, Derived rhs)
+      -> bool
   {
     return lhs.data_ == rhs.data_;
   }
 
-  [[nodiscard]] friend constexpr auto operator!=(Handle lhs, Handle rhs) -> bool
+  [[nodiscard]] friend constexpr auto operator!=(Derived lhs, Derived rhs)
+      -> bool
   {
     return lhs.data_ != rhs.data_;
   }

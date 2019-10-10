@@ -3,10 +3,12 @@
 
 using namespace beyond;
 
+struct Entity : Handle<Entity, std::uint32_t, 24, 8> {
+  using Handle::Handle;
+};
+
 TEST_CASE("SparseSet", "[beyond.core.ecs.sparse_set]")
 {
-  using Entity = std::uint32_t;
-
   GIVEN("An empty sparse set")
   {
     SparseSet<Entity> ss;
@@ -23,7 +25,7 @@ TEST_CASE("SparseSet", "[beyond.core.ecs.sparse_set]")
 
     AND_GIVEN("An entity")
     {
-      const Entity entity = 42;
+      const Entity entity{42};
 
       WHEN("Insert that entity to the sparse set")
       {
@@ -31,7 +33,7 @@ TEST_CASE("SparseSet", "[beyond.core.ecs.sparse_set]")
 
         THEN("You cannot find 0 in the sparse set")
         {
-          REQUIRE(!ss.contains(0));
+          REQUIRE(!ss.contains(Entity{0}));
         }
 
         THEN("You can find this entity in the sparse set")

@@ -7,8 +7,9 @@
 #include <utility>
 #include <vector>
 
-#include "beyond/core/utils/assert.hpp"
-#include "beyond/core/utils/type_traits.hpp"
+#include <beyond/core/ecs/handle.hpp>
+#include <beyond/core/utils/assert.hpp>
+#include <beyond/core/utils/crtp.hpp>
 
 /**
  * @file sparse_set.hpp
@@ -33,57 +34,44 @@ namespace beyond {
  * @{
  */
 
-/// @brief Entity traits.
-template <typename Entity> struct EntityTrait;
+template <typename Derived>
+class SparseSetBase : public CRTP<Derived, SparseSetBase> {
+public:
+  SparseSetBase() = default;
 
-/**
- * @brief Entity traits for a 32 bits entity identifier.
- *
- * A 32 bits entity identifier guarantees:
- *
- * * 20 bits for the entity number (suitable for almost all the games).
- * * 12 bit for the version (resets in [0-4095]).
- */
-template <> struct EntityTrait<std::uint32_t> {
-  /// @brief Underlying entity type.
-  using Entity = std::uint32_t;
-
-  /// @brief Underlying entity id type without its version
-  using Id = std::uint32_t;
-
-  /// @brief Underlying entity difference type
-  using DiffType = std::ptrdiff_t;
-
-  /// @brief Extent of the entity number within an identifier.
-  static constexpr std::size_t entity_shift = 20;
-  static constexpr std::uint32_t entity_mask = 0xFFFFF;
+  // It is impossible to have a sparse set bigger than the total number of
+  // entities
 };
-
-template <typename Entity, typename T> class SparseMap;
 
 /**
  * @brief SparseSet stores entities
  */
-template <typename Entity> class SparseSet {
+
+namespace detail {
+constexpr std::size_t page_shift = 12;
+
+}
+
+template <typename Handle>
+class SparseSet : public SparseSetBase<SparseSet<Handle>> {
 public:
-  static_assert(beyond::is_complete<EntityTrait<Entity>>(),
-                "The Entity class must has its corresponding EntityTrait");
-
-  using Trait = EntityTrait<Entity>;
-  // It is impossible to have a sparse set bigger than the total number of
-  // entities
-  using SizeType = typename Trait::Id;
-  using DiffType = typename Trait::DiffType;
-
-  using Iterator = const Entity*;
+  using SparseSetBase<SparseSet<Handle>>::SparseSetBase;
+  using SizeType = typename Handle::Index;
+  using DiffType = typename Handle::DiffType;
 
 private:
-  static constexpr std::size_t page_shift = 12;
-  static_assert(Trait::entity_shift > page_shift);
-  static constexpr SizeType page_count = 1u
-                                         << (Trait::entity_shift - page_shift);
-  static constexpr SizeType page_size = 1u << page_shift; // Entity per page
+  static constexpr SizeType page_count =
+      1u << (Handle::shift - detail::page_shift);
+  static constexpr SizeType page_size =
+      1u << detail::page_shift; // Handles per page
   using Page = std::array<std::optional<SizeType>, page_size>;
+
+  static_assert(std::is_base_of_v<beyond::HandleBase, Handle>);
+  static_assert(
+      Handle::shift > detail::page_shift,
+      "The maximum indices of a handle should be larger than page size");
+
+  using Iterator = const Handle*;
 
 public:
   SparseSet() noexcept = default;
@@ -113,75 +101,75 @@ public:
   }
 
   /**
-   * @brief Inserts an entity to the sparse set
+   * @brief Inserts a handle to the sparse set
    *
    * @warning
-   * Attempting to assign an entity that already belongs to the sparse set
+   * Attempting to assign a handle that already belongs to the sparse set
    * results in undefined behavior.
    *
-   * @param entity A valid entity identifier.
+   * @param handle A valid handle
    */
-  auto insert(Entity entity) -> void
+  auto insert(Handle handle) -> void
   {
-    BEYOND_ASSERT(!contains(entity));
-    const auto [page, offset] = page_index_of(entity);
+    BEYOND_ASSERT(!contains(handle));
+    const auto [page, offset] = page_index_of(handle);
     if (reverse_[page] == nullptr) {
       reverse_[page] = std::make_unique<Page>();
     }
     (*reverse_[page])[offset] = static_cast<SizeType>(direct_.size());
-    direct_.push_back(entity);
+    direct_.push_back(handle);
   }
 
   /**
-   * @brief Removes an entity from the sparse set
+   * @brief Removes a handle from the sparse set
    *
-   * @warning Attempting to erase an entity that is not in the sparse set leads
+   * @warning Attempting to erase an handle that is not in the sparse set leads
    * to undefined behavior.
    *
-   * @param entity A valid entity identifier.
+   * @param handle A valid handle identifier.
    */
-  auto erase(Entity entity) -> void
+  auto erase(Handle handle) -> void
   {
-    BEYOND_ASSERT(contains(entity));
+    BEYOND_ASSERT(contains(handle));
     // Swaps the to be delete alement with the last element
-    const auto [from_page, from_offset] = page_index_of(entity);
+    const auto [from_page, from_offset] = page_index_of(handle);
     const auto [to_page, to_offset] = page_index_of(direct_.back());
 
-    const auto entity_from_index = *(*reverse_[from_page])[from_offset];
-    BEYOND_ASSERT(direct_[entity_from_index] == entity);
+    const auto handle_from_index = *(*reverse_[from_page])[from_offset];
+    BEYOND_ASSERT(direct_[handle_from_index] == handle);
 
     (*reverse_[from_page])[from_offset] = std::nullopt;
-    *(*reverse_[to_page])[to_offset] = entity_from_index;
+    *(*reverse_[to_page])[to_offset] = handle_from_index;
 
-    direct_[entity_from_index] = direct_.back();
+    direct_[handle_from_index] = direct_.back();
     direct_.pop_back();
   }
 
   /**
-   * @brief Gets the position of an entity in a sparse set.
+   * @brief Gets the position of an handle in a sparse set.
    *
-   * @warning Attempting to get the index of an entity that is not in the
+   * @warning Attempting to get the index of an handle that is not in the
    * sparse set leads to undefined behavior.
    *
-   * @param entity A valid entity identifier.
+   * @param entity A valid handle identifier.
    *
-   * @return The position of entity in the sparse set
+   * @return The position of handle in the sparse set
    */
-  [[nodiscard]] auto index_of(Entity entity) const noexcept -> SizeType
+  [[nodiscard]] auto index_of(Handle handle) const noexcept -> SizeType
   {
-    BEYOND_ASSERT(contains(entity));
-    const auto [page, offset] = page_index_of(entity);
+    BEYOND_ASSERT(contains(handle));
+    const auto [page, offset] = page_index_of(handle);
     return *(*reverse_[page])[offset];
   }
 
   /**
-   * @brief Checks if the sparse set contains an entity
-   * @param entity A valid entity identifier.
-   * @return true if the sparse set contains the given antity, false otherwise
+   * @brief Checks if the sparse set contains a handle
+   * @param handle A valid handle
+   * @return true if the sparse set contains the given handle, false otherwise
    */
-  [[nodiscard]] auto contains(Entity entity) const noexcept -> bool
+  [[nodiscard]] auto contains(Handle handle) const noexcept -> bool
   {
-    const auto [page, offset] = page_index_of(entity);
+    const auto [page, offset] = page_index_of(handle);
     if (reverse_[page]) {
       return (*reverse_[page])[offset] != std::nullopt;
     }
@@ -191,20 +179,20 @@ public:
   /**
    * @brief Returns a raw pointer to the underlying entities array
    */
-  [[nodiscard]] auto entities() const noexcept -> const Entity*
+  [[nodiscard]] auto entities() const noexcept -> const Handle*
   {
     return direct_.data();
   }
 
   /// @brief Gets the iterator to the beginning of the sparse set
-  /// @return An iterator to the first entity
+  /// @return An iterator to the first handle
   [[nodiscard]] auto begin() const noexcept -> Iterator
   {
     return Iterator{direct_.data()};
   }
 
   /// @brief Gets an iterator to the end of sparse set
-  /// @return An iterator to the entity following the last entity
+  /// @return An iterator to the handle following the last handle
   [[nodiscard]] auto end() const noexcept -> Iterator
   {
     return Iterator{direct_.data() + direct_.size()};
@@ -224,14 +212,14 @@ public:
 
 private:
   std::array<std::unique_ptr<Page>, page_count> reverse_;
-  std::vector<Entity> direct_; // The packed array of entities
+  std::vector<Handle> direct_; // The packed array of entities
 
-  // Given an entity, get its location inside the reverse array
-  [[nodiscard]] auto page_index_of(Entity entity) const noexcept
+  // Given an handle, get its location inside the reverse array
+  [[nodiscard]] auto page_index_of(Handle handle) const noexcept
   {
-    const auto identifier = static_cast<SizeType>(entity & Trait::entity_mask);
-    const SizeType page = identifier / page_size;
-    const SizeType offset = identifier & (page_size - 1);
+    const auto index = handle.index();
+    const SizeType page = index / page_size;
+    const SizeType offset = index & (page_size - 1);
     return std::make_pair(page, offset);
   }
 };

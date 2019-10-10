@@ -1,4 +1,5 @@
 add_library(core
+    include/beyond/core/ecs/handle.hpp
     include/beyond/core/ecs/sparse_map.hpp
     include/beyond/core/ecs/sparse_set.hpp
     include/beyond/core/utils/assert.hpp
@@ -15,7 +16,6 @@ add_library(core
     include/beyond/core/math/constants.hpp
     include/beyond/core/math/math.hpp
     include/beyond/core/math/vector.hpp
-    include/beyond/core/resource/handle.hpp
 )
 
 add_subdirectory(unique_function)

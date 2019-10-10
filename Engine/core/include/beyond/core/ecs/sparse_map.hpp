@@ -11,7 +11,8 @@
  * @file sparse_map.hpp
  * @brief Provides the SparseMap class
  *
- * Sparse maps are the internal data structure of the entity-component-system to
+ * Sparse maps are the internal data structure of the entity-component-system
+ to
  * store entities and their associated data.
  * @ingroup ecs
  */
@@ -39,11 +40,10 @@ namespace beyond {
  * @tparam Entity A valid entity handle
  * @tparam T The type of data to store in this SparseMap
  */
-template <typename Entity, typename T> class SparseMap {
+template <typename Handle, typename T> class SparseMap {
 public:
-  using Trait = EntityTrait<Entity>;
-  using SizeType = typename Trait::Id;
-  using DiffType = typename Trait::DiffType;
+  using SizeType = typename Handle::Index;
+  using DiffType = typename Handle::DiffType;
   using MappedType = T;
 
   SparseMap() noexcept = default;
@@ -51,25 +51,25 @@ public:
   /// @brief Returns true if the sparse map is empty
   [[nodiscard]] auto empty() const noexcept -> bool
   {
-    return entities_set_.empty();
+    return handles_.empty();
   }
 
   /// @brief Gets how many components are stored in the sparse map
   [[nodiscard]] auto size() const noexcept -> SizeType
   {
-    return entities_set_.size();
+    return handles_.size();
   }
 
   /// @brief Gets the capacity of the sparse map
   [[nodiscard]] auto capacity() const noexcept -> SizeType
   {
-    return entities_set_.capacity();
+    return handles_.capacity();
   }
 
   /// @brief Reserves the capacity of the sparse map to `capacity`
   auto reserve(SizeType capacity) -> void
   {
-    entities_set_.reserve(capacity);
+    handles_.reserve(capacity);
   }
 
   /**
@@ -81,26 +81,28 @@ public:
    * @param entity A valid entity identifier.
    * @param data The data attaches to an entity
    */
-  auto insert(Entity entity, MappedType data) -> void
+  auto insert(Handle handle, MappedType data) -> void
   {
-    entities_set_.insert(entity);
+    handles_.insert(handle);
     data_.push_back(std::move(data));
   }
 
   /**
-   * @brief Removes an entity from the sparse map and destroys its corresponding
+   * @brief Removes an entity from the sparse map and destroys its
+   corresponding
    * data
    *
-   * @warning Attempting to erase an entity that is not in the sparse map leads
+   * @warning Attempting to erase an entity that is not in the sparse map
+   leads
    * to undefined behavior.
    *
    * @param entity A valid entity identifier.
    */
-  auto erase(Entity entity) -> void
+  auto erase(Handle handle) -> void
   {
-    std::swap(data_[entities_set_.index_of(entity)], data_.back());
+    std::swap(data_[handles_.index_of(handle)], data_.back());
     data_.pop_back();
-    entities_set_.erase(entity);
+    handles_.erase(handle);
   }
 
   /**
@@ -108,9 +110,9 @@ public:
    * @param entity A valid entity identifier.
    * @return true if the sparse map contains the given antity, false otherwise
    */
-  [[nodiscard]] auto contains(Entity entity) const noexcept -> bool
+  [[nodiscard]] auto contains(Handle handle) const noexcept -> bool
   {
-    return entities_set_.contains(entity);
+    return handles_.contains(handle);
   }
 
   /**
@@ -123,9 +125,9 @@ public:
    *
    * @return The position of entity in the sparse map
    */
-  [[nodiscard]] auto index_of(Entity entity) const noexcept -> SizeType
+  [[nodiscard]] auto index_of(Handle handle) const noexcept -> SizeType
   {
-    return entities_set_.index_of(entity);
+    return handles_.index_of(handle);
   }
 
   /**
@@ -138,15 +140,15 @@ public:
    *
    * @return The data associated with an entity
    */
-  [[nodiscard]] auto get(Entity entity) const noexcept -> const MappedType&
+  [[nodiscard]] auto get(Handle handle) const noexcept -> const MappedType&
   {
-    return data_[entities_set_.index_of(entity)];
+    return data_[handles_.index_of(handle)];
   }
 
   /// @overload
-  [[nodiscard]] auto get(Entity entity) noexcept -> MappedType&
+  [[nodiscard]] auto get(Handle handle) noexcept -> MappedType&
   {
-    return data_[entities_set_.index_of(entity)];
+    return data_[handles_.index_of(handle)];
   }
 
   /**
@@ -154,28 +156,27 @@ public:
    *
    * @param entity An entity identifier
    *
-   * @return A pointer to the data associated with an entity if the entity is in
+   * @return A pointer to the data associated with an entity if the entity is
+   in
    * the sparse map, nullptr otherwise
    */
-  [[nodiscard]] auto try_get(Entity entity) const noexcept -> const MappedType*
+  [[nodiscard]] auto try_get(Handle handle) const noexcept -> const MappedType*
   {
-    return (entities_set_.contains(entity))
-               ? &data_[entities_set_.index_of(entity)]
-               : nullptr;
+    return (handles_.contains(handle)) ? &data_[handles_.index_of(handle)]
+                                       : nullptr;
   }
 
   /// @overload
-  [[nodiscard]] auto try_get(Entity entity) noexcept -> MappedType*
+  [[nodiscard]] auto try_get(Handle handle) noexcept -> MappedType*
   {
-    return (entities_set_.contains(entity))
-               ? &data_[entities_set_.index_of(entity)]
-               : nullptr;
+    return (handles_.contains(handle)) ? &data_[handles_.index_of(handle)]
+                                       : nullptr;
   }
 
   /// @brief Direct accesses to the array of entites.
-  [[nodiscard]] auto entities() const noexcept -> const Entity*
+  [[nodiscard]] auto entities() const noexcept -> const Handle*
   {
-    return entities_set_.entities();
+    return handles_.entities();
   }
 
   /// @brief Direct accesses to the array of data.
@@ -188,8 +189,8 @@ public:
   public:
     using iterator_category = std::random_access_iterator_tag;
     using value_type =
-        std::conditional_t<is_const, std::pair<Entity, const MappedType&>,
-                           std::pair<Entity, MappedType&>>;
+        std::conditional_t<is_const, std::pair<Handle, const MappedType&>,
+                           std::pair<Handle, MappedType&>>;
     using difference_type = std::ptrdiff_t;
     using reference = value_type;
     using pointer = ArrowProxy<reference>;
@@ -206,7 +207,7 @@ public:
 
     [[nodiscard]] auto operator*() const noexcept -> reference
     {
-      return std::make_pair(map_->entities_set_.entities()[index_],
+      return std::make_pair(map_->handles_.entities()[index_],
                             std::ref(map_->data_[index_]));
     }
 
@@ -319,7 +320,7 @@ public:
   }
 
 private:
-  SparseSet<Entity> entities_set_;
+  SparseSet<Handle> handles_;
   std::vector<MappedType> data_;
 };
 

@@ -4,9 +4,12 @@
 
 using namespace beyond;
 
+struct Entity : Handle<Entity, std::uint32_t, 24, 8> {
+  using Handle::Handle;
+};
+
 TEST_CASE("SparseMap", "[beyond.core.ecs.sparse_map]")
 {
-  using Entity = std::uint32_t;
   SparseMap<Entity, float> sm;
   REQUIRE(sm.empty());
   REQUIRE(sm.size() == 0);
@@ -21,7 +24,7 @@ TEST_CASE("SparseMap", "[beyond.core.ecs.sparse_map]")
 
   GIVEN("An entity 42 and its corresponding data")
   {
-    const Entity entity = 42;
+    const Entity entity{42};
     const float data = 3.14f;
     const float data2 = 2.16f;
 
@@ -31,7 +34,7 @@ TEST_CASE("SparseMap", "[beyond.core.ecs.sparse_map]")
 
       THEN("You cannot find entity 0 in the sparse map")
       {
-        REQUIRE(!sm.try_get(0));
+        REQUIRE(!sm.try_get(Entity{0}));
       }
 
       THEN("You can find this entity and its data in the sparse map")
@@ -85,11 +88,10 @@ TEST_CASE("SparseMap", "[beyond.core.ecs.sparse_map]")
 
 TEST_CASE("SparseMap iterator test", "[beyond.core.ecs.sparse_map]")
 {
-  using Entity = std::uint32_t;
   GIVEN("SparseMap {0 -> 1.2}")
   {
     SparseMap<Entity, float> sm;
-    const Entity e1 = 0;
+    const Entity e1{0};
     const float v1 = 1.2f;
     sm.insert(e1, v1);
 
