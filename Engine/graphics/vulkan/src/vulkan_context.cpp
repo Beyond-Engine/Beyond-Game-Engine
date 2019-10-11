@@ -89,13 +89,17 @@ constexpr auto populate_debug_messenger_create_info() noexcept
     -> VkDebugUtilsMessengerCreateInfoEXT
 {
   return {.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+          .pNext = nullptr,
+          .flags = 0,
           .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
                              VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
                              VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
           .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
                          VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
                          VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
-          .pfnUserCallback = debug_callback};
+          .pfnUserCallback = debug_callback,
+          .pUserData = nullptr,
+  };
 }
 #endif
 
@@ -208,8 +212,9 @@ auto check_validation_layer_support() noexcept -> bool
 
   VkInstance instance;
 
-  VkApplicationInfo app_info = {
+  const VkApplicationInfo app_info = {
       .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+      .pNext = nullptr,
       .pApplicationName = window.title().c_str(),
       .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
       .pEngineName = "Beyond Game Engine",
@@ -222,12 +227,11 @@ auto check_validation_layer_support() noexcept -> bool
   extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 #endif
 
-  VkInstanceCreateInfo create_info = {
-      .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-      .pApplicationInfo = &app_info,
-      .enabledExtensionCount = vulkan::to_u32(extensions.size()),
-      .ppEnabledExtensionNames = extensions.data(),
-  };
+  VkInstanceCreateInfo create_info;
+  create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+  create_info.pApplicationInfo = &app_info;
+  create_info.enabledExtensionCount = vulkan::to_u32(extensions.size());
+  create_info.ppEnabledExtensionNames = extensions.data();
 
 #ifdef BEYOND_VULKAN_ENABLE_VALIDATION_LAYER
   create_info.enabledLayerCount =
@@ -316,21 +320,23 @@ create_logical_device(VkPhysicalDevice pd,
 
   const VkPhysicalDeviceFeatures features = {};
 
-  VkDeviceCreateInfo create_info{
-      .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-      .queueCreateInfoCount = vulkan::to_u32(queue_create_infos.size()),
-      .pQueueCreateInfos = queue_create_infos.data(),
-      .enabledExtensionCount = vulkan::to_u32(device_extensions.size()),
-      .ppEnabledExtensionNames = device_extensions.data(),
-      .pEnabledFeatures = &features,
-  };
-
+  const VkDeviceCreateInfo create_info {
+  .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+  .pNext = nullptr,
+  .flags = 0,
+  .queueCreateInfoCount = vulkan::to_u32(queue_create_infos.size()),
+  .pQueueCreateInfos = queue_create_infos.data(),
 #ifdef BEYOND_VULKAN_ENABLE_VALIDATION_LAYER
-  create_info.enabledLayerCount = vulkan::to_u32(validation_layers.size());
-  create_info.ppEnabledLayerNames = validation_layers.data();
+  .enabledLayerCount = vulkan::to_u32(validation_layers.size()),
+  .ppEnabledLayerNames = validation_layers.data(),
 #else
-  create_info.enabledLayerCount = 0;
+  .enabledLayerCount = 0,
+  .ppEnabledLayerNames = nullptr,
 #endif
+  .enabledExtensionCount = vulkan::to_u32(device_extensions.size()),
+  .ppEnabledExtensionNames = device_extensions.data(),
+  .pEnabledFeatures = &features,
+  };
 
   VkDevice device = nullptr;
   if (vkCreateDevice(pd, &create_info, nullptr, &device) != VK_SUCCESS) {

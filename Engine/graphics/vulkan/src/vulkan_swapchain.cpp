@@ -93,23 +93,15 @@ VulkanSwapchain::VulkanSwapchain(VkPhysicalDevice pd, VkDevice device,
         std::max(image_count, swapchain_support.capabilities.maxImageCount);
   }
 
-  VkSwapchainCreateInfoKHR create_info = {
-      .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-      .surface = surface,
-
-      .minImageCount = image_count,
-      .imageFormat = surface_format.format,
-      .imageColorSpace = surface_format.colorSpace,
-      .imageExtent = extent,
-      .imageArrayLayers = 1,
-      .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-
-      .preTransform = swapchain_support.capabilities.currentTransform,
-      .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
-      .presentMode = present_mode,
-      .clipped = VK_TRUE,
-      .oldSwapchain = nullptr,
-  };
+  VkSwapchainCreateInfoKHR create_info{};
+  create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+  create_info.surface = surface;
+  create_info.minImageCount = image_count;
+  create_info.imageFormat = surface_format.format;
+  create_info.imageColorSpace = surface_format.colorSpace;
+  create_info.imageExtent = extent;
+  create_info.imageArrayLayers = 1;
+  create_info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
   std::array queue_family_indices = {indices.graphics_family,
                                      indices.present_family};
@@ -121,7 +113,14 @@ VulkanSwapchain::VulkanSwapchain(VkPhysicalDevice pd, VkDevice device,
     create_info.pQueueFamilyIndices = queue_family_indices.data();
   } else {
     create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    create_info.queueFamilyIndexCount = 0;
   }
+
+  create_info.preTransform = swapchain_support.capabilities.currentTransform;
+  create_info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+  create_info.presentMode = present_mode;
+  create_info.clipped = VK_TRUE;
+  create_info.oldSwapchain = nullptr;
 
   if (vkCreateSwapchainKHR(device, &create_info, nullptr, &swapchain_) !=
       VK_SUCCESS) {
