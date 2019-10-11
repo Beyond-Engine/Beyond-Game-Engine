@@ -338,7 +338,7 @@ create_logical_device(VkPhysicalDevice pd,
   }
 
   return device;
-} // namespace
+}
 
 #ifdef BEYOND_VULKAN_ENABLE_VALIDATION_LAYER
 [[nodiscard]] auto create_debug_messager(VkInstance instance) noexcept

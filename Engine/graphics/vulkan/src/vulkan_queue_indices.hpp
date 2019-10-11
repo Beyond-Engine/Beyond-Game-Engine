@@ -14,10 +14,11 @@ namespace beyond::graphics::vulkan {
 struct QueueFamilyIndices {
   std::uint32_t graphics_family;
   std::uint32_t present_family;
+  std::uint32_t compute_family;
 
   [[nodiscard]] auto to_set() const noexcept -> std::set<std::uint32_t>
   {
-    return std::set{graphics_family, present_family};
+    return std::set{graphics_family, present_family, compute_family};
   }
 };
 
