@@ -1,5 +1,6 @@
 add_library(vulkan_backend
     "include/beyond/vulkan/vulkan_fwd.hpp"
+    "src/vma_impl.cpp"
     "src/vulkan_context.hpp"
     "src/vulkan_context.cpp"
     "src/vulkan_queue_indices.hpp"
@@ -26,7 +27,7 @@ endif()
 target_link_libraries(vulkan_backend
     PRIVATE compiler_warnings
     core platform graphics_backend
-    volk
+    volk vma
     )
 
 target_include_directories(vulkan_backend

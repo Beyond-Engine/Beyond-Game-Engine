@@ -151,7 +151,7 @@ public:
    * @warning Attempting to get the index of an handle that is not in the
    * sparse set leads to undefined behavior.
    *
-   * @param entity A valid handle identifier.
+   * @param handle A valid handle.
    *
    * @return The position of handle in the sparse set
    */

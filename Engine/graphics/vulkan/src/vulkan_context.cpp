@@ -29,7 +29,7 @@ check_device_extension_support(VkPhysicalDevice device) noexcept -> bool
                                  device_extensions.end());
 
   for (const auto& extension : available) {
-    required.erase(extension.extensionName);
+    required.erase(static_cast<const char*>(extension.extensionName));
   }
 
   return required.empty();
@@ -39,16 +39,17 @@ check_device_extension_support(VkPhysicalDevice device) noexcept -> bool
 [[nodiscard]] auto rate_physical_device(VkPhysicalDevice device,
                                         VkSurfaceKHR surface) noexcept -> int
 {
+  static constexpr int failing_score = -1000;
 
   // If cannot find indices for all the queues, return -1000
   const auto maybe_indices = vulkan::find_queue_families(device, surface);
   if (!maybe_indices) {
-    return -1000;
+    return failing_score;
   }
 
   // If not support extension, return -1000
   if (!check_device_extension_support(device)) {
-    return -1000;
+    return failing_score;
   }
 
   // If swapchain not adequate, return -1000
@@ -56,7 +57,7 @@ check_device_extension_support(VkPhysicalDevice device) noexcept -> bool
       vulkan::query_swapchain_support(device, surface);
   if (swapchain_support.formats.empty() ||
       swapchain_support.present_modes.empty()) {
-    return -1000;
+    return failing_score;
   }
 
   VkPhysicalDeviceProperties properties;
@@ -88,17 +89,18 @@ debug_callback(VkDebugUtilsMessageSeverityFlagBitsEXT /*messageSeverity*/,
 constexpr auto populate_debug_messenger_create_info() noexcept
     -> VkDebugUtilsMessengerCreateInfoEXT
 {
-  return {.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
-          .pNext = nullptr,
-          .flags = 0,
-          .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
-                             VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-                             VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
-          .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-                         VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-                         VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
-          .pfnUserCallback = debug_callback,
-          .pUserData = nullptr,
+  return {
+      .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+      .pNext = nullptr,
+      .flags = 0,
+      .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+                         VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+                         VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+      .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+                     VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                     VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
+      .pfnUserCallback = debug_callback,
+      .pUserData = nullptr,
   };
 }
 #endif
@@ -153,11 +155,20 @@ VulkanContext::VulkanContext(const Window& window)
                    &graphics_queue_);
   vkGetDeviceQueue(device_, queue_family_indices_.present_family, 0,
                    &present_queue_);
+  vkGetDeviceQueue(device_, queue_family_indices_.compute_family, 0,
+                   &compute_queue_);
+
+  VmaAllocatorCreateInfo allocator_info{};
+  allocator_info.physicalDevice = physical_device_;
+  allocator_info.device = device_;
+  vmaCreateAllocator(&allocator_info, &allocator_);
 }
 
 VulkanContext::~VulkanContext()
 {
   swapchains_.clear();
+
+  vmaDestroyAllocator(allocator_);
 
   vkDestroyDevice(device_, nullptr);
 
@@ -320,22 +331,22 @@ create_logical_device(VkPhysicalDevice pd,
 
   const VkPhysicalDeviceFeatures features = {};
 
-  const VkDeviceCreateInfo create_info {
-  .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-  .pNext = nullptr,
-  .flags = 0,
-  .queueCreateInfoCount = vulkan::to_u32(queue_create_infos.size()),
-  .pQueueCreateInfos = queue_create_infos.data(),
+  const VkDeviceCreateInfo create_info{
+      .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+      .pNext = nullptr,
+      .flags = 0,
+      .queueCreateInfoCount = vulkan::to_u32(queue_create_infos.size()),
+      .pQueueCreateInfos = queue_create_infos.data(),
 #ifdef BEYOND_VULKAN_ENABLE_VALIDATION_LAYER
-  .enabledLayerCount = vulkan::to_u32(validation_layers.size()),
-  .ppEnabledLayerNames = validation_layers.data(),
+      .enabledLayerCount = vulkan::to_u32(validation_layers.size()),
+      .ppEnabledLayerNames = validation_layers.data(),
 #else
-  .enabledLayerCount = 0,
-  .ppEnabledLayerNames = nullptr,
+      .enabledLayerCount = 0,
+      .ppEnabledLayerNames = nullptr,
 #endif
-  .enabledExtensionCount = vulkan::to_u32(device_extensions.size()),
-  .ppEnabledExtensionNames = device_extensions.data(),
-  .pEnabledFeatures = &features,
+      .enabledExtensionCount = vulkan::to_u32(device_extensions.size()),
+      .ppEnabledExtensionNames = device_extensions.data(),
+      .pEnabledFeatures = &features,
   };
 
   VkDevice device = nullptr;

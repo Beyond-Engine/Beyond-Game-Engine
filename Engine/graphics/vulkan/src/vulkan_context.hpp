@@ -7,6 +7,8 @@
 
 #include <volk.h>
 
+#include <vk_mem_alloc.h>
+
 #include <beyond/core/utils/panic.hpp>
 #include <beyond/platform/platform.hpp>
 
@@ -23,26 +25,29 @@ namespace beyond::graphics::vulkan {
 
 class VulkanContext : public Context {
 public:
-  VulkanContext(const Window& window);
+  explicit VulkanContext(const Window& window);
   ~VulkanContext() override;
 
   [[nodiscard]] auto create_swapchain() -> Swapchain override;
 
 private:
-  VkInstance instance_;
+  VkInstance instance_ = nullptr;
 
-  VkSurfaceKHR surface_;
+  VkSurfaceKHR surface_ = nullptr;
 
 #ifdef BEYOND_VULKAN_ENABLE_VALIDATION_LAYER
-  VkDebugUtilsMessengerEXT debug_messager_;
+  VkDebugUtilsMessengerEXT debug_messager_ = nullptr;
 #endif
 
-  VkPhysicalDevice physical_device_;
+  VkPhysicalDevice physical_device_ = nullptr;
   vulkan::QueueFamilyIndices queue_family_indices_;
-  VkDevice device_;
+  VkDevice device_ = nullptr;
 
-  VkQueue graphics_queue_;
-  VkQueue present_queue_;
+  VkQueue graphics_queue_ = nullptr;
+  VkQueue present_queue_ = nullptr;
+  VkQueue compute_queue_ = nullptr;
+
+  VmaAllocator allocator_ = nullptr;
 
   std::vector<VulkanSwapchain> swapchains_;
 };

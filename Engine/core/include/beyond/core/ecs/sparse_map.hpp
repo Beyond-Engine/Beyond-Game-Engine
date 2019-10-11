@@ -78,7 +78,7 @@ public:
    * @warning Attempting to insert an entity that is already in the sparse map
    * leads to undefined behavior.
    *
-   * @param entity A valid entity identifier.
+   * @param handle A valid handle.
    * @param data The data attaches to an entity
    */
   auto insert(Handle handle, MappedType data) -> void
@@ -96,7 +96,7 @@ public:
    leads
    * to undefined behavior.
    *
-   * @param entity A valid entity identifier.
+   * @param handle A valid handle.
    */
   auto erase(Handle handle) -> void
   {
@@ -107,7 +107,7 @@ public:
 
   /**
    * @brief Checks if the sparse map contains an entity
-   * @param entity A valid entity identifier.
+   * @param handle A valid handle.
    * @return true if the sparse map contains the given antity, false otherwise
    */
   [[nodiscard]] auto contains(Handle handle) const noexcept -> bool
@@ -121,7 +121,7 @@ public:
    * @warning Attempting to get the index of an entity that is not in the
    * sparse map leads to undefined behavior.
    *
-   * @param entity A valid entity identifier.
+   * @param handle A valid handle.
    *
    * @return The position of entity in the sparse map
    */
@@ -136,7 +136,7 @@ public:
    * @warning Attempting to use an entity that is not in the
    * sparse map leads to undefined behavior.
    *
-   * @param entity A valid entity identifier
+   * @param handle A valid handle.
    *
    * @return The data associated with an entity
    */
@@ -154,7 +154,7 @@ public:
   /**
    * @brief Trys to get the data associated with an entity.
    *
-   * @param entity An entity identifier
+   * @param handle A valid handle.
    *
    * @return A pointer to the data associated with an entity if the entity is
    in
