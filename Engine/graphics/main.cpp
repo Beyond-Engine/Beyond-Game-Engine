@@ -13,6 +13,7 @@ int main()
   auto window = platform.create_window(initial_width, initial_height, "Test");
   platform.make_context_current(window);
   const auto graphics_context = beyond::graphics::create_context(window);
+  [[maybe_unused]] const auto swapchain = graphics_context->create_swapchain();
 
   while (!window.should_close()) {
     // render

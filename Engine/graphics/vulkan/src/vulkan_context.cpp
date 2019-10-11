@@ -1,12 +1,15 @@
 #include "vulkan_context.hpp"
 #include "vulkan_utils.hpp"
 
+#include <fmt/format.h>
+
 namespace vulkan = beyond::graphics::vulkan;
 using vulkan::QueueFamilyIndices;
 
 namespace {
 
 constexpr std::array validation_layers = {"VK_LAYER_KHRONOS_validation"};
+constexpr std::array device_extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
 #ifdef BEYOND_VULKAN_ENABLE_VALIDATION_LAYER
 constexpr bool enable_validation_layers = true;
@@ -14,37 +17,22 @@ constexpr bool enable_validation_layers = true;
 constexpr bool enable_validation_layers = false;
 #endif
 
-auto find_queue_families(VkPhysicalDevice device, VkSurfaceKHR surface) noexcept
-    -> std::optional<vulkan::QueueFamilyIndices>
+[[nodiscard]] auto
+check_device_extension_support(VkPhysicalDevice device) noexcept -> bool
 {
-  std::optional<std::uint32_t> graphics_family;
-  std::optional<std::uint32_t> present_family;
-
-  const auto queue_families = vulkan::get_vector_with<VkQueueFamilyProperties>(
-      [device](uint32_t* count, VkQueueFamilyProperties* data) {
-        vkGetPhysicalDeviceQueueFamilyProperties(device, count, data);
+  const auto available = vulkan::get_vector_with<VkExtensionProperties>(
+      [device](uint32_t* count, VkExtensionProperties* data) {
+        vkEnumerateDeviceExtensionProperties(device, nullptr, count, data);
       });
 
-  for (std::uint32_t i = 0; i < queue_families.size(); ++i) {
-    const auto& queue_family = queue_families[i];
+  std::set<std::string> required(device_extensions.begin(),
+                                 device_extensions.end());
 
-    if (queue_family.queueCount > 0 &&
-        ((queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0u)) {
-      graphics_family = i;
-    }
-
-    VkBool32 present_support = false;
-    vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &present_support);
-    if (queue_family.queueCount > 0 && present_support) {
-      present_family = i;
-    }
-
-    if (graphics_family && graphics_family) {
-      return QueueFamilyIndices{*graphics_family, *present_family};
-    }
+  for (const auto& extension : available) {
+    required.erase(extension.extensionName);
   }
 
-  return {};
+  return required.empty();
 }
 
 // Higher is better, negative means not suitable
@@ -52,8 +40,22 @@ auto find_queue_families(VkPhysicalDevice device, VkSurfaceKHR surface) noexcept
                                         VkSurfaceKHR surface) noexcept -> int
 {
 
-  const auto maybe_indices = find_queue_families(device, surface);
+  // If cannot find indices for all the queues, return -1000
+  const auto maybe_indices = vulkan::find_queue_families(device, surface);
   if (!maybe_indices) {
+    return -1000;
+  }
+
+  // If not support extension, return -1000
+  if (!check_device_extension_support(device)) {
+    return -1000;
+  }
+
+  // If swapchain not adequate, return -1000
+  const auto swapchain_support =
+      vulkan::query_swapchain_support(device, surface);
+  if (swapchain_support.formats.empty() ||
+      swapchain_support.present_modes.empty()) {
     return -1000;
   }
 
@@ -63,6 +65,7 @@ auto find_queue_families(VkPhysicalDevice device, VkSurfaceKHR surface) noexcept
   VkPhysicalDeviceFeatures features;
   vkGetPhysicalDeviceFeatures(device, &features);
 
+  // Biased toward discrete GPU
   int score = 0;
   if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
     score += 100;
@@ -153,6 +156,8 @@ VulkanContext::VulkanContext(const Window& window)
 
 VulkanContext::~VulkanContext()
 {
+  swapchains_.clear();
+
   vkDestroyDevice(device_, nullptr);
 
 #ifdef BEYOND_VULKAN_ENABLE_VALIDATION_LAYER
@@ -161,6 +166,19 @@ VulkanContext::~VulkanContext()
 
   vkDestroySurfaceKHR(instance_, surface_, nullptr);
   vkDestroyInstance(instance_, nullptr);
+}
+
+[[nodiscard]] auto VulkanContext::create_swapchain() -> Swapchain
+{
+  const auto index = swapchains_.size();
+
+  if (index != 0) {
+    beyond::panic("Currently, more than one swapchain is not supported");
+  }
+
+  swapchains_.emplace_back(physical_device_, device_, surface_,
+                           queue_family_indices_);
+  return Swapchain{static_cast<Swapchain::Index>(index)};
 }
 
 } // namespace beyond::graphics::vulkan
@@ -304,7 +322,8 @@ create_logical_device(VkPhysicalDevice pd,
   create_info.queueCreateInfoCount = vulkan::to_u32(queue_create_infos.size());
   create_info.pQueueCreateInfos = queue_create_infos.data();
   create_info.pEnabledFeatures = &features;
-  create_info.enabledExtensionCount = 0;
+  create_info.enabledExtensionCount = vulkan::to_u32(device_extensions.size());
+  create_info.ppEnabledExtensionNames = device_extensions.data();
 
 #ifdef BEYOND_VULKAN_ENABLE_VALIDATION_LAYER
   create_info.enabledLayerCount = vulkan::to_u32(validation_layers.size());

@@ -9,6 +9,11 @@ namespace beyond::graphics {
 
 struct MockContext : Context {
   explicit MockContext(const Window&) {}
+
+  auto create_swapchain() -> Swapchain override
+  {
+    return Swapchain{0};
+  }
 };
 
 [[nodiscard]] auto create_context(const Window& window) noexcept

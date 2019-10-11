@@ -12,30 +12,21 @@
 
 #include <beyond/graphics/backend.hpp>
 
-#include <fmt/format.h>
+#include "vulkan_swapchain.hpp"
 
 #include <algorithm>
 #include <array>
 #include <optional>
-#include <set>
 #include <vector>
 
 namespace beyond::graphics::vulkan {
-
-struct QueueFamilyIndices {
-  std::uint32_t graphics_family;
-  std::uint32_t present_family;
-
-  [[nodiscard]] auto to_set() const noexcept -> std::set<std::uint32_t>
-  {
-    return std::set{graphics_family, present_family};
-  }
-};
 
 class VulkanContext : public Context {
 public:
   VulkanContext(const Window& window);
   ~VulkanContext() override;
+
+  [[nodiscard]] auto create_swapchain() -> Swapchain override;
 
 private:
   VkInstance instance_;
@@ -52,6 +43,8 @@ private:
 
   VkQueue graphics_queue_;
   VkQueue present_queue_;
+
+  std::vector<VulkanSwapchain> swapchains_;
 };
 
 } // namespace beyond::graphics::vulkan
