@@ -36,6 +36,7 @@ public:
       : device_{std::exchange(other.device_, nullptr)},
         swapchain_{std::exchange(other.swapchain_, nullptr)},
         swapchain_images_{std::move(other.swapchain_images_)},
+        swapchain_image_views_{std::move(other.swapchain_image_views_)},
         swapchain_images_format_{
             std::exchange(other.swapchain_images_format_, VK_FORMAT_UNDEFINED)},
         swapchain_extent_{
@@ -48,6 +49,7 @@ public:
     device_ = std::exchange(other.device_, nullptr);
     swapchain_ = std::exchange(other.swapchain_, nullptr);
     swapchain_images_ = std::move(other.swapchain_images_);
+    swapchain_image_views_ = std::move(other.swapchain_image_views_);
     swapchain_images_format_ =
         std::exchange(other.swapchain_images_format_, VK_FORMAT_UNDEFINED);
     swapchain_extent_ =
@@ -59,6 +61,7 @@ private:
   VkDevice device_ = nullptr;
   VkSwapchainKHR swapchain_ = nullptr;
   std::vector<VkImage> swapchain_images_;
+  std::vector<VkImageView> swapchain_image_views_;
 
   VkFormat swapchain_images_format_;
   VkExtent2D swapchain_extent_;

@@ -93,37 +93,36 @@ VulkanSwapchain::VulkanSwapchain(VkPhysicalDevice pd, VkDevice device,
         std::max(image_count, swapchain_support.capabilities.maxImageCount);
   }
 
-  VkSwapchainCreateInfoKHR createInfo = {};
-  createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-  createInfo.surface = surface;
+  VkSwapchainCreateInfoKHR create_info = {};
+  create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+  create_info.surface = surface;
 
-  createInfo.minImageCount = image_count;
-  createInfo.imageFormat = surface_format.format;
-  createInfo.imageColorSpace = surface_format.colorSpace;
-  createInfo.imageExtent = extent;
-  createInfo.imageArrayLayers = 1;
-  createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+  create_info.minImageCount = image_count;
+  create_info.imageFormat = surface_format.format;
+  create_info.imageColorSpace = surface_format.colorSpace;
+  create_info.imageExtent = extent;
+  create_info.imageArrayLayers = 1;
+  create_info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
   std::array queue_family_indices = {indices.graphics_family,
                                      indices.present_family};
 
   if (indices.graphics_family != indices.present_family) {
-    createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-    createInfo.queueFamilyIndexCount =
+    create_info.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+    create_info.queueFamilyIndexCount =
         vulkan::to_u32(queue_family_indices.size());
-    createInfo.pQueueFamilyIndices = queue_family_indices.data();
+    create_info.pQueueFamilyIndices = queue_family_indices.data();
   } else {
-    createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
   }
 
-  createInfo.preTransform = swapchain_support.capabilities.currentTransform;
-  createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-  createInfo.presentMode = present_mode;
-  createInfo.clipped = VK_TRUE;
+  create_info.preTransform = swapchain_support.capabilities.currentTransform;
+  create_info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+  create_info.presentMode = present_mode;
+  create_info.clipped = VK_TRUE;
+  create_info.oldSwapchain = nullptr;
 
-  createInfo.oldSwapchain = nullptr;
-
-  if (vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapchain_) !=
+  if (vkCreateSwapchainKHR(device, &create_info, nullptr, &swapchain_) !=
       VK_SUCCESS) {
     beyond::panic("Cannot create swapchain!");
   }
@@ -135,10 +134,43 @@ VulkanSwapchain::VulkanSwapchain(VkPhysicalDevice pd, VkDevice device,
 
   swapchain_images_format_ = surface_format.format;
   swapchain_extent_ = extent;
-}
+
+  swapchain_image_views_.resize(swapchain_images_.size());
+  for (size_t i = 0; i < swapchain_images_.size(); i++) {
+    const VkImageViewCreateInfo view_create_info{
+        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .image = swapchain_images_[i],
+        .viewType = VK_IMAGE_VIEW_TYPE_2D,
+        .format = swapchain_images_format_,
+        .components =
+            {
+                .r = VK_COMPONENT_SWIZZLE_IDENTITY,
+                .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+                .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+                .a = VK_COMPONENT_SWIZZLE_IDENTITY,
+            },
+        .subresourceRange = {
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+            .baseMipLevel = 0,
+            .levelCount = 1,
+            .baseArrayLayer = 0,
+            .layerCount = 1,
+        }};
+
+    if (vkCreateImageView(device, &view_create_info, nullptr,
+                          &swapchain_image_views_[i]) != VK_SUCCESS) {
+      beyond::panic("Failed to create swapchain image views!");
+    }
+  }
+} // namespace beyond::graphics::vulkan
 
 VulkanSwapchain::~VulkanSwapchain()
 {
+  for (auto view : swapchain_image_views_) {
+    vkDestroyImageView(device_, view, nullptr);
+  }
   vkDestroySwapchainKHR(device_, swapchain_, nullptr);
 }
 
