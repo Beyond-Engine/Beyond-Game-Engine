@@ -386,12 +386,24 @@ VulkanContext::VulkanContext(Window& window)
                                 .signalSemaphoreCount = 0,
                                 .pSignalSemaphores = nullptr};
 
-    if (vkQueueSubmit(compute_queue_, 1, &submit_info, nullptr) != VK_SUCCESS) {
+    const VkFenceCreateInfo fence_create_info{
+        .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+    };
+    VkFence fence;
+    vkCreateFence(device_, &fence_create_info, nullptr, &fence);
+    if (vkQueueSubmit(compute_queue_, 1, &submit_info, fence) != VK_SUCCESS) {
       beyond::panic("Vulkan backend failed to submit to queue");
     }
 
-    if (vkQueueWaitIdle(compute_queue_) != VK_SUCCESS) {
-      beyond::panic("Vulkan backend failed to wait idle");
+    static constexpr uint64_t compute_timeout = 1e6;
+    while (vkWaitForFences(device_, 1, &fence, VK_TRUE, compute_timeout) ==
+           VK_TIMEOUT) {
+      fmt::print("busy waiting!");
+    }
+    if (vkWaitForFences(device_, 1, &fence, VK_TRUE, 0) != VK_SUCCESS) {
+      beyond::panic("Vulkan backend failed to wait for fence");
     }
 
     int32_t* out_payload;
@@ -407,6 +419,8 @@ VulkanContext::VulkanContext(Window& window)
     BEYOND_ASSERT_MSG(
         std::equal(in_payload, in_payload + payload_size, out_payload),
         "After copying, the input should equal to output");
+
+    vkDestroyFence(device_, fence, nullptr);
 
     vkDestroyCommandPool(device_, command_pool, nullptr);
     vkDestroyDescriptorPool(device_, descriptor_pool, nullptr);
