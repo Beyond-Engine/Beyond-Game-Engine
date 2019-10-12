@@ -9,8 +9,8 @@ if (${BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN})
   add_subdirectory(vulkan)
 endif()
 
-if (${BEYOND_BUILD_GRAPHICS_BACKEND_DX12})
-    add_subdirectory(dx12)
+if (${BEYOND_BUILD_GRAPHICS_BACKEND_D3D12})
+    add_subdirectory(d3d12)
 endif()
 
 add_library(graphics
@@ -29,6 +29,10 @@ target_link_libraries(graphics
     PRIVATE
     compiler_warnings
     )
+
+if (${BEYOND_BUILD_GRAPHICS_BACKEND_D3D12})
+  target_link_libraries(graphics PRIVATE d3d12_backend)
+endif()
 
 if (${BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN})
   target_link_libraries(graphics PRIVATE vulkan_backend)

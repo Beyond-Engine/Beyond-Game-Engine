@@ -19,7 +19,7 @@ matrix:
     - <<: *linux
       compiler: gcc
       name: 'GCC 9 with Unit Test'
-      env: 'CC="/usr/bin/gcc-9" CXX="/usr/bin/g++-9" CMAKE_OPTIONS="-DBEYOND_BUILD_VULKAN_BACKEND=OFF -DBEYOND_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release" CONAN_INSTALL_SETTING="build_type=Release"'
+      env: 'CC="/usr/bin/gcc-9" CXX="/usr/bin/g++-9" CMAKE_OPTIONS="-DBEYOND_BUILD_GRAPHICS_BACKEND_VULKAN=OFF -DBEYOND_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release" CONAN_INSTALL_SETTING="build_type=Release"'
       addons:
         apt:
           sources:
@@ -34,7 +34,7 @@ matrix:
     - <<: *linux
       compiler: clang
       name: 'Clang 8 with Unit Test'
-      env: 'CC="/usr/bin/clang-8" CXX="/usr/bin/clang++-8" CMAKE_OPTIONS="-DBEYOND_BUILD_VULKAN_BACKEND=OFF -DBEYOND_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release" CONAN_INSTALL_SETTING="build_type=Release"'
+      env: 'CC="/usr/bin/clang-8" CXX="/usr/bin/clang++-8" CMAKE_OPTIONS="-DBEYOND_BUILD_GRAPHICS_BACKEND_VULKAN=OFF -DBEYOND_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release" CONAN_INSTALL_SETTING="build_type=Release"'
       addons:
         apt:
           sources:
@@ -53,7 +53,7 @@ matrix:
     - <<: *linux
       compiler: gcc
       name: Coverage
-      env: 'CC="/usr/bin/gcc-9" CXX="/usr/bin/g++-9" GCOV="/usr/bin/gcov-9" CMAKE_OPTIONS="-DCMAKE_BUILD_TYPE=Debug -DBEYOND_BUILD_VULKAN_BACKEND=OFF -DBEYOND_BUILD_TESTS=ON -DBEYOND_BUILD_TESTS_COVERAGE=ON"  CODECOV_TOKEN="83bec924-357a-4655-b54d-6bee5ee0dbb8" CONAN_INSTALL_SETTING="build_type=Debug"'
+      env: 'CC="/usr/bin/gcc-9" CXX="/usr/bin/g++-9" GCOV="/usr/bin/gcov-9" CMAKE_OPTIONS="-DCMAKE_BUILD_TYPE=Debug -DBEYOND_BUILD_GRAPHICS_BACKEND_VULKAN=OFF -DBEYOND_BUILD_TESTS=ON -DBEYOND_BUILD_TESTS_COVERAGE=ON"  CODECOV_TOKEN="83bec924-357a-4655-b54d-6bee5ee0dbb8" CONAN_INSTALL_SETTING="build_type=Debug"'
       addons:
         apt:
           sources:

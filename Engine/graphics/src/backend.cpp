@@ -3,8 +3,12 @@
 
 #include <fmt/format.h>
 
-#ifdef BEYOND_GRAPHICS_BACKEND_VULKAN
+#ifdef BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN
 #include <beyond/vulkan/vulkan_fwd.hpp>
+#endif
+
+#ifdef BEYOND_BUILD_GRAPHICS_BACKEND_D3D12
+#include <beyond/d3d12/d3d12_interface.hpp>
 #endif
 
 namespace beyond::graphics {
@@ -29,13 +33,13 @@ struct MockContext : Context {
   case GraphicsBackend::mock:
     return std::make_unique<MockContext>(window);
 
-#ifdef BEYOND_GRAPHICS_BACKEND_VULKAN
+#ifdef BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN
   case GraphicsBackend::vulkan:
-    return beyond::graphics::vulkan::create_vulkan_context(window);
+    return graphics::vulkan::create_vulkan_context(window);
 #endif
-#ifdef BEYOND_GRAPHICS_BACKEND_DX12
-  case GraphicsBackend::dx12:
-    beyond::panic("Dx12 backend is not implemented!\n");
+#ifdef BEYOND_BUILD_GRAPHICS_BACKEND_D3D12
+  case GraphicsBackend::d3d12:
+    return graphics::d3d12::create_d3d12_context(window);
 #endif
   }
 

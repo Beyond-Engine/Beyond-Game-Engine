@@ -20,20 +20,20 @@ class Window;
 
 enum class GraphicsBackend {
   mock = 0,
-#ifdef BEYOND_GRAPHICS_BACKEND_VULKAN
+#ifdef BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN
   vulkan,
 #endif
-#ifdef BEYOND_GRAPHICS_BACKEND_DX12
-  dx12,
+#ifdef BEYOND_BUILD_GRAPHICS_BACKEND_D3D12
+  d3d12,
 #endif
 };
 
 constexpr auto preferred_graphics_backend() noexcept -> GraphicsBackend
 {
 #ifdef WIN32
-#ifdef BEYOND_GRAPHICS_BACKEND_DX12
-  return GraphicsBackend::dx12;
-#elif BEYOND_GRAPHICS_BACKEND_VULKAN
+#ifdef BEYOND_BUILD_GRAPHICS_BACKEND_D3D12
+  return GraphicsBackend::d3d12;
+#elif BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN
   return GraphicsBackend::vulkan;
 #else
   return GraphicsBackend::mock;
@@ -41,7 +41,7 @@ constexpr auto preferred_graphics_backend() noexcept -> GraphicsBackend
 
 #else
 
-#ifdef BEYOND_GRAPHICS_BACKEND_VULKAN
+#ifdef BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN
   return GraphicsBackend::vulkan;
 #else
   return GraphicsBackend::mock;
@@ -101,7 +101,7 @@ public:
   }
 
 // TODO(llai): An extension mechanism for Window
-#ifdef BEYOND_GRAPHICS_BACKEND_VULKAN
+#ifdef BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN
   /// @brief Get the extensions needed for the vulkan instance
   [[nodiscard]] auto get_required_instance_extensions() const noexcept
       -> std::vector<const char*>;

@@ -48,9 +48,7 @@ option(BEYOND_BUILD_DOCUMENTATION
 
 option(BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN "Build the vulkan backend" ON)
 if (WIN32)
-    option(BEYOND_BUILD_GRAPHICS_BACKEND_DX12 "Build the DirectX 12 backend" ON)
-else()
-    option(BEYOND_BUILD_GRAPHICS_BACKEND_DX12 "Build the DirectX 12 backend" OFF)
+    option(BEYOND_BUILD_GRAPHICS_BACKEND_D3D12 "Build the DirectX 12 backend" ON)
 endif()
 
 if (BEYOND_BUILD_DOCUMENTATION)

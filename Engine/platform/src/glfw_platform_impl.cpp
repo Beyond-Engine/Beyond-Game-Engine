@@ -8,7 +8,7 @@
 #include <beyond/core/utils/panic.hpp>
 #include <beyond/platform/platform.hpp>
 
-#ifdef BEYOND_GRAPHICS_BACKEND_VULKAN
+#ifdef BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN
 #define GLFW_INCLUDE_VULKAN
 #endif
 #include <GLFW/glfw3.h>
@@ -43,7 +43,7 @@ Window::Window(int width, int height, std::string title,
     beyond::panic("Cannot initialize the GLFW platform!");
   }
 
-#ifdef BEYOND_GRAPHICS_BACKEND_VULKAN
+#ifdef BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN
   if (backend_ == GraphicsBackend::vulkan) {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
   }
@@ -81,7 +81,7 @@ auto Window::swap_buffers() -> void
   return static_cast<bool>(glfwWindowShouldClose(pimpl_->data_));
 }
 
-#ifdef BEYOND_GRAPHICS_BACKEND_VULKAN
+#ifdef BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN
 /// @brief Get the extensions needed for the vulkan instance
 [[nodiscard]] auto Window::get_required_instance_extensions() const noexcept
     -> std::vector<const char*>

@@ -30,7 +30,7 @@ before_build:
   - set PATH=%PATH%;%PYTHON%/Scripts/
   - pip.exe install conan
   - mkdir Build
-  - cmake -H. -BBuild -A%PLATFORM% -DBEYOND_BUILD_TESTS=ON -DBEYOND_BUILD_VULKAN_BACKEND=OFF
+  - cmake -H. -BBuild -A%PLATFORM% -DBEYOND_BUILD_TESTS=ON -DBEYOND_BUILD_GRAPHICS_BACKEND_VULKAN=OFF -DBEYOND_BUILD_GRAPHICS_BACKEND_D3D12=OFF
 
 # build with MSBuild
 build:
