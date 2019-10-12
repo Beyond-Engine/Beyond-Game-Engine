@@ -41,3 +41,9 @@ target_include_directories(vulkan_backend
 )
 
 target_compile_definitions(vulkan_backend PRIVATE VK_NO_PROTOTYPES)
+
+include(CompileShader)
+compile_shader(vkshader
+   SOURCE ${CMAKE_SOURCE_DIR}/shaders/copy.comp
+   TARGET ${CMAKE_BINARY_DIR}/bin/shaders/copy.comp.spv
+)
