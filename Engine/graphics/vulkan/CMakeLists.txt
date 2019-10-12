@@ -5,6 +5,8 @@ add_library(vulkan_backend
     "src/vulkan_context.cpp"
     "src/vulkan_queue_indices.hpp"
     "src/vulkan_queue_indices.cpp"
+    "src/vulkan_shader_module.hpp"
+    "src/vulkan_shader_module.cpp"
     "src/vulkan_swapchain.hpp"
     "src/vulkan_swapchain.cpp"
     "src/vulkan_utils.hpp")

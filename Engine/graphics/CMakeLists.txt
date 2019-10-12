@@ -41,3 +41,10 @@ endif()
 add_executable(TestApp "main.cpp")
 target_link_libraries(TestApp
     PRIVATE graphics compiler_warnings)
+
+include(CompileShader)
+compile_shader(shader
+   SOURCE ${CMAKE_SOURCE_DIR}/shaders/copy.comp
+   TARGET ${CMAKE_BINARY_DIR}/bin/shaders/copy.comp.spv
+)
+add_dependencies(TestApp shader)
