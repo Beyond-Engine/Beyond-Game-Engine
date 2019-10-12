@@ -28,49 +28,63 @@ enum class GraphicsBackend {
 #endif
 };
 
-class Platform {
-public:
-  Platform() noexcept;
-  ~Platform() noexcept;
+constexpr auto preferred_graphics_backend() noexcept -> GraphicsBackend
+{
+#ifdef WIN32
+#ifdef BEYOND_GRAPHICS_BACKEND_DX12
+  return GraphicsBackend::dx12;
+#elif BEYOND_GRAPHICS_BACKEND_VULKAN
+  return GraphicsBackend::vulkan;
+#else
+  return GraphicsBackend::mock;
+#endif
 
-  Platform(const Platform&) = delete;
-  auto operator=(const Platform&) -> Platform& = delete;
+#else
 
-  Platform(Platform&&) noexcept = default;
-  auto operator=(Platform&&) noexcept -> Platform& = default;
+#ifdef BEYOND_GRAPHICS_BACKEND_VULKAN
+  return GraphicsBackend::vulkan;
+#else
+  return GraphicsBackend::mock;
+#endif
 
-  auto poll_events() noexcept -> void;
-
-  /**
-   * @brief Creates a window with default graphics backend
-   */
-  [[nodiscard]] auto create_window(int width, int height,
-                                   std::string_view title) noexcept -> Window;
-
-  /**
-   * @brief Creates a window and specify what graphics backend to use
-   */
-  [[nodiscard]] auto create_window(int width, int height,
-                                   std::string_view title,
-                                   GraphicsBackend backend) noexcept -> Window;
-
-  auto make_context_current(const Window& window) noexcept -> void;
-
-private:
-  std::unique_ptr<struct PlatformImpl> pimpl_;
-};
+#endif
+}
 
 class Window {
 public:
+  /**
+   * @brief Creates a window
+   * @param width Initial width of the window
+   * @param height Initial height of the window
+   * @param title Title of the window
+   *
+   * The window will decide its prefered graphics backend depend on the platform
+   * and build settings.
+   */
+  Window(int width, int height, std::string title) noexcept;
+
+  /**
+   * @brief Creates a window, and explicit specify what graphics backend it will
+   * use
+   * @param width Initial width of the window
+   * @param height Initial height of the window
+   * @param title Title of the window
+   * @param backend An enum of graphcis backends
+   */
+  Window(int width, int height, std::string title,
+         GraphicsBackend backend) noexcept;
+
   ~Window() noexcept;
 
   Window(const Window& window) = delete;
   auto operator=(const Window& window) -> Window& = delete;
 
-  Window(Window&& other) noexcept = default;
-  auto operator=(Window&& other) noexcept -> Window& = default;
+  Window(Window&& other) noexcept;
+  auto operator=(Window&& other) noexcept -> Window&;
 
   [[nodiscard]] auto should_close() const noexcept -> bool;
+
+  auto poll_events() noexcept -> void;
 
   auto swap_buffers() -> void;
 
@@ -101,17 +115,13 @@ public:
    */
   auto create_vulkan_surface(VkInstance instance,
                              const VkAllocationCallbacks* allocator,
-                             VkSurfaceKHR& surface) const noexcept -> void;
+                             VkSurfaceKHR& surface) noexcept -> void;
 #endif
 
 private:
   std::string title_;
   GraphicsBackend backend_;
   std::unique_ptr<struct WindowImpl> pimpl_;
-  Window(std::string title, GraphicsBackend backend,
-         std::unique_ptr<WindowImpl>&& impl) noexcept;
-
-  friend Platform;
 };
 
 } // namespace beyond

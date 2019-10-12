@@ -9,7 +9,7 @@
 namespace beyond::graphics::vulkan {
 
 /// @brief Create a VulkanGraphicsContext
-[[nodiscard]] auto create_vulkan_context(const Window& window) noexcept
+[[nodiscard]] auto create_vulkan_context(Window& window) noexcept
     -> std::unique_ptr<Context>;
 
 } // namespace beyond::graphics::vulkan

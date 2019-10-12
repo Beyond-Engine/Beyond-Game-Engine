@@ -125,14 +125,16 @@ create_logical_device(VkPhysicalDevice pd,
 
 namespace beyond::graphics::vulkan {
 
-[[nodiscard]] auto create_vulkan_context(const Window& window) noexcept
+[[nodiscard]] auto create_vulkan_context(Window& window) noexcept
     -> std::unique_ptr<Context>
 {
   return std::make_unique<VulkanContext>(window);
 }
 
-VulkanContext::VulkanContext(const Window& window)
+VulkanContext::VulkanContext(Window& window)
 {
+  std::puts("Vulkan Graphics backend");
+
   if (volkInitialize() != VK_SUCCESS) {
     panic("Cannot find a Vulkan Loader in the system!");
   }

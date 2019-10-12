@@ -15,55 +15,36 @@
 
 namespace beyond {
 
-struct PlatformImpl {
-  PlatformImpl() noexcept
-  {
-    if (glfwInit() == 0) {
-      beyond::panic("Cannot initialize GLFW platform");
-    }
-  }
-
-  ~PlatformImpl() noexcept
-  {
+Window::~Window() noexcept
+{
+  if (pimpl_) {
     glfwTerminate();
   }
-};
-
-Platform::Platform() noexcept : pimpl_{std::make_unique<PlatformImpl>()} {}
-
-Platform::~Platform() noexcept = default;
-
-auto Platform::poll_events() noexcept -> void
-{
-  glfwPollEvents();
 }
 
-Window::~Window() noexcept = default;
+Window::Window(Window&& other) noexcept = default;
+auto Window::operator=(Window&& other) noexcept -> Window& = default;
 
 struct WindowImpl {
   GLFWwindow* data_ = nullptr;
 
   explicit WindowImpl(GLFWwindow* data) : data_{data} {}
+  ~WindowImpl()
+  {
+    glfwDestroyWindow(data_);
+  }
 };
 
-[[nodiscard]] auto Platform::create_window(int width, int height,
-                                           std::string_view title) noexcept
-    -> Window
+Window::Window(int width, int height, std::string title,
+               GraphicsBackend backend) noexcept
+    : title_{std::move(title)}, backend_{backend}
 {
-#ifdef BEYOND_GRAPHICS_BACKEND_VULKAN
-  return create_window(width, height, title, GraphicsBackend::vulkan);
-#else
-  return create_window(width, height, title, GraphicsBackend::mock);
-#endif
-}
+  if (glfwInit() != GLFW_TRUE) {
+    beyond::panic("Cannot initialize the GLFW platform!");
+  }
 
-[[nodiscard]] auto Platform::create_window(int width, int height,
-                                           std::string_view title,
-                                           GraphicsBackend backend) noexcept
-    -> Window
-{
 #ifdef BEYOND_GRAPHICS_BACKEND_VULKAN
-  if (backend == GraphicsBackend::vulkan) {
+  if (backend_ == GraphicsBackend::vulkan) {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
   }
 #endif
@@ -76,19 +57,18 @@ struct WindowImpl {
     beyond::panic("Cannot Create a GLFW Window");
   }
 
-  return Window{std::string{title}, backend,
-                std::make_unique<WindowImpl>(glfw_window)};
+  pimpl_ = std::make_unique<WindowImpl>(glfw_window);
+  glfwMakeContextCurrent(pimpl_->data_);
 }
 
-void Platform::make_context_current(const Window& window) noexcept
+Window::Window(int width, int height, std::string title) noexcept
+    : Window{width, height, title, preferred_graphics_backend()}
 {
-  glfwMakeContextCurrent(window.pimpl_->data_);
 }
 
-Window::Window(std::string title, GraphicsBackend backend,
-               std::unique_ptr<WindowImpl>&& impl) noexcept
-    : title_{std::move(title)}, backend_{backend}, pimpl_{std::move(impl)}
+auto Window::poll_events() noexcept -> void
 {
+  glfwPollEvents();
 }
 
 auto Window::swap_buffers() -> void
@@ -118,7 +98,7 @@ auto Window::swap_buffers() -> void
 
 auto Window::create_vulkan_surface(VkInstance instance,
                                    const VkAllocationCallbacks* allocator,
-                                   VkSurfaceKHR& surface) const noexcept -> void
+                                   VkSurfaceKHR& surface) noexcept -> void
 {
   if (glfwCreateWindowSurface(instance, pimpl_->data_, allocator, &surface) !=
       VK_SUCCESS) {

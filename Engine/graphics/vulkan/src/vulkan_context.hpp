@@ -25,7 +25,7 @@ namespace beyond::graphics::vulkan {
 
 class VulkanContext : public Context {
 public:
-  explicit VulkanContext(const Window& window);
+  explicit VulkanContext(Window& window);
   ~VulkanContext() override;
 
   [[nodiscard]] auto create_swapchain() -> Swapchain override;

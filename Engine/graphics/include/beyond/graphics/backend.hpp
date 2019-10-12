@@ -51,7 +51,7 @@ protected:
 };
 
 /// @brief Create a graphics context
-[[nodiscard]] auto create_context(const Window& window) noexcept
+[[nodiscard]] auto create_context(Window& window) noexcept
     -> std::unique_ptr<Context>;
 
 /** @}@} */
