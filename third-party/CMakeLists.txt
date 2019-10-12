@@ -12,7 +12,7 @@ target_include_directories(tl-expected SYSTEM
 
 set(LIB_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/include)
 
-if(${BEYOND_BUILD_VULKAN_BACKEND})
+if(${BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN})
     # Volk
     if(WIN32)
        set(VOLK_STATIC_DEFINES VK_USE_PLATFORM_WIN32_KHR)

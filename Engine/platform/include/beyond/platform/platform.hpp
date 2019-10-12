@@ -11,8 +11,8 @@ struct VkInstance_T;
 struct VkSurfaceKHR_T;
 struct VkAllocationCallbacks;
 
-using VkInstance = struct VkInstance_T *;
-using VkSurfaceKHR = struct VkSurfaceKHR_T *;
+using VkInstance = struct VkInstance_T*;
+using VkSurfaceKHR = struct VkSurfaceKHR_T*;
 
 namespace beyond {
 
@@ -21,7 +21,10 @@ class Window;
 enum class GraphicsBackend {
   mock = 0,
 #ifdef BEYOND_GRAPHICS_BACKEND_VULKAN
-  vulkan
+  vulkan,
+#endif
+#ifdef BEYOND_GRAPHICS_BACKEND_DX12
+  dx12,
 #endif
 };
 

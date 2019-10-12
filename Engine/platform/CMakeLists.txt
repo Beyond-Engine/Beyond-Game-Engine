@@ -27,9 +27,13 @@ if (${BEYOND_PLATFORM_GLFW})
         PRIVATE CONAN_PKG::glfw)
 endif()
 
-if (${BEYOND_BUILD_VULKAN_BACKEND})
+if (${BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN})
     target_compile_definitions(platform PUBLIC BEYOND_GRAPHICS_BACKEND_VULKAN)
 
     target_compile_definitions(platform PRIVATE VK_NO_PROTOTYPES)
     target_link_libraries(platform PRIVATE volk)
+endif()
+
+if (${BEYOND_BUILD_GRAPHICS_BACKEND_DX12})
+    target_compile_definitions(platform PUBLIC BEYOND_GRAPHICS_BACKEND_DX12)
 endif()

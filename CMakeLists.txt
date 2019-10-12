@@ -46,7 +46,12 @@ option(BEYOND_WARNING_AS_ERROR "Treats compiler warnings as errors" ON)
 option(BEYOND_BUILD_DOCUMENTATION
     "Build the documentation of the Beyond game engine" OFF)
 
-option(BEYOND_BUILD_VULKAN_BACKEND "Build the vulkan backend" ON)
+option(BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN "Build the vulkan backend" ON)
+if (WIN32)
+    option(BEYOND_BUILD_GRAPHICS_BACKEND_DX12 "Build the DirectX 12 backend" ON)
+else()
+    option(BEYOND_BUILD_GRAPHICS_BACKEND_DX12 "Build the DirectX 12 backend" OFF)
+endif()
 
 if (BEYOND_BUILD_DOCUMENTATION)
     include("doxygen")

@@ -5,8 +5,12 @@ target_include_directories(graphics_backend
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
 
-if (${BEYOND_BUILD_VULKAN_BACKEND})
+if (${BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN})
   add_subdirectory(vulkan)
+endif()
+
+if (${BEYOND_BUILD_GRAPHICS_BACKEND_DX12})
+    add_subdirectory(dx12)
 endif()
 
 add_library(graphics
@@ -26,7 +30,7 @@ target_link_libraries(graphics
     compiler_warnings
     )
 
-if (${BEYOND_BUILD_VULKAN_BACKEND})
+if (${BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN})
   target_link_libraries(graphics PRIVATE vulkan_backend)
 endif()
 

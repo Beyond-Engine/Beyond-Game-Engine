@@ -238,7 +238,7 @@ auto check_validation_layer_support() noexcept -> bool
   extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 #endif
 
-  VkInstanceCreateInfo create_info;
+  VkInstanceCreateInfo create_info{};
   create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
   create_info.pApplicationInfo = &app_info;
   create_info.enabledExtensionCount = vulkan::to_u32(extensions.size());
