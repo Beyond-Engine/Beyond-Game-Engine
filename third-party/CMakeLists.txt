@@ -10,8 +10,6 @@ target_include_directories(tl-expected SYSTEM
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/expected>
 )
 
-set(LIB_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/include)
-
 if(${BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN})
     # Volk
     if(WIN32)
