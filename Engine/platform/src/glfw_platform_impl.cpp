@@ -1,3 +1,5 @@
+#include <utility>
+
 // Supress windows Macro redefinition of GLFW
 #ifdef WIN32
 #include <windows.h>
@@ -51,7 +53,7 @@ Window::Window(int width, int height, std::string title,
 
   glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
   auto glfw_window =
-      glfwCreateWindow(width, height, title.data(), nullptr, nullptr);
+      glfwCreateWindow(width, height, title_.data(), nullptr, nullptr);
 
   if (!glfw_window) {
     beyond::panic("Cannot Create a GLFW Window");
@@ -62,7 +64,7 @@ Window::Window(int width, int height, std::string title,
 }
 
 Window::Window(int width, int height, std::string title) noexcept
-    : Window{width, height, title, preferred_graphics_backend()}
+    : Window{width, height, std::move(title), preferred_graphics_backend()}
 {
 }
 

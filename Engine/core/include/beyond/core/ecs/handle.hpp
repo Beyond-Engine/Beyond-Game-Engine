@@ -31,51 +31,71 @@ struct HandleBase {
  * Resource handles act as none-owning references to a resource. It has
  * additional functionality to check for dangling.
  */
-template <typename Derived, typename Storage, std::size_t index_bits,
-          std::size_t generation_bits>
+// clang-format off
+template <typename Derived,
+          typename StorageT,
+          typename IndexT, std::size_t _index_bits,
+          typename GenerationT, std::size_t _generation_bits>
+// clang-format on
 struct Handle : HandleBase {
 public:
-  using Index = Storage;
-  using Generation = Storage;
-  using DiffType = std::make_signed_t<Index>;
+  using Storage = StorageT;
+  using storage_type = StorageT;
 
-  /// @brief The shift of index bits
-  static constexpr std::size_t shift = index_bits;
-  static constexpr std::size_t index_mask = ~(~Storage{0} >> shift << shift);
+  using Index = IndexT;
+  using index_type = IndexT;
+  static constexpr std::size_t index_bits = _index_bits;
+
+  using Generation = GenerationT;
+  using generation_type = GenerationT;
+  static constexpr std::size_t generation_bits = _generation_bits;
+
+  using DiffType = std::make_signed_t<Index>;
 
   static_assert(std::is_unsigned_v<Storage>,
                 "The storage must an unsigned integer");
+  static_assert(std::is_unsigned_v<Index>,
+                "The storage must an unsigned integer");
+  static_assert(std::is_unsigned_v<Generation>,
+                "The storage must an unsigned integer");
+  static_assert(index_bits <= 8 * sizeof(Index));
+  static_assert(generation_bits <= 8 * sizeof(Generation));
   static_assert(index_bits + generation_bits == 8 * sizeof(Storage));
 
-  explicit constexpr Handle(Storage id = 0, Storage gen = 0)
-      : data_{id + (gen << index_bits)}
+  explicit constexpr Handle(Index id = 0, Generation gen = 0)
+      : index{id}, generation{gen}
   {
   }
 
-  [[nodiscard]] auto index() const -> Storage
-  {
-    return data_ & index_mask;
-  }
+  //  explicit constexpr Handle(Storage id = 0, Storage gen = 0)
+  //      : data_{id + (gen << index_bits)}
+  //  {
+  //  }
 
-  [[nodiscard]] auto generation() const -> Storage
-  {
-    return data_ >> shift;
-  }
+  //  [[nodiscard]] auto index() const -> Storage
+  //  {
+  //    return data_ & index_mask;
+  //  }
+
+  //  [[nodiscard]] auto generation() const -> Storage
+  //  {
+  //    return data_ >> shift;
+  //  }
 
   [[nodiscard]] friend constexpr auto operator==(Derived lhs, Derived rhs)
       -> bool
   {
-    return lhs.data_ == rhs.data_;
+    return lhs.index == rhs.index && lhs.generation == rhs.generation;
   }
 
   [[nodiscard]] friend constexpr auto operator!=(Derived lhs, Derived rhs)
       -> bool
   {
-    return lhs.data_ != rhs.data_;
+    return lhs.index != rhs.index || lhs.generation != rhs.generation;
   }
 
-private:
-  Storage data_;
+  Index index : index_bits;
+  Generation generation : generation_bits;
 };
 
 /** @} @} */
