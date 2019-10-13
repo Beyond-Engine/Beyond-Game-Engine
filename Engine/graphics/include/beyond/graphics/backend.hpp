@@ -15,8 +15,7 @@
 
 namespace beyond::graphics {
 
-struct Swapchain : beyond::Handle<Swapchain, std::uint32_t, std::uint16_t, 16,
-                                  std::uint16_t, 16> {
+struct Swapchain : beyond::Handle<Swapchain, std::uint32_t, 16, 16> {
   using Handle::Handle;
 };
 

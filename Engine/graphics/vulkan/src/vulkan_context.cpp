@@ -397,7 +397,7 @@ VulkanContext::VulkanContext(Window& window)
       beyond::panic("Vulkan backend failed to submit to queue");
     }
 
-    static constexpr uint64_t compute_timeout = 1e6;
+    static constexpr auto compute_timeout = static_cast<std::uint64_t>(1e6);
     while (vkWaitForFences(device_, 1, &fence, VK_TRUE, compute_timeout) ==
            VK_TIMEOUT) {
       fmt::print("busy waiting!");

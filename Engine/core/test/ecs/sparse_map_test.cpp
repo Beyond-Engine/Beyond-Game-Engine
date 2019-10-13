@@ -4,8 +4,7 @@
 
 using namespace beyond;
 
-struct Entity
-    : Handle<Entity, std::uint32_t, std::uint32_t, 24, std::uint8_t, 8> {
+struct Entity : Handle<Entity, std::uint32_t, 24, 8> {
   using Handle::Handle;
 };
 

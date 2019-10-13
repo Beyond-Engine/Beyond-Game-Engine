@@ -38,6 +38,9 @@ template <typename Derived>
 class SparseSetBase : public CRTP<Derived, SparseSetBase> {
 public:
   SparseSetBase() = default;
+
+  // It is impossible to have a sparse set bigger than the total number of
+  // entities
 };
 
 /**
@@ -47,7 +50,7 @@ public:
 namespace detail {
 constexpr std::size_t page_shift = 12;
 
-} // namespace detail
+}
 
 template <typename Handle>
 class SparseSet : public SparseSetBase<SparseSet<Handle>> {
@@ -57,16 +60,16 @@ public:
   using DiffType = typename Handle::DiffType;
 
 private:
-  static_assert(std::is_base_of_v<beyond::HandleBase, Handle>);
-  static_assert(
-      Handle::index_bits > detail::page_shift,
-      "The maximum indices of a handle should be larger than page size");
-
   static constexpr SizeType page_count =
-      1u << (Handle::index_bits - detail::page_shift);
+      1u << (Handle::shift - detail::page_shift);
   static constexpr SizeType page_size =
       1u << detail::page_shift; // Handles per page
   using Page = std::array<std::optional<SizeType>, page_size>;
+
+  static_assert(std::is_base_of_v<beyond::HandleBase, Handle>);
+  static_assert(
+      Handle::shift > detail::page_shift,
+      "The maximum indices of a handle should be larger than page size");
 
   using Iterator = const Handle*;
 
@@ -214,7 +217,7 @@ private:
   // Given an handle, get its location inside the reverse array
   [[nodiscard]] auto page_index_of(Handle handle) const noexcept
   {
-    const auto index = handle.index;
+    const auto index = handle.index();
     const SizeType page = index / page_size;
     const SizeType offset = index & (page_size - 1);
     return std::make_pair(page, offset);
