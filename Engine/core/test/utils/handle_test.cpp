@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include <beyond/core/ecs/handle.hpp>
+#include <beyond/core/utils/handle.hpp>
 
 using namespace beyond;
 

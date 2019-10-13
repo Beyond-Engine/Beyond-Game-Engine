@@ -7,9 +7,9 @@
 #include <utility>
 #include <vector>
 
-#include <beyond/core/ecs/handle.hpp>
 #include <beyond/core/utils/assert.hpp>
 #include <beyond/core/utils/crtp.hpp>
+#include <beyond/core/utils/handle.hpp>
 
 /**
  * @file sparse_set.hpp

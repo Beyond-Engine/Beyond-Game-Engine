@@ -1,5 +1,4 @@
 add_library(core
-    include/beyond/core/ecs/handle.hpp
     include/beyond/core/ecs/sparse_map.hpp
     include/beyond/core/ecs/sparse_set.hpp
     include/beyond/core/utils/assert.hpp
@@ -8,6 +7,7 @@ add_library(core
     include/beyond/core/utils/crtp.hpp
     include/beyond/core/utils/functional.hpp
     include/beyond/core/utils/function_ref.hpp
+    include/beyond/core/utils/handle.hpp
     include/beyond/core/utils/named_type.hpp
     include/beyond/core/utils/panic.hpp
     src/utils/panic.cpp

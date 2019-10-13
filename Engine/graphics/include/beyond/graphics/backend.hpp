@@ -10,7 +10,7 @@
 
 #include <memory>
 
-#include "beyond/core/ecs/handle.hpp"
+#include "beyond/core/utils/handle.hpp"
 #include "beyond/platform/platform.hpp"
 
 namespace beyond::graphics {

@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef BEYOND_CORE_UTILS_RESOURCE_HANLDE_HPP
-#define BEYOND_CORE_UTILS_RESOURCE_HANLDE_HPP
+#ifndef BEYOND_CORE_UTILS_HANLDE_HPP
+#define BEYOND_CORE_UTILS_HANLDE_HPP
 
 #include <cstdint>
 #include <type_traits>
@@ -67,21 +67,6 @@ public:
   {
   }
 
-  //  explicit constexpr Handle(Storage id = 0, Storage gen = 0)
-  //      : data_{id + (gen << index_bits)}
-  //  {
-  //  }
-
-  //  [[nodiscard]] auto index() const -> Storage
-  //  {
-  //    return data_ & index_mask;
-  //  }
-
-  //  [[nodiscard]] auto generation() const -> Storage
-  //  {
-  //    return data_ >> shift;
-  //  }
-
   [[nodiscard]] friend constexpr auto operator==(Derived lhs, Derived rhs)
       -> bool
   {
@@ -102,4 +87,4 @@ public:
 
 } // namespace beyond
 
-#endif // BEYOND_CORE_UTILS_RESOURCE_HANLDE_HPP
+#endif // BEYOND_CORE_UTILS_HANLDE_HPP
