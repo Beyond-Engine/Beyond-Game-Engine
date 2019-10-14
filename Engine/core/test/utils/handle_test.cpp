@@ -6,9 +6,13 @@
 
 using namespace beyond;
 
+namespace {
+
 struct DummyHandle : Handle<DummyHandle, std::uint32_t, 12, 20> {
   using Handle::Handle;
 };
+
+} // anonymous namespace
 
 TEST_CASE("Resource handle", "[resource]")
 {

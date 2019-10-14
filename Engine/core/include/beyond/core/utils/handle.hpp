@@ -49,7 +49,7 @@ public:
   static_assert(index_bits + generation_bits == 8 * sizeof(Storage));
 
   explicit constexpr Handle(Storage id = 0, Storage gen = 0)
-      : data_{id + (gen << index_bits)}
+      : data_{id + (gen << shift)}
   {
   }
 

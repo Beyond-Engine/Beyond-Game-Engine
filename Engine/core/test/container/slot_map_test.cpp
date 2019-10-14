@@ -13,14 +13,14 @@ namespace beyond {
  * @{
  */
 
-template <typename T, typename Key = std::pair<unsigned, unsigned>,
+template <typename Key, typename T,
           template <typename...> typename Container = std::vector>
 class slot_map {
 public:
   using key_size_type =
-      std::remove_reference_t<decltype(std::get<0>(std::declval<Key>()))>;
+      std::remove_reference_t<decltype(std::declval<Key>().index())>;
   using key_generation_type =
-      std::remove_reference_t<decltype(std::get<1>(std::declval<Key>()))>;
+      std::remove_reference_t<decltype(std::declval<Key>().generation())>;
   using value_type = typename Container<T>::value_type;
   using key_type = Key;
   using size_type = typename Container<T>::size_type;
@@ -71,7 +71,8 @@ public:
   /**
    * @brief Reserve the capacity of the `slot_map`
    *
-   * Increase the capacity of the `slot_map` to a value that's greater or equal
+   * Increase the capacity of the `slot_map` to a value that's greater or
+   equal
    * to `n`. If `n` is greater than the current capacity(), new storage is
    * allocated, otherwise the function does nothing.
    *
@@ -110,9 +111,8 @@ public:
     const auto index = static_cast<key_size_type>(data_.size() - 1);
     auto& slot = slots_[free_head_];
     const auto next_free_head =
-        get_index(slot); // The index is what free list point to
-    set_index(slot, index);
-    increment_generation(slot);
+        slot.index(); // The index is what free list point to
+    slot = Key{index, slot.generation() + 1};
     free_head_ = next_free_head;
 
     return slot;
@@ -121,14 +121,15 @@ public:
   /**
    * @brief Find the element that mapped by the `key`
    *
-   * The find() functions have generation counter checking. If the check fails,
+   * The find() functions have generation counter checking. If the check
+   fails,
    * the result of end() is returned.
    *
    * Complexity: O(1)
    */
   [[nodiscard]] constexpr auto find(const key_type& key) noexcept -> iterator
   {
-    const auto index = get_index(key);
+    const auto index = key.index();
     if (index >= data_.size()) {
       return std::end(data_);
     }
@@ -211,21 +212,13 @@ private:
   static constexpr auto growth_rate = 1.6;
   static constexpr size_type initial_alloc_size{16};
 
-  // clang-format off
-  static constexpr auto get_index(const Key& k) { const auto& [idx, gen] = k; return idx; }
-  static constexpr auto get_generation(const Key& k) { const auto& [idx, gen] = k; return gen; }
-  static constexpr void set_index(Key& k, key_size_type value) { auto& [idx, gen] = k; idx = value; }
-  static constexpr void increment_generation(Key& k) { auto& [idx, gen] = k; ++gen; }
-  // clang-format on
-
   // Grow slot and fill the list of free elements
   // Precondition: the free list have no free slots
   //   equivalently (this->size() == this-> capacity())
   constexpr auto grow_slots()
   {
     BEYOND_ASSERT(free_head_ == free_tail_);
-    BEYOND_ASSERT(slots_.empty() ||
-                  this->get_index(slots_[free_head_]) == free_head_);
+    BEYOND_ASSERT(slots_.empty() || slots_[free_head_].index() == free_head_);
     BEYOND_ASSERT(this->size() == this->capacity());
 
     const size_type old_capacity = static_cast<size_type>(slots_.capacity());
@@ -239,8 +232,9 @@ private:
     // Fill the free list, where all except the last point to the next free
     // element
     // {
-    const auto last_index = new_capacity - 1;
-    for (auto i = old_capacity; i < last_index; ++i) {
+    const auto last_index = static_cast<key_size_type>(new_capacity - 1);
+    for (auto i = static_cast<key_size_type>(old_capacity); i < last_index;
+         ++i) {
       slots_.emplace(std::end(slots_), i + 1, 0);
     }
     slots_.emplace(std::end(slots_), last_index, 0);
@@ -278,11 +272,21 @@ private:
 
 #include <catch2/catch.hpp>
 
+#include <beyond/core/utils/handle.hpp>
+
+namespace {
+
+struct DummyHandle : beyond::Handle<DummyHandle, std::uint32_t, 20, 12> {
+  using Handle::Handle;
+};
+
+} // anonymous namespace
+
 TEST_CASE("slot_map", "[container]")
 {
   GIVEN("A default constructed slot_map")
   {
-    beyond::slot_map<int> ints;
+    beyond::slot_map<DummyHandle, int> ints;
     REQUIRE(ints.empty());
     REQUIRE(ints.size() == 0);
 
