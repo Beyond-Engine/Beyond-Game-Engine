@@ -5,7 +5,7 @@ environment:
   MSVC_DEFAULT_OPTIONS: ON
 
 os:
-  - Visual Studio 2017
+  - Visual Studio 2019
 
 init:
   - git config --global core.autocrlf input
