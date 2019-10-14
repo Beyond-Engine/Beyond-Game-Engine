@@ -111,48 +111,85 @@ TEST_CASE("static_vector accessors", "[container]")
   REQUIRE_THROWS_AS(cv.at(6), std::out_of_range);
 }
 
-TEST_CASE("static_vector iterators", "[container]")
+TEST_CASE("static_vector swap", "[container]")
 {
-  static_vector<std::string, 10> v;
-  REQUIRE(v.begin() == v.end());
+  const auto l1 = {1, 2, 3, 4, 5};
+  const auto l2 = {2, 4, 5};
 
-  const std::string first{"hello"};
-  v.push_back(first);
-  REQUIRE(v.begin() != v.end());
+  static_vector<int, 10> v1{l1};
+  static_vector<int, 10> v2{l2};
 
-  SECTION("Elements access")
+  SECTION(".swap() member")
   {
-    REQUIRE(*v.begin() == first);
-    REQUIRE(v.begin()->size() == first.size());
+    v1.swap(v2);
   }
 
-  SECTION("Pre and post fix increment & decrement")
+  SECTION("swap free function")
   {
-    const std::string second{"world"};
-    v.push_back(second);
-    auto i = v.begin();
-    REQUIRE(*(++i) == second);
-    REQUIRE(*i == second);
-    REQUIRE(*(i++) == second);
-    REQUIRE(i == v.end());
-    REQUIRE((i--) == v.end());
-    REQUIRE(*i == second);
-    REQUIRE(*(--i) == first);
-    REQUIRE(*i == first);
+    swap(v1, v2);
   }
 
-  SECTION("operator[]")
+  REQUIRE(std::equal(v1.cbegin(), v1.cend(), l2.begin()));
+  REQUIRE(std::equal(v2.cbegin(), v2.cend(), l1.begin()));
+}
+
+TEST_CASE("static_vector iterators access", "[container]")
+{
+  GIVEN("An empty static_vector")
   {
-    // TODO
+    static_vector<std::string, 10> v;
+    REQUIRE(v.begin() == v.end());
+    REQUIRE(v.cbegin() == v.cend());
+
+    const std::string first{"hello"};
+    v.push_back(first);
+    REQUIRE(v.begin() != v.end());
+    REQUIRE(v.cbegin() != v.cend());
+
+    SECTION("Elements access")
+    {
+      REQUIRE(*v.begin() == first);
+      REQUIRE(v.begin()->size() == first.size());
+    }
+
+    SECTION("Pre and post fix increment & decrement")
+    {
+      const std::string second{"world"};
+      v.push_back(second);
+      auto i = v.begin();
+      REQUIRE(*(++i) == second);
+      REQUIRE(*i == second);
+      REQUIRE(*(i++) == second);
+      REQUIRE(i == v.end());
+      REQUIRE((i--) == v.end());
+      REQUIRE(*i == second);
+      REQUIRE(*(--i) == first);
+      REQUIRE(*i == first);
+    }
   }
 
-  SECTION("Iterator ordering")
+  GIVEN("A static_vector {1, 2, 3, 4}")
   {
-    // TODO
-  }
+    static_vector<int, 8> v{1, 2, 3};
 
-  SECTION("Random access iterator affine space operations")
-  {
-    // TODO
+    SECTION("operator[]")
+    {
+      // TODO
+    }
+
+    SECTION("Iterator ordering")
+    {
+      // TODO
+    }
+
+    SECTION("Random access iterator affine space operations")
+    {
+      const auto ssize = static_cast<decltype(v)::difference_type>(v.size());
+      REQUIRE(v.end() - v.begin() == ssize);
+      REQUIRE(v.begin() + ssize == v.end());
+      REQUIRE(ssize + v.begin() == v.end());
+    }
   }
 }
+
+TEST_CASE("static_vector iterators manipulation", "[container]") {}

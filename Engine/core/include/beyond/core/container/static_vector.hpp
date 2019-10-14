@@ -276,17 +276,16 @@ public:
     return reinterpret_cast<T*>(data_)[pos];
   }
 
-  // TODO(lesley): clear, erase, insert, resize, asign, swap
-  // TODO(lesley):  at
-  template <bool is_const = false> class I {
+  // TODO(lesley): clear, erase, insert, resize, asign
+  template <bool is_const = false> class Itr {
+  public:
     using iterator_category = std::random_access_iterator_tag;
     using value_type = T;
     using difference_type = std::ptrdiff_t;
     using reference = std::conditional_t<is_const, const T&, T&>;
-    using pointer = std::conditional_t<is_const, T* const, T*>;
+    using pointer = std::conditional_t<is_const, const T*, T*>;
 
-  public:
-    explicit constexpr I(pointer data = nullptr) : data_{data} {}
+    explicit constexpr Itr(pointer data = nullptr) : data_{data} {}
 
     [[nodiscard]] constexpr auto operator*() const noexcept -> reference
     {
@@ -298,46 +297,65 @@ public:
       return data_;
     }
 
-    [[nodiscard]] constexpr auto operator++() noexcept -> I&
+    [[nodiscard]] constexpr auto operator++() noexcept -> Itr&
     {
       ++data_;
       return *this;
     }
 
-    [[nodiscard]] constexpr auto operator--() noexcept -> I&
+    [[nodiscard]] constexpr auto operator--() noexcept -> Itr&
     {
       --data_;
       return *this;
     }
 
-    [[nodiscard]] constexpr auto operator++(int) noexcept -> I
+    [[nodiscard]] constexpr auto operator++(int) noexcept -> Itr
     {
-      return I{data_++};
+      return Itr{data_++};
     }
 
-    [[nodiscard]] constexpr auto operator--(int) noexcept -> I
+    [[nodiscard]] constexpr auto operator--(int) noexcept -> Itr
     {
-      return I{data_--};
+      return Itr{data_--};
     }
 
-    [[nodiscard]] friend constexpr auto operator==(I lhs, I rhs) noexcept
+    [[nodiscard]] friend constexpr auto operator==(Itr lhs, Itr rhs) noexcept
         -> bool
     {
       return lhs.data_ == rhs.data_;
     }
 
-    [[nodiscard]] friend constexpr auto operator!=(I lhs, I rhs) noexcept
+    [[nodiscard]] friend constexpr auto operator!=(Itr lhs, Itr rhs) noexcept
         -> bool
     {
       return !(lhs == rhs);
+    }
+
+    [[nodiscard]] friend constexpr auto operator-(Itr lhs, Itr rhs) noexcept
+        -> difference_type
+    {
+      return lhs.data_ - rhs.data_;
+    }
+
+    [[nodiscard]] friend constexpr auto operator+(Itr lhs,
+                                                  difference_type rhs) noexcept
+        -> Itr
+    {
+      return Itr{lhs.data_ + rhs};
+    }
+
+    [[nodiscard]] friend constexpr auto operator+(difference_type lhs,
+                                                  Itr rhs) noexcept -> Itr
+    {
+      return Itr{lhs + rhs.data_};
     }
 
   private:
     pointer data_ = nullptr;
   };
 
-  using iterator = I<false>;
-  using const_iterator = I<true>;
+  using iterator = Itr<false>;
+  using const_iterator = Itr<true>;
 
   // TODO(lesley): other begin and end family of functions
   [[nodiscard]] constexpr auto begin() noexcept -> iterator
@@ -350,15 +368,56 @@ public:
     return iterator{reinterpret_cast<T*>(data_) + size_};
   }
 
+  [[nodiscard]] constexpr auto begin() const noexcept -> const_iterator
+  {
+    return const_iterator{reinterpret_cast<const T*>(data_)};
+  }
+
+  [[nodiscard]] constexpr auto end() const noexcept -> const_iterator
+  {
+    return const_iterator{reinterpret_cast<const T*>(data_) + size_};
+  }
+
+  [[nodiscard]] constexpr auto cbegin() const noexcept -> const_iterator
+  {
+    return const_iterator{reinterpret_cast<const T*>(data_)};
+  }
+
+  [[nodiscard]] constexpr auto cend() const noexcept -> const_iterator
+  {
+    return const_iterator{reinterpret_cast<const T*>(data_) + size_};
+  }
+
+  /**
+   * @brief Swap two `static_vector`s
+   *
+   * Complexity: Linear on the size() of both vector
+   */
+  constexpr auto
+  swap(static_vector& other) noexcept(std::is_nothrow_swappable_v<value_type>)
+      -> void
+  {
+    std::swap(size_, other.size_);
+    std::swap(data_, other.data_);
+  }
+
 private:
   std::size_t size_ = 0;
   alignas(T) std::byte data_[sizeof(T) * N];
 };
 
+template <typename T, std::size_t N>
+constexpr auto
+swap(static_vector<T, N>& lhs,
+     static_vector<T, N>& rhs) noexcept(std::is_nothrow_swappable_v<T>) -> void
+{
+  lhs.swap(rhs);
+}
+
 /** @}@} */
 
 // TODO(lesley): lexicographically compares
-// Free functions TODO(lesley): swap, erase, erase_if
+// Free functions TODO(lesley): erase, erase_if
 // TODO(lesley): deduction guide
 
 } // namespace beyond
