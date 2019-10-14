@@ -1,224 +1,7 @@
-#include <iterator>
-#include <type_traits>
-
-#include <beyond/core/utils/assert.hpp>
-#include <beyond/core/utils/bit_cast.hpp>
-
-namespace beyond {
-
-/**
- * @addtogroup core
- * @{
- * @addtogroup container
- * @{
- */
-
-template <class T, std::size_t N> class static_vector {
-public:
-  using size_type = std::size_t;
-  using value_type = T;
-  using reference = T&;
-
-  // TODO(lesley): Other constructors supported by std::vector
-  static_vector() = default;
-  ~static_vector()
-  {
-    for (std::size_t pos = 0; pos < size_; ++pos) {
-      reinterpret_cast<T*>(data_)[pos].~T();
-    }
-  }
-
-  static_vector(const static_vector&) = default;
-  auto operator=(const static_vector&) & noexcept -> static_vector& = default;
-  static_vector(static_vector&&) noexcept = default;
-  auto operator=(static_vector&&) & noexcept -> static_vector& = default;
-
-  /**
-   * @brief Gets the capacity of the `static_vector`
-   *
-   * Complexity: O(1)
-   */
-  [[nodiscard]] constexpr auto capacity() const -> size_type
-  {
-    return N;
-  }
-
-  /**
-   * @brief Gets the size of the `static_vector`
-   *
-   * Complexity: O(1)
-   */
-  [[nodiscard]] constexpr auto size() const -> size_type
-  {
-    return size_;
-  }
-
-  /**
-   * @brief Returns if the `static_vector` is empty or not
-   *
-   * Complexity: O(1)
-   */
-  [[nodiscard]] constexpr auto empty() const -> size_type
-  {
-    return size_ == 0;
-  }
-
-  /**
-   * @brief Pushes an object into the end of the static_vector
-   *
-   * @warning If `size() == capacity()`, the result is undefined
-   * @return A reference to the created object
-   *
-   * Complexity: O(1)
-   */
-  template <typename... Args>
-  auto push_back(const value_type& value) -> reference
-  {
-    return emplace_back(value);
-  }
-
-  /// @overload
-  template <typename... Args> auto push_back(value_type&& value) -> reference
-  {
-    return emplace_back(std::move(value));
-  }
-
-  /**
-   * @brief Inplace constructs an object into the end of the static_vector
-   *
-   * @warning If `size() == capacity()`, the result is undefined
-   * @return A reference to the created object
-   *
-   * Complexity: O(1)
-   */
-  template <typename... Args> auto emplace_back(Args&&... args) -> reference
-  {
-    BEYOND_ASSERT(size_ < N);
-
-    new (reinterpret_cast<T*>(data_) + size_) T(std::forward<Args>(args)...);
-    ++size_;
-    return reinterpret_cast<T*>(data_)[size_ - 1];
-  }
-
-  /**
-   * @brief Removes the last element of the container
-   *
-   * @warning If `size() == 0`, the result is undefined
-   *
-   * Complexity: O(1)
-   */
-  auto pop_back() -> void
-  {
-    BEYOND_ASSERT(size_ != 0);
-    --size_;
-  }
-
-  /**
-   * @brief Access an object at index `pos`
-   * @warning If `pos > size()`, the result is undefined
-   *
-   * Complexity: O(1)
-   */
-  [[nodiscard]] constexpr auto operator[](std::size_t pos) const -> const T&
-  {
-    return reinterpret_cast<T*>(data_)[pos];
-  }
-
-  /// @overload
-  [[nodiscard]] constexpr auto operator[](std::size_t pos) -> T&
-  {
-    return reinterpret_cast<T*>(data_)[pos];
-  }
-
-  // TODO(lesley): clear, erase, insert, resize, asign, swap
-  // TODO(lesley): front, back, data, at
-  template <bool is_const = false> class I {
-    using iterator_category = std::random_access_iterator_tag;
-    using value_type = std::conditional_t<is_const, const T&, T&>;
-    using difference_type = std::ptrdiff_t;
-    using reference = value_type;
-    using pointer = std::conditional_t<is_const, T* const, T*>;
-
-  public:
-    explicit constexpr I(pointer data = nullptr) : data_{data} {}
-
-    [[nodiscard]] constexpr auto operator*() const noexcept -> reference
-    {
-      return *data_;
-    }
-
-    [[nodiscard]] constexpr auto operator-> () const noexcept -> pointer
-    {
-      return data_;
-    }
-
-    [[nodiscard]] constexpr auto operator++() noexcept -> I&
-    {
-      ++data_;
-      return *this;
-    }
-
-    [[nodiscard]] constexpr auto operator--() noexcept -> I&
-    {
-      --data_;
-      return *this;
-    }
-
-    [[nodiscard]] constexpr auto operator++(int) noexcept -> I
-    {
-      return I{data_++};
-    }
-
-    [[nodiscard]] constexpr auto operator--(int) noexcept -> I
-    {
-      return I{data_--};
-    }
-
-    [[nodiscard]] friend constexpr auto operator==(I lhs, I rhs) noexcept
-        -> bool
-    {
-      return lhs.data_ == rhs.data_;
-    }
-
-    [[nodiscard]] friend constexpr auto operator!=(I lhs, I rhs) noexcept
-        -> bool
-    {
-      return !(lhs == rhs);
-    }
-
-  private:
-    pointer data_ = nullptr;
-  };
-
-  using iterator = I<false>;
-  using const_iterator = I<true>;
-
-  // TODO(lesley): other begin and end family of functions
-  [[nodiscard]] constexpr auto begin() noexcept -> iterator
-  {
-    return iterator{reinterpret_cast<T*>(data_)};
-  }
-
-  [[nodiscard]] constexpr auto end() noexcept -> iterator
-  {
-    return iterator{reinterpret_cast<T*>(data_) + size_};
-  }
-
-private:
-  std::size_t size_ = 0;
-  alignas(T) std::byte data_[sizeof(T) * N];
-};
-
-/** @}@} */
-
-// TODO(lesley): lexicographically compares
-// Free functions TODO(lesley): swap, erase, erase_if
-// TODO(lesley): deduction guide
-
-} // namespace beyond
-
 #include <catch2/catch.hpp>
 
+#include <array>
+#include <beyond/core/container/static_vector.hpp>
 #include <string>
 
 using namespace beyond;
@@ -228,6 +11,7 @@ TEST_CASE("static_vector", "[container]")
   GIVEN("A default constructed static_vector")
   {
     static_vector<int, 10> v1;
+    REQUIRE(v1.capacity() == 10);
     THEN("it is empty")
     {
       REQUIRE(v1.empty());
@@ -265,6 +49,38 @@ TEST_CASE("static_vector", "[container]")
         }
       }
     }
+  }
+}
+
+TEST_CASE("static_vector constructors", "[container]")
+{
+  SECTION("construct by size")
+  {
+    static_vector<int, 10> v(8);
+    REQUIRE(v.size() == 8);
+    REQUIRE(v[1] == int{});
+  }
+
+  SECTION("construct by size and a value")
+  {
+    static_vector<int, 10> v(8, 42);
+    REQUIRE(v.size() == 8);
+    REQUIRE(v[7] == 42);
+  }
+
+  SECTION("construct by a pair of iterator")
+  {
+    std::array a{1, 2, 3, 4, 5};
+    static_vector<int, 10> v{a.begin(), a.end()};
+    REQUIRE(v.size() == 5);
+    REQUIRE(v[3] == 4);
+  }
+
+  SECTION("construct by an initializer list")
+  {
+    static_vector<int, 10> v{1, 2, 3, 4, 5};
+    REQUIRE(v.size() == 5);
+    REQUIRE(v[3] == 4);
   }
 }
 

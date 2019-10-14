@@ -1,4 +1,5 @@
 add_library(core
+    include/beyond/core/container/static_vector.hpp
     include/beyond/core/ecs/sparse_map.hpp
     include/beyond/core/ecs/sparse_set.hpp
     include/beyond/core/utils/assert.hpp
