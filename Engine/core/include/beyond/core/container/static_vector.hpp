@@ -7,6 +7,8 @@
 #include <iterator>
 #include <type_traits>
 
+#include <fmt/format.h>
+
 #include <beyond/core/utils/assert.hpp>
 #include <beyond/core/utils/bit_cast.hpp>
 

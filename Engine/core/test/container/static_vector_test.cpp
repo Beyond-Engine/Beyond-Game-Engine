@@ -116,8 +116,8 @@ TEST_CASE("static_vector swap", "[container]")
   const auto l1 = {1, 2, 3, 4, 5};
   const auto l2 = {2, 4, 5};
 
-  static_vector<int, 10> v1{l1};
-  static_vector<int, 10> v2{l2};
+  static_vector<int, 10> v1{l1.begin(), l1.end()};
+  static_vector<int, 10> v2{l2.begin(), l2.end()};
 
   SECTION(".swap() member")
   {
