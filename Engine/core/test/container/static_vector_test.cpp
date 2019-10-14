@@ -166,6 +166,14 @@ TEST_CASE("static_vector iterators access", "[container]")
       REQUIRE(*(--i) == first);
       REQUIRE(*i == first);
     }
+
+    SECTION("Iterator ordering")
+    {
+      REQUIRE(v.begin() < v.end());
+      REQUIRE(v.begin() <= v.end());
+      REQUIRE(!(v.begin() > v.end()));
+      REQUIRE(!(v.begin() >= v.end()));
+    }
   }
 
   GIVEN("A static_vector {1, 2, 3, 4}")
@@ -173,11 +181,6 @@ TEST_CASE("static_vector iterators access", "[container]")
     static_vector<int, 8> v{1, 2, 3};
 
     SECTION("operator[]")
-    {
-      // TODO
-    }
-
-    SECTION("Iterator ordering")
     {
       // TODO
     }

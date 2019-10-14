@@ -277,6 +277,7 @@ public:
   }
 
   // TODO(lesley): clear, erase, insert, resize, asign
+
   template <bool is_const = false> class Itr {
   public:
     using iterator_category = std::random_access_iterator_tag;
@@ -331,6 +332,30 @@ public:
       return !(lhs == rhs);
     }
 
+    [[nodiscard]] friend constexpr auto operator<(Itr lhs, Itr rhs) noexcept
+        -> bool
+    {
+      return lhs.data_ < rhs.data_;
+    }
+
+    [[nodiscard]] friend constexpr auto operator<=(Itr lhs, Itr rhs) noexcept
+        -> bool
+    {
+      return lhs.data_ <= rhs.data_;
+    }
+
+    [[nodiscard]] friend constexpr auto operator>(Itr lhs, Itr rhs) noexcept
+        -> bool
+    {
+      return lhs.data_ > rhs.data_;
+    }
+
+    [[nodiscard]] friend constexpr auto operator>=(Itr lhs, Itr rhs) noexcept
+        -> bool
+    {
+      return lhs.data_ >= rhs.data_;
+    }
+
     [[nodiscard]] friend constexpr auto operator-(Itr lhs, Itr rhs) noexcept
         -> difference_type
     {
@@ -357,7 +382,7 @@ public:
   using iterator = Itr<false>;
   using const_iterator = Itr<true>;
 
-  // TODO(lesley): other begin and end family of functions
+  // TODO(lesley): reverse iterators
   [[nodiscard]] constexpr auto begin() noexcept -> iterator
   {
     return iterator{reinterpret_cast<T*>(data_)};
