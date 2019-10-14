@@ -21,9 +21,13 @@ namespace beyond {
 
 template <class T, std::size_t N> class static_vector {
 public:
-  using size_type = std::size_t;
   using value_type = T;
+  using pointer = T*;
+  using const_pointer = const T*;
   using reference = T&;
+  using const_reference = const T&;
+  using size_type = std::size_t;
+  using difference_type = std::make_signed_t<size_type>;
 
   static_vector() noexcept = default;
 
@@ -102,7 +106,7 @@ public:
    *
    * Complexity: O(1)
    */
-  [[nodiscard]] constexpr auto capacity() const -> size_type
+  [[nodiscard]] constexpr auto capacity() const noexcept -> size_type
   {
     return N;
   }
@@ -183,19 +187,97 @@ public:
    *
    * Complexity: O(1)
    */
-  [[nodiscard]] constexpr auto operator[](std::size_t pos) const -> const T&
+  [[nodiscard]] constexpr auto operator[](std::size_t pos) const
+      -> const_reference
+  {
+    return reinterpret_cast<const T*>(data_)[pos];
+  }
+
+  /// @overload
+  [[nodiscard]] constexpr auto operator[](std::size_t pos) -> reference
   {
     return reinterpret_cast<T*>(data_)[pos];
   }
 
-  /// @overload
-  [[nodiscard]] constexpr auto operator[](std::size_t pos) -> T&
+  /**
+   * @brief access the first element
+   * @warning Calling `front` on an empty container is undefined.
+   *
+   * Complexity: O(1)
+   */
+  [[nodiscard]] constexpr auto front() noexcept -> reference
   {
+    return reinterpret_cast<T*>(data_)[0];
+  }
+
+  /// @overload
+  [[nodiscard]] constexpr auto front() const noexcept -> const_reference
+  {
+    return reinterpret_cast<const T*>(data_)[0];
+  }
+
+  /**
+   * @brief access the last element
+   * @warning Calling `back` on an empty container is undefined.
+   *
+   * Complexity: O(1)
+   */
+  [[nodiscard]] constexpr auto back() noexcept -> reference
+  {
+    return reinterpret_cast<T*>(data_)[size_ - 1];
+  }
+
+  /// @overload
+  [[nodiscard]] constexpr auto back() const noexcept -> const_reference
+  {
+    return reinterpret_cast<const T*>(data_)[size_ - 1];
+  }
+
+  /**
+   * @brief Gets the underlying raw data pointer of the `static_vector`
+   *
+   * Complexity: O(1)
+   */
+  [[nodiscard]] constexpr auto data() noexcept -> pointer
+  {
+    return reinterpret_cast<T*>(data_);
+  }
+
+  /// @overload
+  [[nodiscard]] constexpr auto data() const noexcept -> const_pointer
+  {
+    return reinterpret_cast<const T*>(data_);
+  }
+
+  /**
+   * @brief Access an object at index `pos` with bounds checking
+   * @throw `std::out_of_range` if `pos >= size()`
+   *
+   * Complexity: O(1)
+   */
+  [[nodiscard]] constexpr auto at(std::size_t pos) const -> const_reference
+  {
+    if (pos >= size()) {
+      throw std::out_of_range{fmt::format(
+          "static_vector `at` out of index, at {}, size {}", pos, size_)};
+    }
+
+    return reinterpret_cast<const T*>(data_)[pos];
+  }
+
+  /// @overload
+  [[nodiscard]] constexpr auto at(std::size_t pos) -> reference
+  {
+    if (pos >= size()) {
+      throw std::out_of_range{fmt::format(
+          "static_vector `at` out of index, at {}, size {}", pos, size_)};
+    }
+
     return reinterpret_cast<T*>(data_)[pos];
   }
 
   // TODO(lesley): clear, erase, insert, resize, asign, swap
-  // TODO(lesley): front, back, data, at
+  // TODO(lesley):  at
   template <bool is_const = false> class I {
     using iterator_category = std::random_access_iterator_tag;
     using value_type = T;

@@ -84,6 +84,33 @@ TEST_CASE("static_vector constructors", "[container]")
   }
 }
 
+TEST_CASE("static_vector accessors", "[container]")
+{
+  static_vector<int, 10> v{1, 2, 3, 4, 5};
+  const static_vector<int, 10> cv{v};
+
+  REQUIRE(v[1] == 2);
+  REQUIRE(cv[4] == 5);
+
+  REQUIRE(v.front() == 1);
+  v.front() = 2;
+  REQUIRE(v.front() == 2);
+  REQUIRE(cv.front() == 1);
+
+  REQUIRE(v.back() == 5);
+  v.back() = 2;
+  REQUIRE(v.back() == 2);
+  REQUIRE(cv.back() == 5);
+
+  REQUIRE(v.data() == &v.front());
+  REQUIRE(cv.data() == &cv.front());
+
+  REQUIRE(v.at(2) == 3);
+  REQUIRE_THROWS_AS(v.at(6), std::out_of_range);
+  REQUIRE(cv.at(3) == 4);
+  REQUIRE_THROWS_AS(cv.at(6), std::out_of_range);
+}
+
 TEST_CASE("static_vector iterators", "[container]")
 {
   static_vector<std::string, 10> v;
