@@ -92,11 +92,8 @@ public:
     std::destroy_n(reinterpret_cast<T*>(data_), size_);
   }
 
-  static_vector(const static_vector&) noexcept(
-      std::is_nothrow_copy_constructible_v<value_type>) = default;
-  auto operator=(const static_vector&) &
-      noexcept(std::is_nothrow_copy_assignable_v<value_type>)
-          -> static_vector& = default;
+  static_vector(const static_vector&) = default;
+  auto operator=(const static_vector&) & -> static_vector& = default;
   static_vector(static_vector&&) noexcept(
       std::is_nothrow_move_constructible_v<value_type>) = default;
   auto operator=(static_vector&&) &

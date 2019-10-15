@@ -439,6 +439,14 @@ VulkanContext::~VulkanContext()
 [[nodiscard]] auto
 VulkanContext::create_buffer(const BufferCreateInfo& create_info) -> Buffer
 {
+  // TODO(lesley): error handling
+
+  const auto index = static_cast<Buffer::Index>(buffers_pool_.size());
+
+  if (Buffer::is_overflow(index)) {
+    beyond::panic("Created too many buffers");
+  }
+
   const VkBufferCreateInfo buffer_info{
       .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
       .pNext = nullptr,
@@ -457,14 +465,7 @@ VulkanContext::create_buffer(const BufferCreateInfo& create_info) -> Buffer
   VmaAllocation allocation;
   if (vmaCreateBuffer(allocator_, &buffer_info, &alloc_info, &buffer,
                       &allocation, nullptr) != VK_SUCCESS) {
-    // TODO(lesley): error handling
     beyond::panic("Vulkan backend failed to allocate a buffer");
-  }
-
-  const auto index = static_cast<Buffer::Index>(buffers_pool_.size());
-
-  if (Buffer::is_overflow(index)) {
-    beyond::panic("Created too many buffers");
   }
 
   buffers_pool_.emplace_back(allocator_, buffer, allocation);
