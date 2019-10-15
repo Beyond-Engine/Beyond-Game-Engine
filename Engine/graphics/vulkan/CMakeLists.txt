@@ -1,6 +1,7 @@
 add_library(vulkan_backend
     "include/beyond/vulkan/vulkan_fwd.hpp"
     "src/vma_impl.cpp"
+    "src/vulkan_buffer.hpp"
     "src/vulkan_context.hpp"
     "src/vulkan_context.cpp"
     "src/vulkan_queue_indices.hpp"

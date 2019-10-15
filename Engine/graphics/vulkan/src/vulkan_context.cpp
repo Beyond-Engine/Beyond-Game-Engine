@@ -179,36 +179,21 @@ VulkanContext::VulkanContext(Window& window)
     beyond::panic("Cannot create an allocator for vulkan");
   }
 
-  const auto create_buffer = [this](std::uint32_t buffer_size) {
-    const VkBufferCreateInfo buffer_info{
-        .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .size = buffer_size,
-        .usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-        .sharingMode = {},
-        .queueFamilyIndexCount = 0,
-        .pQueueFamilyIndices = nullptr,
-    };
-
-    VmaAllocationCreateInfo allocInfo = {};
-    allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;
-
-    VkBuffer buffer;
-    VmaAllocation allocation;
-    if (vmaCreateBuffer(allocator_, &buffer_info, &allocInfo, &buffer,
-                        &allocation, nullptr) != VK_SUCCESS) {
-      // TODO(lesley): error handling
-      beyond::panic("Vulkan backend failed to allocate a buffer");
-    }
-
-    return std::make_pair(buffer, allocation);
-  };
-
   {
     static constexpr std::uint32_t buffer_size = 1024;
-    const auto [in_buffer, in_allocation] = create_buffer(buffer_size);
-    const auto [out_buffer, out_allocation] = create_buffer(buffer_size);
+
+    BufferCreateInfo create_info{.size = buffer_size};
+
+    const auto in_handle = this->create_buffer(create_info);
+    const auto out_handle = this->create_buffer(create_info);
+
+    const auto& in_buffer = buffers_pool_[in_handle.index()];
+    const auto in_buffer_raw = in_buffer.vkbuffer();
+    const auto in_allocation = in_buffer.allocation();
+
+    const auto& out_buffer = buffers_pool_[out_handle.index()];
+    const auto out_buffer_raw = out_buffer.vkbuffer();
+    const auto out_allocation = out_buffer.allocation();
 
     int32_t* in_payload;
     if (vmaMapMemory(allocator_, in_allocation,
@@ -216,6 +201,7 @@ VulkanContext::VulkanContext(Window& window)
       beyond::panic("Vulkan backend failed to map memory, is it host visible?");
     }
     const auto payload_size = buffer_size / sizeof(int32_t);
+    vmaUnmapMemory(allocator_, in_allocation);
 
     std::random_device rd;
     std::uniform_int_distribution<std::int32_t> dist;
@@ -278,12 +264,6 @@ VulkanContext::VulkanContext(Window& window)
       beyond::panic("Vulkan backend failed to create compute pipeline");
     }
 
-    const VkCommandPoolCreateInfo command_pool_create_info{
-        .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .queueFamilyIndex = queue_family_indices_.compute_family};
-
     const VkDescriptorPoolSize descriptor_pool_size{
         .type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .descriptorCount = 2};
 
@@ -315,13 +295,13 @@ VulkanContext::VulkanContext(Window& window)
     }
 
     const VkDescriptorBufferInfo in_descriptor_buffer_info{
-        .buffer = in_buffer,
+        .buffer = in_buffer_raw,
         .offset = 0,
         .range = VK_WHOLE_SIZE,
     };
 
     const VkDescriptorBufferInfo out_descriptor_buffer_info{
-        .buffer = out_buffer,
+        .buffer = out_buffer_raw,
         .offset = 0,
         .range = VK_WHOLE_SIZE,
     };
@@ -339,6 +319,11 @@ VulkanContext::VulkanContext(Window& window)
     vkUpdateDescriptorSets(device_, vulkan::to_u32(write_descriptor_set.size()),
                            write_descriptor_set.data(), 0, nullptr);
 
+    const VkCommandPoolCreateInfo command_pool_create_info{
+        .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .queueFamilyIndex = queue_family_indices_.compute_family};
     VkCommandPool command_pool;
     if (vkCreateCommandPool(device_, &command_pool_create_info, nullptr,
                             &command_pool) != VK_SUCCESS) {
@@ -420,6 +405,9 @@ VulkanContext::VulkanContext(Window& window)
         std::equal(in_payload, in_payload + payload_size, out_payload),
         "After copying, the input should equal to output");
 
+    vmaUnmapMemory(allocator_, in_allocation);
+    vmaUnmapMemory(allocator_, out_allocation);
+
     vkDestroyFence(device_, fence, nullptr);
 
     vkDestroyCommandPool(device_, command_pool, nullptr);
@@ -429,15 +417,14 @@ VulkanContext::VulkanContext(Window& window)
     vkDestroyDescriptorSetLayout(device_, descriptor_set_layout, nullptr);
 
     vkDestroyShaderModule(device_, shader_module, nullptr);
-
-    vmaDestroyBuffer(allocator_, in_buffer, in_allocation);
-    vmaDestroyBuffer(allocator_, out_buffer, out_allocation);
   }
 } // namespace beyond::graphics::vulkan
 
 VulkanContext::~VulkanContext()
 {
-  swapchains_.clear();
+  swapchains_pool_.clear();
+
+  buffers_pool_.clear();
 
   vmaDestroyAllocator(allocator_);
 
@@ -453,15 +440,50 @@ VulkanContext::~VulkanContext()
 
 [[nodiscard]] auto VulkanContext::create_swapchain() -> Swapchain
 {
-  const auto index = swapchains_.size();
+  const auto index = swapchains_pool_.size();
 
-  if (index != 0) {
-    beyond::panic("Currently, more than one swapchain is not supported");
+  if (index >= 1) {
+    beyond::panic("Currently, more than 2 swapchains are not supported");
   }
 
-  swapchains_.emplace_back(physical_device_, device_, surface_,
-                           queue_family_indices_);
-  return Swapchain{static_cast<Swapchain::Index>(index)};
+  swapchains_pool_.emplace_back(physical_device_, device_, surface_,
+                                queue_family_indices_);
+  return Swapchain{static_cast<Swapchain::UnderlyingType>(index)};
+}
+
+[[nodiscard]] auto
+VulkanContext::create_buffer(const BufferCreateInfo& create_info) -> Buffer
+{
+  const VkBufferCreateInfo buffer_info{
+      .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+      .pNext = nullptr,
+      .flags = 0,
+      .size = create_info.size,
+      .usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+      .sharingMode = {},
+      .queueFamilyIndexCount = 0,
+      .pQueueFamilyIndices = nullptr,
+  };
+
+  VmaAllocationCreateInfo alloc_info{};
+  alloc_info.usage = VMA_MEMORY_USAGE_CPU_ONLY;
+
+  VkBuffer buffer;
+  VmaAllocation allocation;
+  if (vmaCreateBuffer(allocator_, &buffer_info, &alloc_info, &buffer,
+                      &allocation, nullptr) != VK_SUCCESS) {
+    // TODO(lesley): error handling
+    beyond::panic("Vulkan backend failed to allocate a buffer");
+  }
+
+  const auto index = static_cast<Buffer::Index>(buffers_pool_.size());
+
+  if (Buffer::is_overflow(index)) {
+    beyond::panic("Created too many buffers");
+  }
+
+  buffers_pool_.emplace_back(allocator_, buffer, allocation);
+  return Buffer{index};
 }
 
 } // namespace beyond::graphics::vulkan

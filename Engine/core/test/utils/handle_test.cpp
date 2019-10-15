@@ -14,7 +14,7 @@ struct DummyHandle : Handle<DummyHandle, std::uint32_t, 12, 20> {
 
 } // anonymous namespace
 
-TEST_CASE("Resource handle", "[resource]")
+TEST_CASE("Resource handle", "[beyond.core.util.handle]")
 {
   STATIC_REQUIRE(sizeof(DummyHandle) == sizeof(std::uint32_t));
 
@@ -33,3 +33,5 @@ TEST_CASE("Resource handle", "[resource]")
   REQUIRE(hd1 == hd1);
   REQUIRE(hd1 != hd2);
 }
+
+TEST_CASE("Handle index overflow test", "[beyond.core.util.handle]") {}

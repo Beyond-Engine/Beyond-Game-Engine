@@ -184,6 +184,17 @@ public:
   }
 
   /**
+   * @brief Clear the `static_vector`
+   *
+   * Complexity: O(n)
+   */
+  auto clear() -> void
+  {
+    std::destroy_n(reinterpret_cast<T*>(data_), size_);
+    size_ = 0;
+  }
+
+  /**
    * @brief Access an object at index `pos`
    * @warning If `pos > size()`, the result is undefined
    *
@@ -278,7 +289,7 @@ public:
     return reinterpret_cast<T*>(data_)[pos];
   }
 
-  // TODO(lesley): clear, erase, insert, resize, asign
+  // TODO(lesley): erase, insert, resize, asign
 
   template <bool is_const = false> class Itr {
   public:

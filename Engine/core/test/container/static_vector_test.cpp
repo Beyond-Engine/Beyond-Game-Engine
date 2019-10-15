@@ -6,7 +6,7 @@
 
 using namespace beyond;
 
-TEST_CASE("static_vector", "[container]")
+TEST_CASE("static_vector", "[beyond.core.container.static_vector]")
 {
   GIVEN("A default constructed static_vector")
   {
@@ -47,12 +47,18 @@ TEST_CASE("static_vector", "[container]")
           REQUIRE(v1.size() == 1);
           REQUIRE(v1[0] == first);
         }
+
+        AND_THEN("Clear the vector")
+        {
+          v1.clear();
+          REQUIRE(v1.size() == 0);
+        }
       }
     }
   }
 }
 
-TEST_CASE("static_vector constructors", "[container]")
+TEST_CASE("static_vector constructors", "[beyond.core.container.static_vector]")
 {
   SECTION("construct by size")
   {
@@ -84,7 +90,7 @@ TEST_CASE("static_vector constructors", "[container]")
   }
 }
 
-TEST_CASE("static_vector accessors", "[container]")
+TEST_CASE("static_vector accessors", "[beyond.core.container.static_vector]")
 {
   static_vector<int, 10> v{1, 2, 3, 4, 5};
   const static_vector<int, 10> cv{v};
@@ -111,7 +117,7 @@ TEST_CASE("static_vector accessors", "[container]")
   REQUIRE_THROWS_AS(cv.at(6), std::out_of_range);
 }
 
-TEST_CASE("static_vector swap", "[container]")
+TEST_CASE("static_vector swap", "[beyond.core.container.static_vector]")
 {
   const auto l1 = {1, 2, 3, 4, 5};
   const auto l2 = {2, 4, 5};
@@ -133,7 +139,7 @@ TEST_CASE("static_vector swap", "[container]")
   REQUIRE(std::equal(v2.cbegin(), v2.cend(), l1.begin()));
 }
 
-TEST_CASE("static_vector iterators access", "[container]")
+TEST_CASE("static_vector iterators", "[beyond.core.container.static_vector]")
 {
   GIVEN("An empty static_vector")
   {
@@ -194,5 +200,3 @@ TEST_CASE("static_vector iterators access", "[container]")
     }
   }
 }
-
-TEST_CASE("static_vector iterators manipulation", "[container]") {}

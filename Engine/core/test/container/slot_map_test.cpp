@@ -282,7 +282,7 @@ struct DummyHandle : beyond::Handle<DummyHandle, std::uint32_t, 20, 12> {
 
 } // anonymous namespace
 
-TEST_CASE("slot_map", "[container]")
+TEST_CASE("slot_map", "[beyond.core.container.slot_map]")
 {
   GIVEN("A default constructed slot_map")
   {

@@ -20,9 +20,14 @@ struct MockContext : Context {
     std::fflush(stdout);
   }
 
-  auto create_swapchain() -> Swapchain override
+  [[nodiscard]] auto create_swapchain() -> Swapchain override
   {
     return Swapchain{0};
+  }
+
+  [[nodiscard]] auto create_buffer(const BufferCreateInfo&) -> Buffer override
+  {
+    return Buffer{0};
   }
 };
 

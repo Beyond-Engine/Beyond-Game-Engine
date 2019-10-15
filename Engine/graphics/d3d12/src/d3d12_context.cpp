@@ -7,13 +7,18 @@ namespace WRL = Microsoft::WRL;
 
 namespace beyond::graphics::d3d12 {
 
-class D3D12Context : public Context {
+class D3D12Context final : public Context {
 public:
   D3D12Context() {}
 
   [[nodiscard]] auto create_swapchain() -> Swapchain override
   {
     return Swapchain{0};
+  }
+
+  [[nodiscard]] auto create_buffer(const BufferCreateInfo&) -> Buffer override
+  {
+    return Buffer{0};
   }
 
 private:

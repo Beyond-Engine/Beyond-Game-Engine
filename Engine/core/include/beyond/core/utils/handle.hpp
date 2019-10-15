@@ -26,10 +26,10 @@ struct HandleBase {
 };
 
 /**
- * @brief Template for the base class of a resource handle
+ * @brief Template for the base class of a versioned resource handle
  *
- * Resource handles act as none-owning references to a resource. It has
- * additional functionality to check for dangling.
+ * Handles act as none-owning references to a resource. It has
+ * additional functionality of storing a generation number to check collision.
  */
 template <typename Derived, typename StorageT, std::size_t index_bits,
           std::size_t generation_bits>
@@ -42,7 +42,7 @@ public:
 
   /// @brief The shift of index bits
   static constexpr std::size_t shift = index_bits;
-  static constexpr std::size_t index_mask = ~(~Storage{0} >> shift << shift);
+  static constexpr StorageT index_mask = ~(~Storage{0} >> shift << shift);
 
   static_assert(std::is_unsigned_v<Storage>,
                 "The storage must an unsigned integer");
@@ -51,6 +51,12 @@ public:
   explicit constexpr Handle(Storage id = 0, Storage gen = 0)
       : data_{id + (gen << shift)}
   {
+  }
+
+  /// @brief Return true if the index overflows the index range
+  [[nodiscard]] static constexpr auto is_overflow(Storage index) -> bool
+  {
+    return (index >> shift) != 0;
   }
 
   [[nodiscard]] auto index() const -> Storage

@@ -9,11 +9,13 @@
 
 #include <vk_mem_alloc.h>
 
+#include <beyond/core/container/static_vector.hpp>
 #include <beyond/core/utils/panic.hpp>
 #include <beyond/platform/platform.hpp>
 
 #include <beyond/graphics/backend.hpp>
 
+#include "vulkan_buffer.hpp"
 #include "vulkan_swapchain.hpp"
 
 #include <algorithm>
@@ -23,12 +25,14 @@
 
 namespace beyond::graphics::vulkan {
 
-class VulkanContext : public Context {
+class VulkanContext final : public Context {
 public:
   explicit VulkanContext(Window& window);
   ~VulkanContext() override;
 
   [[nodiscard]] auto create_swapchain() -> Swapchain override;
+  [[nodiscard]] auto create_buffer(const BufferCreateInfo& create_info)
+      -> Buffer override;
 
 private:
   VkInstance instance_ = nullptr;
@@ -49,7 +53,8 @@ private:
 
   VmaAllocator allocator_ = nullptr;
 
-  std::vector<VulkanSwapchain> swapchains_;
+  beyond::static_vector<VulkanSwapchain, 2> swapchains_pool_;
+  std::vector<VulkanBuffer> buffers_pool_;
 };
 
 } // namespace beyond::graphics::vulkan

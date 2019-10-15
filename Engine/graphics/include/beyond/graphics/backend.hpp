@@ -11,11 +11,25 @@
 #include <memory>
 
 #include "beyond/core/utils/handle.hpp"
+#include "beyond/core/utils/named_type.hpp"
 #include "beyond/platform/platform.hpp"
 
 namespace beyond::graphics {
 
-struct Swapchain : beyond::Handle<Swapchain, std::uint32_t, 16, 16> {
+struct Swapchain : beyond::NamedType<std::uint32_t, struct SwapchainTag,
+                                     beyond::EquableBase> {
+  using NamedType::NamedType;
+};
+
+/**
+ * @brief The information used to create a GPU buffer
+ */
+struct BufferCreateInfo {
+  std::uint32_t size = 0;
+};
+
+/// @brief A handle to buffer
+struct Buffer : Handle<Buffer, std::uint32_t, 20, 12> {
   using Handle::Handle;
 };
 
@@ -45,6 +59,9 @@ public:
   auto operator=(Context &&) -> Context& = delete;
 
   [[nodiscard]] virtual auto create_swapchain() -> Swapchain = 0;
+
+  [[nodiscard]] virtual auto create_buffer(const BufferCreateInfo& create_info)
+      -> Buffer = 0;
 
 protected:
   Context() = default;
