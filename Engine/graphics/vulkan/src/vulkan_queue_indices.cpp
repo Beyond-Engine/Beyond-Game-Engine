@@ -15,7 +15,8 @@ auto find_queue_families(VkPhysicalDevice device, VkSurfaceKHR surface) noexcept
         vkGetPhysicalDeviceQueueFamilyProperties(device, count, data);
       });
 
-  for (std::uint32_t i = 0; i < queue_families.size(); ++i) {
+  const auto families_counts = to_u32(queue_families.size());
+  for (std::uint32_t i = 0; i < families_counts; ++i) {
     const auto& queue_family = queue_families[i];
 
     if (queue_family.queueCount > 0 &&

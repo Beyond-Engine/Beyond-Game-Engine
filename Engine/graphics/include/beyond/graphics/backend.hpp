@@ -51,7 +51,7 @@ struct Buffer : Handle<Buffer, std::uint32_t, 20, 12> {
  */
 class Context {
 public:
-  virtual ~Context() = default;
+  virtual ~Context();
 
   Context(const Context&) = delete;
   auto operator=(const Context&) -> Context& = delete;

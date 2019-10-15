@@ -63,8 +63,8 @@ private:
   std::vector<VkImage> swapchain_images_;
   std::vector<VkImageView> swapchain_image_views_;
 
-  VkFormat swapchain_images_format_;
-  VkExtent2D swapchain_extent_;
+  VkFormat swapchain_images_format_ = VK_FORMAT_UNDEFINED;
+  VkExtent2D swapchain_extent_{};
 };
 
 } // namespace beyond::graphics::vulkan

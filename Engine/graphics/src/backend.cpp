@@ -13,6 +13,8 @@
 
 namespace beyond::graphics {
 
+Context::~Context() = default;
+
 struct MockContext : Context {
   explicit MockContext(const Window&)
   {

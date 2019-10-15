@@ -122,7 +122,7 @@ private:
   std::string title_;
   std::unique_ptr<struct WindowImpl> pimpl_;
 
-  GraphicsBackend backend_;
+  GraphicsBackend backend_{};
 };
 
 } // namespace beyond

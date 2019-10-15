@@ -14,15 +14,18 @@ Checks:          '*,
 -hicpp-avoid-c-arrays,
 -hicpp-special-member-functions,
 -hicpp-uppercase-literal-suffix,
+-hicpp-signed-bitwise,
 -misc-unconventional-assign-operator,
 -cppcoreguidelines-c-copy-assignment-signature,
 -modernize-avoid-c-arrays,
 -readability-braces-around-statements,
 -readability-else-after-return,
 -readability-implicit-bool-cast,
+-readability-implicit-bool-conversion,
 -readability-magic-numbers,
 -readability-named-parameter,
 -readability-uppercase-literal-suffix,
+-readability-function-size,
 -llvm-include-order,
 -llvm-header-guard,
 -fuchsia-*,
@@ -33,14 +36,6 @@ WarningsAsErrors: '*'
 HeaderFilterRegex: 'catch.hpp'
 FormatStyle: 'file'
 CheckOptions:
-  - key:             readability-function-size.LineThreshold
-    value:           '200'
-  - key:             readability-function-size.ParameterThreshold
-    value:           '16'
-  - key:             readability-function-size.StatementThreshold
-    value:           '400'
-  - key:             readability-implicit-bool-conversion.AllowPointerConditions
-    value:           '1'
   - key:             misc-non-private-member-variables-in-classes.IgnorePublicMemberVariables
     value:           '1'
 ...

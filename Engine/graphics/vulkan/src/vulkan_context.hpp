@@ -44,7 +44,7 @@ private:
 #endif
 
   VkPhysicalDevice physical_device_ = nullptr;
-  vulkan::QueueFamilyIndices queue_family_indices_;
+  vulkan::QueueFamilyIndices queue_family_indices_{};
   VkDevice device_ = nullptr;
 
   VkQueue graphics_queue_ = nullptr;
