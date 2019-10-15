@@ -15,13 +15,8 @@ int main()
   const auto graphics_context = beyond::graphics::create_context(window);
   assert(graphics_context);
 
-  [[maybe_unused]] const auto swapchain = graphics_context->create_swapchain();
-
-  while (!window.should_close()) {
-    // render
-    window.swap_buffers();
-    window.poll_events();
-  }
+  fmt::print("Done compute!\n");
+  std::fflush(stdout);
 
   return 0;
 }

@@ -187,21 +187,15 @@ VulkanContext::VulkanContext(Window& window)
     const auto in_handle = this->create_buffer(create_info);
     const auto out_handle = this->create_buffer(create_info);
 
-    const auto& in_buffer = buffers_pool_[in_handle.index()];
+    auto& in_buffer = buffers_pool_[in_handle.index()];
     const auto in_buffer_raw = in_buffer.vkbuffer();
-    const auto in_allocation = in_buffer.allocation();
 
-    const auto& out_buffer = buffers_pool_[out_handle.index()];
+    auto& out_buffer = buffers_pool_[out_handle.index()];
     const auto out_buffer_raw = out_buffer.vkbuffer();
-    const auto out_allocation = out_buffer.allocation();
 
-    int32_t* in_payload;
-    if (vmaMapMemory(allocator_, in_allocation,
-                     beyond::bit_cast<void**>(&in_payload)) != VK_SUCCESS) {
-      beyond::panic("Vulkan backend failed to map memory, is it host visible?");
-    }
     const auto payload_size = buffer_size / sizeof(int32_t);
-    vmaUnmapMemory(allocator_, in_allocation);
+
+    auto* in_payload = static_cast<std::int32_t*>(in_buffer.map());
 
     std::random_device rd;
     std::uniform_int_distribution<std::int32_t> dist;
@@ -385,28 +379,20 @@ VulkanContext::VulkanContext(Window& window)
     static constexpr auto compute_timeout = static_cast<std::uint64_t>(1e6);
     while (vkWaitForFences(device_, 1, &fence, VK_TRUE, compute_timeout) ==
            VK_TIMEOUT) {
-      fmt::print("busy waiting!");
+      fmt::print("busy waiting\n");
     }
     if (vkWaitForFences(device_, 1, &fence, VK_TRUE, 0) != VK_SUCCESS) {
       beyond::panic("Vulkan backend failed to wait for fence");
     }
 
-    int32_t* out_payload;
-    if (vmaMapMemory(allocator_, in_allocation,
-                     beyond::bit_cast<void**>(&in_payload)) != VK_SUCCESS) {
-      beyond::panic("Vulkan backend failed to map memory, is it host visible?");
-    }
-    if (vmaMapMemory(allocator_, out_allocation,
-                     beyond::bit_cast<void**>(&out_payload)) != VK_SUCCESS) {
-      beyond::panic("Vulkan backend failed to map memory, is it host visible?");
-    }
+    const auto* out_payload = static_cast<std::int32_t*>(out_buffer.map());
 
     BEYOND_ASSERT_MSG(
         std::equal(in_payload, in_payload + payload_size, out_payload),
         "After copying, the input should equal to output");
 
-    vmaUnmapMemory(allocator_, in_allocation);
-    vmaUnmapMemory(allocator_, out_allocation);
+    in_buffer.unmap();
+    out_buffer.unmap();
 
     vkDestroyFence(device_, fence, nullptr);
 
@@ -423,7 +409,6 @@ VulkanContext::VulkanContext(Window& window)
 VulkanContext::~VulkanContext()
 {
   swapchains_pool_.clear();
-
   buffers_pool_.clear();
 
   vmaDestroyAllocator(allocator_);
@@ -555,7 +540,7 @@ auto check_validation_layer_support() noexcept -> bool
   }
 
   return instance;
-} // namespace
+} // anonymous namespace
 
 [[nodiscard]] auto pick_physical_device(VkInstance instance,
                                         VkSurfaceKHR surface) noexcept

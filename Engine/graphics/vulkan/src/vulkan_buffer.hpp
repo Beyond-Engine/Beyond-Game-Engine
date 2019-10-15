@@ -8,6 +8,8 @@
 
 #include <utility>
 
+#include <beyond/core/utils/panic.hpp>
+
 namespace beyond::graphics::vulkan {
 
 /// @brief Half RAII wrapper of a vulkan buffer
@@ -34,14 +36,14 @@ public:
   VulkanBuffer(VulkanBuffer& other) = delete;
   auto operator=(const VulkanBuffer& other) & -> VulkanBuffer& = delete;
 
-  VulkanBuffer(VulkanBuffer&& other)
+  VulkanBuffer(VulkanBuffer&& other) noexcept
       : allocator_{std::exchange(other.allocator_, nullptr)},
         buffer_{std::exchange(other.buffer_, nullptr)},
         allocation_{std::exchange(other.allocation_, nullptr)}
   {
   }
 
-  auto operator=(VulkanBuffer&& other) & -> VulkanBuffer&
+  auto operator=(VulkanBuffer&& other) & noexcept -> VulkanBuffer&
   {
     allocator_ = std::exchange(other.allocator_, nullptr);
     buffer_ = std::exchange(other.buffer_, nullptr);
@@ -49,14 +51,29 @@ public:
     return *this;
   }
 
-  [[nodiscard]] auto vkbuffer() const -> VkBuffer
+  /// @brief Gets a direct handle to the underlying VkBuffer
+  [[nodiscard]] auto vkbuffer() noexcept -> VkBuffer
   {
     return buffer_;
   }
 
-  [[nodiscard]] auto allocation() const -> VmaAllocation
+  /**
+   * @brief Map a buffer with host visible memory
+   * @note: If cannot map to the buffer, returns nullptr
+   */
+  [[nodiscard]] auto map() noexcept -> void*
   {
-    return allocation_;
+    void* payload;
+    if (vmaMapMemory(allocator_, allocation_, &payload) != VK_SUCCESS) {
+      return nullptr;
+    }
+    return payload;
+  }
+
+  /// @brief Unmap a buffer
+  auto unmap() noexcept -> void
+  {
+    vmaUnmapMemory(allocator_, allocation_);
   }
 
 private:
