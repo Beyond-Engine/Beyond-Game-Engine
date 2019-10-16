@@ -58,31 +58,40 @@ struct SubmitInfo {
 
 class Context;
 
-template <typename T> class MappingPtr {
+/**
+ * @brief A mapping is a view of host visible device memory
+ */
+template <typename T> class Mapping {
 public:
+  using size_type = std::size_t;
   using value_type = T;
   using pointer = T*;
   using const_pointer = const T*;
   using reference = T&;
   using const_reference = const T&;
 
-  MappingPtr() = default;
-  explicit MappingPtr(Context& context, Buffer buffer);
-  ~MappingPtr() noexcept;
+  using iterator = T*;
+  using const_iterator = const T*;
 
-  MappingPtr(const MappingPtr&) = delete;
-  auto operator=(const MappingPtr&) & -> MappingPtr& = delete;
-  MappingPtr(MappingPtr&& other) noexcept
-      : context_{std::exchange(other.context_, nullptr)},
-        buffer_{std::move(other.buffer_)}, data_{std::exchange(other.data_,
-                                                               nullptr)}
+  Mapping() = default;
+  explicit Mapping(Context& context, Buffer buffer);
+  ~Mapping() noexcept;
+
+  Mapping(const Mapping&) = delete;
+  auto operator=(const Mapping&) & -> Mapping& = delete;
+  Mapping(Mapping&& other) noexcept
+      : context_{std::exchange(other.context_, nullptr)}, buffer_{std::move(
+                                                              other.buffer_)},
+        data_{std::exchange(other.data_, nullptr)}, size_{std::exchange(
+                                                        other.size_, 0)}
   {
   }
-  auto operator=(MappingPtr&& other) & noexcept -> MappingPtr&
+  auto operator=(Mapping&& other) & noexcept -> Mapping&
   {
     context_ = std::exchange(other.context_, nullptr);
     buffer_ = std::move(other.buffer_);
     data_ = std::exchange(other.data_, nullptr);
+    size_ = std::exchange(other.size_, 0);
     return *this;
   }
 
@@ -106,14 +115,14 @@ public:
     return data_ != nullptr;
   }
 
-  /// @brief returns a pointer to the managed object
-  [[nodiscard]] auto get() const noexcept -> const_pointer
+  /// @brief returns a pointer to the managed memory
+  [[nodiscard]] auto data() noexcept -> pointer
   {
     return data_;
   }
 
   /// @overload
-  [[nodiscard]] auto get() noexcept -> pointer
+  [[nodiscard]] auto data() const noexcept -> const_pointer
   {
     return data_;
   }
@@ -121,10 +130,42 @@ public:
   /// @brief Releases the managed mapping
   auto release() noexcept -> void;
 
+  [[nodiscard]] auto begin() noexcept -> iterator
+  {
+    return data_;
+  }
+
+  [[nodiscard]] auto end() noexcept -> iterator
+  {
+    return data_ + size_;
+  }
+
+  [[nodiscard]] auto begin() const noexcept -> const_iterator
+  {
+    return data_;
+  }
+
+  [[nodiscard]] auto end() const noexcept -> const_iterator
+  {
+    return data_ + size_;
+  }
+
+  [[nodiscard]] auto cbegin() const noexcept -> const_iterator
+  {
+    return data_;
+  }
+
+  [[nodiscard]] auto cend() const noexcept -> const_iterator
+  {
+    return data_ + size_;
+  }
+
 private:
   Context* context_ = nullptr;
   Buffer buffer_{};
+
   T* data_ = nullptr;
+  size_type size_{};
 };
 
 /**
@@ -147,26 +188,31 @@ public:
   /// @brief Submits a sequence of command buffers to execute
   virtual auto submit(gsl::span<SubmitInfo> infos) -> void = 0;
 
-  template <typename T> auto map_memory(Buffer buffer) noexcept -> MappingPtr<T>
+  template <typename T> auto map_memory(Buffer buffer) noexcept -> Mapping<T>
   {
-    return MappingPtr<T>{*this, buffer};
+    return Mapping<T>{*this, buffer};
   }
 
 protected:
   Context() = default;
 
-  template <typename T> friend class MappingPtr;
+  template <typename T> friend class Mapping;
+
+  struct MappingInfo {
+    void* data = nullptr;
+    std::size_t size = 0; // In bytes
+  };
 
   /**
    * @brief Maps the underlying memory of buffer to a pointer
    *
-   * After a successful call to `map_memory` the buffer memory is
+   * After a successful call to `map_Mapping buffer memory is
    * considered to be currently host mapped. If the `buffer` handle does not
    * refer to an real buffer, or if its underlying memory is not host visible,
    * this function will return `nullptr`
    */
   [[nodiscard]] virtual auto map_memory_impl(Buffer buffer) noexcept
-      -> void* = 0;
+      -> MappingInfo = 0;
 
   /**
    * @brief Unmaps the underlying memory  of buffer
@@ -179,20 +225,22 @@ protected:
     -> std::unique_ptr<Context>;
 
 template <typename T>
-MappingPtr<T>::MappingPtr(Context& context, Buffer buffer)
-    : context_{&context}, buffer_{buffer}, data_{static_cast<pointer>(
-                                               context.map_memory_impl(buffer))}
+Mapping<T>::Mapping(Context& context, Buffer buffer)
+    : context_{&context}, buffer_{buffer}
 {
+  const auto info = context.map_memory_impl(buffer);
+  data_ = static_cast<pointer>(info.data);
+  size_ = info.size / sizeof(value_type);
 }
 
-template <typename T> MappingPtr<T>::~MappingPtr() noexcept
+template <typename T> Mapping<T>::~Mapping() noexcept
 {
   if (*this) {
     context_->unmap_memory_impl(buffer_);
   }
 }
 
-template <typename T> auto MappingPtr<T>::release() noexcept -> void
+template <typename T> auto Mapping<T>::release() noexcept -> void
 {
   if (*this) {
     context_->unmap_memory_impl(buffer_);

@@ -58,8 +58,9 @@ private:
   beyond::static_vector<VulkanSwapchain, 2> swapchains_pool_;
   std::vector<VulkanBuffer> buffers_pool_;
 
-  [[nodiscard]] auto map_memory_impl(Buffer buffer) noexcept -> void* override;
-  auto unmap_memory_impl(Buffer buffer) noexcept -> void override;
+  [[nodiscard]] auto map_memory_impl(Buffer buffer_handle) noexcept
+      -> MappingInfo override;
+  auto unmap_memory_impl(Buffer buffer_handle) noexcept -> void override;
 };
 
 } // namespace beyond::graphics::vulkan

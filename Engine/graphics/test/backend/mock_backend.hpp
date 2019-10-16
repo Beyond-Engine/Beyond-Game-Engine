@@ -38,18 +38,19 @@ public:
 
   auto submit(gsl::span<SubmitInfo>) -> void override {}
 
-  [[nodiscard]] auto map_memory_impl(Buffer buffer) noexcept -> void* override
+  [[nodiscard]] auto map_memory_impl(Buffer buffer) noexcept
+      -> MappingInfo override
   {
     const auto index = buffer.index();
     if (index >= buffers_.size()) {
-      return nullptr;
+      return {nullptr, 0};
     }
 
     if (buffers_[index].empty()) {
-      return nullptr;
+      return {nullptr, 0};
     }
 
-    return buffers_[index].data();
+    return {buffers_[index].data(), buffers_[index].size()};
   }
 
   auto unmap_memory_impl(Buffer) noexcept -> void override {}

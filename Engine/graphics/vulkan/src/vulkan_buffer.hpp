@@ -21,8 +21,9 @@ public:
   VulkanBuffer() = default;
 
   VulkanBuffer(VmaAllocator allocator, VkBuffer buffer,
-               VmaAllocation allocation)
-      : allocator_{allocator}, buffer_{buffer}, allocation_{allocation}
+               VmaAllocation allocation, std::uint32_t size)
+      : allocator_{allocator}, buffer_{buffer},
+        allocation_{allocation}, size_{size}
   {
   }
 
@@ -39,7 +40,8 @@ public:
   VulkanBuffer(VulkanBuffer&& other) noexcept
       : allocator_{std::exchange(other.allocator_, nullptr)},
         buffer_{std::exchange(other.buffer_, nullptr)},
-        allocation_{std::exchange(other.allocation_, nullptr)}
+        allocation_{std::exchange(other.allocation_, nullptr)},
+        size_{std::exchange(other.size_, 0)}
   {
   }
 
@@ -48,6 +50,7 @@ public:
     allocator_ = std::exchange(other.allocator_, nullptr);
     buffer_ = std::exchange(other.buffer_, nullptr);
     allocation_ = std::exchange(other.allocation_, nullptr);
+    size_ = std::exchange(other.size_, 0);
     return *this;
   }
 
@@ -76,10 +79,16 @@ public:
     vmaUnmapMemory(allocator_, allocation_);
   }
 
+  [[nodiscard]] auto size() noexcept -> std::uint32_t
+  {
+    return size_;
+  }
+
 private:
   VmaAllocator allocator_ = nullptr;
   VkBuffer buffer_ = nullptr;
   VmaAllocation allocation_ = nullptr;
+  std::uint32_t size_ = 0;
 };
 
 } // namespace beyond::graphics::vulkan

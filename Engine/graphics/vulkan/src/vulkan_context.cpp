@@ -240,28 +240,29 @@ VulkanContext::create_buffer(const BufferCreateInfo& create_info) -> Buffer
     beyond::panic("Vulkan backend failed to allocate a buffer");
   }
 
-  buffers_pool_.emplace_back(allocator_, buffer, allocation);
+  buffers_pool_.emplace_back(allocator_, buffer, allocation, create_info.size);
   return Buffer{index};
 }
 
-[[nodiscard]] auto VulkanContext::map_memory_impl(Buffer buffer) noexcept
-    -> void*
+[[nodiscard]] auto VulkanContext::map_memory_impl(Buffer buffer_handle) noexcept
+    -> MappingInfo
 {
-  if (buffers_pool_.size() < buffer.index()) {
-    return nullptr;
+  if (buffers_pool_.size() < buffer_handle.index()) {
+    return {nullptr, 0};
   }
 
-  return buffers_pool_[buffer.index()].map();
+  auto& buffer = buffers_pool_[buffer_handle.index()];
+  return {buffer.map(), buffer.size()};
 }
 
-auto VulkanContext::unmap_memory_impl(Buffer buffer) noexcept -> void
+auto VulkanContext::unmap_memory_impl(Buffer buffer_handle) noexcept -> void
 {
-  if (buffers_pool_.size() < buffer.index()) {
+  if (buffers_pool_.size() < buffer_handle.index()) {
     // TODO(llai): error handling in unmap_memory?
     beyond::panic("unmap an invalid buffer handle");
   }
 
-  return buffers_pool_[buffer.index()].unmap();
+  return buffers_pool_[buffer_handle.index()].unmap();
 }
 
 auto VulkanContext::submit(gsl::span<SubmitInfo> info) -> void

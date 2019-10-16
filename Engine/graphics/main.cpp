@@ -33,22 +33,19 @@ int main()
 
   // Filling input buffer
   auto in_payload = context->map_memory<std::int32_t>(in_handle);
-
   std::random_device rd;
   std::uniform_int_distribution<std::int32_t> dist;
-  std::generate_n(in_payload.get(), payload_size, [&]() { return dist(rd); });
+  std::generate_n(in_payload.begin(), payload_size, [&]() { return dist(rd); });
 
   // Compute
   std::vector<graphics::SubmitInfo> infos;
   infos.push_back({in_handle, out_handle, buffer_size});
   context->submit(infos);
 
-  auto out_payload = context->map_memory<std::int32_t>(out_handle);
-
   // Done
   std::puts("Done compute");
-  if (!std::equal(in_payload.get(), in_payload.get() + payload_size,
-                  out_payload.get())) {
+  auto out_payload = context->map_memory<std::int32_t>(out_handle);
+  if (!std::equal(in_payload.begin(), in_payload.end(), out_payload.begin())) {
     std::fputs("Error: incorrect compute result", stderr);
   }
 

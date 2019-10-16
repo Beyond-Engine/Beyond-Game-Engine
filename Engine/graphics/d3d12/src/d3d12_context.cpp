@@ -28,9 +28,9 @@ public:
   auto submit(gsl::span<SubmitInfo>) -> void override {}
 
 private:
-  [[nodiscard]] auto map_memory_impl(Buffer) noexcept -> void* override
+  [[nodiscard]] auto map_memory_impl(Buffer) noexcept -> MappingInfo override
   {
-    return nullptr;
+    return {nullptr, 0};
   }
 
   auto unmap_memory_impl(Buffer) noexcept -> void override {}
