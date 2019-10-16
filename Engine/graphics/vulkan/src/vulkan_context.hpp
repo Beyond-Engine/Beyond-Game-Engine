@@ -36,9 +36,6 @@ public:
 
   auto submit(gsl::span<SubmitInfo> infos) -> void override;
 
-  [[nodiscard]] auto map_memory(Buffer buffer) noexcept -> void* override;
-  auto unmap_memory(Buffer buffer) noexcept -> void override;
-
 private:
   VkInstance instance_ = nullptr;
 
@@ -60,6 +57,9 @@ private:
 
   beyond::static_vector<VulkanSwapchain, 2> swapchains_pool_;
   std::vector<VulkanBuffer> buffers_pool_;
+
+  [[nodiscard]] auto map_memory_impl(Buffer buffer) noexcept -> void* override;
+  auto unmap_memory_impl(Buffer buffer) noexcept -> void override;
 };
 
 } // namespace beyond::graphics::vulkan

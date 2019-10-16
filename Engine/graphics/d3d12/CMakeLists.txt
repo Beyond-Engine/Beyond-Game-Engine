@@ -15,5 +15,3 @@ target_include_directories(d3d12_backend
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/beyond/d3d12
 )
-
-target_compile_definitions(vulkan_backend PRIVATE VK_NO_PROTOTYPES)

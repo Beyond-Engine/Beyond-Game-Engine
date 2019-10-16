@@ -244,7 +244,8 @@ VulkanContext::create_buffer(const BufferCreateInfo& create_info) -> Buffer
   return Buffer{index};
 }
 
-[[nodiscard]] auto VulkanContext::map_memory(Buffer buffer) noexcept -> void*
+[[nodiscard]] auto VulkanContext::map_memory_impl(Buffer buffer) noexcept
+    -> void*
 {
   if (buffers_pool_.size() < buffer.index()) {
     return nullptr;
@@ -253,7 +254,7 @@ VulkanContext::create_buffer(const BufferCreateInfo& create_info) -> Buffer
   return buffers_pool_[buffer.index()].map();
 }
 
-auto VulkanContext::unmap_memory(Buffer buffer) noexcept -> void
+auto VulkanContext::unmap_memory_impl(Buffer buffer) noexcept -> void
 {
   if (buffers_pool_.size() < buffer.index()) {
     // TODO(llai): error handling in unmap_memory?

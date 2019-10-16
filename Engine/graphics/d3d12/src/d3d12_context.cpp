@@ -9,7 +9,11 @@ namespace beyond::graphics::d3d12 {
 
 class D3D12Context final : public Context {
 public:
-  D3D12Context() {}
+  D3D12Context()
+  {
+    std::fputs("Direct3D 12 Backend is currently a stub\n", stderr);
+    std::exit(1);
+  }
 
   [[nodiscard]] auto create_swapchain() -> Swapchain override
   {
@@ -21,16 +25,15 @@ public:
     return Buffer{0};
   }
 
-  [[nodiscard]] auto map_memory(Buffer) noexcept -> void* override
+  auto submit(gsl::span<SubmitInfo>) -> void override {}
+
+private:
+  [[nodiscard]] auto map_memory_impl(Buffer) noexcept -> void* override
   {
     return nullptr;
   }
 
-  auto unmap_memory(Buffer) noexcept -> void override {}
-
-  auto submit(gsl::span<SubmitInfo>) -> void override {}
-
-private:
+  auto unmap_memory_impl(Buffer) noexcept -> void override {}
 };
 
 [[nodiscard]] auto create_d3d12_context(Window& /*window*/) noexcept

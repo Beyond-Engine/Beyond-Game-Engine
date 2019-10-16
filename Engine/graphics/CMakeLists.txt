@@ -38,6 +38,11 @@ if (${BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN})
   target_link_libraries(graphics PRIVATE vulkan_backend)
 endif()
 
+
+if(${BEYOND_BUILD_TESTS})
+    add_subdirectory(test)
+endif()
+
 add_executable(TestApp "main.cpp")
 target_link_libraries(TestApp
     PRIVATE graphics compiler_warnings)

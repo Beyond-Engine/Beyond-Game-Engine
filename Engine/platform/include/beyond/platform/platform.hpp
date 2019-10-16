@@ -19,7 +19,7 @@ namespace beyond {
 class Window;
 
 enum class GraphicsBackend {
-  mock = 0,
+  no = 0,
 #ifdef BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN
   vulkan,
 #endif
@@ -36,7 +36,7 @@ constexpr auto preferred_graphics_backend() noexcept -> GraphicsBackend
 #elif BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN
   return GraphicsBackend::vulkan;
 #else
-  return GraphicsBackend::mock;
+  return GraphicsBackend::no;
 #endif
 
 #else
@@ -44,7 +44,7 @@ constexpr auto preferred_graphics_backend() noexcept -> GraphicsBackend
 #ifdef BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN
   return GraphicsBackend::vulkan;
 #else
-  return GraphicsBackend::mock;
+  return GraphicsBackend::no;
 #endif
 
 #endif
