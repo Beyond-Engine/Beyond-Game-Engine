@@ -21,6 +21,15 @@ public:
     return Buffer{0};
   }
 
+  [[nodiscard]] auto map_memory(Buffer) noexcept -> void* override
+  {
+    return nullptr;
+  }
+
+  auto unmap_memory(Buffer) noexcept -> void override {}
+
+  auto submit(gsl::span<SubmitInfo>) -> void override {}
+
 private:
 };
 

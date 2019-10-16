@@ -34,6 +34,11 @@ public:
   [[nodiscard]] auto create_buffer(const BufferCreateInfo& create_info)
       -> Buffer override;
 
+  auto submit(gsl::span<SubmitInfo> infos) -> void override;
+
+  [[nodiscard]] auto map_memory(Buffer buffer) noexcept -> void* override;
+  auto unmap_memory(Buffer buffer) noexcept -> void override;
+
 private:
   VkInstance instance_ = nullptr;
 

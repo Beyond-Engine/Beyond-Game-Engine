@@ -22,15 +22,25 @@ struct MockContext : Context {
     std::fflush(stdout);
   }
 
-  [[nodiscard]] auto create_swapchain() -> Swapchain override
+  [[nodiscard]] auto create_swapchain() noexcept -> Swapchain override
   {
     return Swapchain{0};
   }
 
-  [[nodiscard]] auto create_buffer(const BufferCreateInfo&) -> Buffer override
+  [[nodiscard]] auto create_buffer(const BufferCreateInfo&) noexcept
+      -> Buffer override
   {
     return Buffer{0};
   }
+
+  auto submit(gsl::span<SubmitInfo>) -> void override {}
+
+  [[nodiscard]] auto map_memory(Buffer) noexcept -> void* override
+  {
+    return nullptr;
+  }
+
+  auto unmap_memory(Buffer) noexcept -> void override {}
 };
 
 [[nodiscard]] auto create_context(Window& window) noexcept

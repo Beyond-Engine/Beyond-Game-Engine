@@ -10,11 +10,26 @@
 
 #include <memory>
 
+#include <gsl/span>
+
 #include "beyond/core/utils/handle.hpp"
 #include "beyond/core/utils/named_type.hpp"
 #include "beyond/platform/platform.hpp"
 
 namespace beyond::graphics {
+
+/**
+ * @addtogroup graphics
+ * @{
+ */
+
+/**
+ * @defgroup backend Backend
+ * @brief Interface between the underlying graphics API and high level
+ * graphics codes
+ *
+ * @{
+ */
 
 struct Swapchain : beyond::NamedType<std::uint32_t, struct SwapchainTag,
                                      beyond::EquableBase> {
@@ -33,18 +48,13 @@ struct Buffer : Handle<Buffer, std::uint32_t, 20, 12> {
   using Handle::Handle;
 };
 
-/**
- * @addtogroup graphics
- * @{
- */
-
-/**
- * @defgroup backend Backend
- * @brief Interface between the underlying graphics API and high level
- * graphics codes
- *
- * @{
- */
+/// @brief Structure specifying a commands submit operation
+struct SubmitInfo {
+  // Temporaraily hack around
+  Buffer input{};
+  Buffer output{};
+  std::uint32_t buffer_size{};
+};
 
 /**
  * @brief Interface of the graphics context
@@ -62,6 +72,24 @@ public:
 
   [[nodiscard]] virtual auto create_buffer(const BufferCreateInfo& create_info)
       -> Buffer = 0;
+
+  /**
+   * @brief Maps the underlying memory of buffer to a pointer
+   *
+   * After a successful call to `map_memory` the buffer memory is
+   * considered to be currently host mapped. If the `buffer` handle does not
+   * refer to an real buffer, or if its underlying memory is not host visible,
+   * this function will return `nullptr`
+   */
+  [[nodiscard]] virtual auto map_memory(Buffer buffer) noexcept -> void* = 0;
+
+  /**
+   * @brief Unmaps the underlying memory  of buffer
+   */
+  virtual auto unmap_memory(Buffer buffer) noexcept -> void = 0;
+
+  /// @brief Submits a sequence of command buffers to execute
+  virtual auto submit(gsl::span<SubmitInfo> infos) -> void = 0;
 
 protected:
   Context() = default;
