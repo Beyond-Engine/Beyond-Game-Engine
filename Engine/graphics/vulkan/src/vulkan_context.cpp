@@ -178,7 +178,7 @@ VulkanContext::VulkanContext(Window& window)
   }
 } // namespace beyond::graphics::vulkan
 
-VulkanContext::~VulkanContext()
+VulkanContext::~VulkanContext() noexcept
 {
   swapchains_pool_.clear();
   buffers_pool_.clear();

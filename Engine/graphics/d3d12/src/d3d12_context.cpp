@@ -11,7 +11,9 @@ class D3D12Context final : public Context {
 public:
   D3D12Context()
   {
-    std::fputs("Direct3D 12 Backend is currently a stub\n", stderr);
+    std::fputs("Direct3D 12 Backend is currently a stub, please use Vulkan "
+               "backend instead\n",
+               stderr);
     std::exit(1);
   }
 

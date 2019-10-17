@@ -28,7 +28,7 @@ namespace beyond::graphics::vulkan {
 class VulkanContext final : public Context {
 public:
   explicit VulkanContext(Window& window);
-  ~VulkanContext() override;
+  ~VulkanContext() noexcept override;
 
   [[nodiscard]] auto create_swapchain() -> Swapchain override;
   [[nodiscard]] auto create_buffer(const BufferCreateInfo& create_info)
