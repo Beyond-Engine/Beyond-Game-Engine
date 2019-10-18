@@ -36,11 +36,53 @@ struct Swapchain : beyond::NamedType<std::uint32_t, struct SwapchainTag,
   using NamedType::NamedType;
 };
 
+/// @brief The place of buffer memory it reside in
+enum struct MemoryUsage {
+  /**
+   * Memory will be used on device only. There are no garentee this
+   memory will be mappable on the host.
+   *
+   * Usage:
+   * - Resources written and read by device, e.g. images used as attachments.
+   * - Resources transferred from host once (immutable) or infrequently and read
+   by device multiple times, e.g. textures to be sampled, vertex buffers,
+   and uniform buffers.
+   */
+  device,
+  /**
+   * Memory will be mappable on host. It usually means CPU memory. Resources
+   * created in this pool may still be accessible to the device, but access to
+   * them can be slow.
+   * Usage: Staging copy of resources used as transfer source.
+   */
+  host,
+  /**
+   * Memory that is both mappable on host and preferably fast to access by GPU.
+   * CPU access is typically uncached. Writes may be write-combined.
+   *
+   * Usage: Resources written frequently by host (dynamic), read by device. E.g.
+   * textures, vertex buffers, uniform buffers updated every frame or every draw
+   * call.
+   */
+  host_to_device,
+  /**
+   *Memory mappable on host and cached.
+   *
+   *Usage:
+   * - Resources written by device, read by host - results of some computations,
+   *e.g. screen capture, average scene luminance for HDR tone mapping. Any
+   *resources read or accessed randomly on host, e.g. CPU-side copy of vertex
+   *buffer used as source of transfer, but also used for collision detection.
+   */
+  device_to_host,
+};
+
 /**
  * @brief The information used to create a GPU buffer
  */
 struct BufferCreateInfo {
   std::uint32_t size = 0;
+  MemoryUsage memory_usage = MemoryUsage::device;
 };
 
 /// @brief A handle to buffer

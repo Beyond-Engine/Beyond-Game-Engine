@@ -27,9 +27,13 @@ int main()
   static constexpr std::uint32_t buffer_size = 1024;
   static constexpr auto payload_size = buffer_size / sizeof(int32_t);
 
-  graphics::BufferCreateInfo create_info{.size = buffer_size};
-  auto in_handle = context->create_buffer(create_info);
-  auto out_handle = context->create_buffer(create_info);
+  auto in_handle = context->create_buffer(
+      {.size = buffer_size,
+       .memory_usage = graphics::MemoryUsage::host_to_device});
+
+  auto out_handle = context->create_buffer(
+      {.size = buffer_size,
+       .memory_usage = graphics::MemoryUsage::device_to_host});
 
   {
     // Filling input buffer
