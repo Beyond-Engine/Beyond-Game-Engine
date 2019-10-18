@@ -60,6 +60,8 @@ class Context;
 
 /**
  * @brief A mapping is a view of host visible device memory
+ * @warning Destorying a buffer while a `Mapping` to it is still alive is
+ * undefined behavior
  */
 template <typename T> class Mapping {
 public:
@@ -184,6 +186,15 @@ public:
 
   [[nodiscard]] virtual auto create_buffer(const BufferCreateInfo& create_info)
       -> Buffer = 0;
+
+  /**
+   * @brief Destories the device buffer.
+   *
+   * This function destories the device buffer refered to by `buffer_handle` and
+   * release its underlying memory. If the `buffer_handle` does not refer to a
+   * valid device buffer, this function will do nothing.
+   */
+  virtual auto destory_buffer(Buffer& buffer_handle) -> void = 0;
 
   /// @brief Submits a sequence of command buffers to execute
   virtual auto submit(gsl::span<SubmitInfo> infos) -> void = 0;

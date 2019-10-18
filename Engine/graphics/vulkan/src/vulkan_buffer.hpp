@@ -54,6 +54,13 @@ public:
     return *this;
   }
 
+  /// @brief Returns `false` if the buffer object does not refer to a valid
+  /// buffer
+  [[nodiscard]] operator bool() noexcept
+  {
+    return !buffer_;
+  }
+
   /// @brief Gets a direct handle to the underlying VkBuffer
   [[nodiscard]] auto vkbuffer() noexcept -> VkBuffer
   {

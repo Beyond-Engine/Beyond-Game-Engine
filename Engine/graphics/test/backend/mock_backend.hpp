@@ -36,6 +36,16 @@ public:
     return Buffer{index};
   }
 
+  auto destory_buffer(Buffer& buffer_handle) -> void override
+  {
+    const auto index = static_cast<Buffer::Index>(buffers_.size());
+    if (index >= buffers_.size()) {
+      return;
+    }
+
+    buffers_[index].clear();
+  }
+
   auto submit(gsl::span<SubmitInfo>) -> void override {}
 
   [[nodiscard]] auto map_memory_impl(Buffer buffer) noexcept

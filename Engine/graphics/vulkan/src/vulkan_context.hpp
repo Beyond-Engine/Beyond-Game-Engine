@@ -33,6 +33,7 @@ public:
   [[nodiscard]] auto create_swapchain() -> Swapchain override;
   [[nodiscard]] auto create_buffer(const BufferCreateInfo& create_info)
       -> Buffer override;
+  auto destory_buffer(Buffer& buffer_handle) -> void override;
 
   auto submit(gsl::span<SubmitInfo> infos) -> void override;
 

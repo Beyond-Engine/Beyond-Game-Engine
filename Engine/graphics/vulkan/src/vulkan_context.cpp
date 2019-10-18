@@ -244,6 +244,17 @@ VulkanContext::create_buffer(const BufferCreateInfo& create_info) -> Buffer
   return Buffer{index};
 }
 
+auto VulkanContext::destory_buffer(Buffer& buffer_handle) -> void
+{
+  const auto index = buffer_handle.index();
+
+  if (index >= buffers_pool_.size() || !buffers_pool_[index]) {
+    return;
+  }
+
+  buffers_pool_[index] = VulkanBuffer{};
+}
+
 [[nodiscard]] auto VulkanContext::map_memory_impl(Buffer buffer_handle) noexcept
     -> MappingInfo
 {

@@ -1,3 +1,5 @@
+#include <beyond/core/utils/panic.hpp>
+
 #include "d3d12_interface.hpp"
 
 #include <D3d12.h>
@@ -11,31 +13,40 @@ class D3D12Context final : public Context {
 public:
   D3D12Context()
   {
-    std::fputs("Direct3D 12 Backend is currently a stub, please use Vulkan "
-               "backend instead\n",
-               stderr);
-    std::exit(1);
+    beyond::panic("Direct3D 12 Backend is currently a stub, please use Vulkan "
+                  "backend instead\n");
   }
 
   [[nodiscard]] auto create_swapchain() -> Swapchain override
   {
-    return Swapchain{0};
+    beyond::panic("Unimplemented\n");
   }
 
   [[nodiscard]] auto create_buffer(const BufferCreateInfo&) -> Buffer override
   {
-    return Buffer{0};
+    beyond::panic("Unimplemented\n");
   }
 
-  auto submit(gsl::span<SubmitInfo>) -> void override {}
+  auto destory_buffer(Buffer & /*buffer_handle*/) -> void override
+  {
+    beyond::panic("Unimplemented\n");
+  }
+
+  auto submit(gsl::span<SubmitInfo>) -> void override
+  {
+    beyond::panic("Unimplemented\n");
+  }
 
 private:
   [[nodiscard]] auto map_memory_impl(Buffer) noexcept -> MappingInfo override
   {
-    return {nullptr, 0};
+    beyond::panic("Unimplemented\n");
   }
 
-  auto unmap_memory_impl(Buffer) noexcept -> void override {}
+  auto unmap_memory_impl(Buffer) noexcept -> void override
+  {
+    beyond::panic("Unimplemented\n");
+  }
 };
 
 [[nodiscard]] auto create_d3d12_context(Window& /*window*/) noexcept
