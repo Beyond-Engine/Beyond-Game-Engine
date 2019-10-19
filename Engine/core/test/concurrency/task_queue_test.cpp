@@ -4,6 +4,7 @@
 
 #include <array>
 #include <string>
+#include <thread>
 #include <vector>
 
 TEST_CASE("Task Queue push and pop", "[beyond.core.concurrency.task_queue]")

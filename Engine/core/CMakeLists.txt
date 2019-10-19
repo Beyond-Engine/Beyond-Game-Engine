@@ -43,9 +43,10 @@ target_include_directories(core
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-
+find_package( Threads )
 target_link_libraries(core PRIVATE compiler_warnings
     PUBLIC
+    Threads::Threads
     CONAN_PKG::fmt
     CONAN_PKG::gsl_microsoft
     tl-expected
