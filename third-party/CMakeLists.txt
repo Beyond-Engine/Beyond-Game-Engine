@@ -10,6 +10,19 @@ target_include_directories(tl-expected SYSTEM
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/expected>
 )
 
+add_library(jthread INTERFACE)
+target_sources(jthread
+    INTERFACE
+        "${CMAKE_CURRENT_SOURCE_DIR}/jthread/jthread.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/jthread/stop_token.hpp"
+    )
+
+target_include_directories(jthread SYSTEM
+    INTERFACE
+        $<INSTALL_INTERFACE:jthread>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/jthread>
+)
+
 if(${BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN})
     # Volk
     if(WIN32)

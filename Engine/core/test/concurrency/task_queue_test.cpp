@@ -4,8 +4,9 @@
 
 #include <array>
 #include <string>
-#include <thread>
 #include <vector>
+
+#include <jthread.hpp>
 
 TEST_CASE("Task Queue push and pop", "[beyond.core.concurrency.task_queue]")
 {
@@ -22,8 +23,6 @@ TEST_CASE("Task Queue push and pop", "[beyond.core.concurrency.task_queue]")
     output.emplace_back(std::move(str));
   };
 
-  std::vector<std::thread> threads;
-
   const auto a1 = "a1                      ( 1)";
   const auto b1 = "    b1                  ( 2)";
   const auto d1 = "            d1          ( 3)";
@@ -37,6 +36,8 @@ TEST_CASE("Task Queue push and pop", "[beyond.core.concurrency.task_queue]")
   cq.push([&]() { strout(c1); });
   cq.push([&]() { strout(c2); });
   dq.push([&]() { strout(d2); });
+
+  std::vector<nostd::jthread> threads;
 
   SECTION("Pop and run all the tasks")
   {
