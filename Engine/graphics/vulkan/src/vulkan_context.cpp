@@ -182,6 +182,7 @@ VulkanContext::~VulkanContext() noexcept
 {
   swapchains_pool_.clear();
   buffers_pool_.clear();
+  pipelines_pool_.clear();
 
   vmaDestroyAllocator(allocator_);
 
@@ -285,73 +286,22 @@ auto VulkanContext::unmap_memory_impl(Buffer buffer_handle) noexcept -> void
   return buffers_pool_[buffer_handle.index()].unmap();
 }
 
+[[nodiscard]] auto VulkanContext::create_compute_pipeline(
+    const ComputePipelineCreateInfo& create_info) -> Pipeline
+{
+  const auto index = pipelines_pool_.size();
+  pipelines_pool_.emplace_back(
+      VulkanPipeline::create_compute(create_info, device_));
+
+  return Pipeline{static_cast<Pipeline::UnderlyingType>(index)};
+}
+
 auto VulkanContext::submit(gsl::span<SubmitInfo> info) -> void
 {
-  const auto in_handle = info[0].input;
-  const auto out_handle = info[0].output;
-  const auto buffer_size = info[0].buffer_size;
-
-  auto& in_buffer = buffers_pool_[in_handle.index()];
-  const auto in_buffer_raw = in_buffer.vkbuffer();
-
-  auto& out_buffer = buffers_pool_[out_handle.index()];
-  const auto out_buffer_raw = out_buffer.vkbuffer();
-
-  const auto shader_module =
-      create_shader_module("shaders/copy.comp.spv", device_);
-
-  std::array descriptor_set_layout_bindings{
-      VkDescriptorSetLayoutBinding{0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1,
-                                   VK_SHADER_STAGE_COMPUTE_BIT, nullptr},
-      VkDescriptorSetLayoutBinding{1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1,
-                                   VK_SHADER_STAGE_COMPUTE_BIT, nullptr}};
-
-  const VkDescriptorSetLayoutCreateInfo descriptor_set_layout_create_info{
-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-      .pNext = nullptr,
-      .flags = 0,
-      .bindingCount = vulkan::to_u32(descriptor_set_layout_bindings.size()),
-      .pBindings = descriptor_set_layout_bindings.data()};
-
-  VkDescriptorSetLayout descriptor_set_layout;
-  if (vkCreateDescriptorSetLayout(device_, &descriptor_set_layout_create_info,
-                                  nullptr,
-                                  &descriptor_set_layout) != VK_SUCCESS) {
-    beyond::panic("Vulkan backend failed to create descriptor set layout");
-  }
-
-  const VkPipelineLayoutCreateInfo pipeline_layout_create_info = {
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-      .pNext = nullptr,
-      .flags = 0,
-      .setLayoutCount = 1,
-      .pSetLayouts = &descriptor_set_layout,
-      .pushConstantRangeCount = 0,
-      .pPushConstantRanges = nullptr};
-
-  VkPipelineLayout pipeline_layout;
-  if (vkCreatePipelineLayout(device_, &pipeline_layout_create_info, nullptr,
-                             &pipeline_layout) != VK_SUCCESS) {
-    beyond::panic("Vulkan backend failed to create pipeline layout");
-  }
-
-  const VkComputePipelineCreateInfo compute_pipeline_create_info{
-      .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
-      .pNext = nullptr,
-      .flags = 0,
-      .stage = {VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO, nullptr, 0,
-                VK_SHADER_STAGE_COMPUTE_BIT, shader_module, "main", nullptr},
-      .layout = pipeline_layout,
-      .basePipelineHandle = nullptr,
-      .basePipelineIndex = 0,
-  };
-
-  VkPipeline pipeline;
-  if (vkCreateComputePipelines(device_, nullptr, 1,
-                               &compute_pipeline_create_info, nullptr,
-                               &pipeline) != VK_SUCCESS) {
-    beyond::panic("Vulkan backend failed to create compute pipeline");
-  }
+  // Create pipeline
+  const auto pipeline_handle =
+      create_compute_pipeline(ComputePipelineCreateInfo{});
+  const auto& pipeline = pipelines_pool_[pipeline_handle.get()];
 
   const VkDescriptorPoolSize descriptor_pool_size{
       .type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .descriptorCount = 2};
@@ -370,6 +320,8 @@ auto VulkanContext::submit(gsl::span<SubmitInfo> info) -> void
     beyond::panic("Vulkan backend failed to create descriptor pool");
   }
 
+  const auto descriptor_set_layout = pipeline.descriptor_set_layout();
+
   const VkDescriptorSetAllocateInfo descriptor_set_allocate_info{
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
       .pNext = nullptr,
@@ -382,6 +334,16 @@ auto VulkanContext::submit(gsl::span<SubmitInfo> info) -> void
                                &descriptor_set) != VK_SUCCESS) {
     beyond::panic("Vulkan backend failed to allocate descriptor set");
   }
+
+  const auto in_handle = info[0].input;
+  const auto out_handle = info[0].output;
+  const auto buffer_size = info[0].buffer_size;
+
+  auto& in_buffer = buffers_pool_[in_handle.index()];
+  const auto in_buffer_raw = in_buffer.vkbuffer();
+
+  auto& out_buffer = buffers_pool_[out_handle.index()];
+  const auto out_buffer_raw = out_buffer.vkbuffer();
 
   const VkDescriptorBufferInfo in_descriptor_buffer_info{
       .buffer = in_buffer_raw,
@@ -442,9 +404,11 @@ auto VulkanContext::submit(gsl::span<SubmitInfo> info) -> void
       VK_SUCCESS) {
     beyond::panic("Vulkan backend failed to begin command buffer");
   }
-  vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
+  vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+                    pipeline.pipeline());
   vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-                          pipeline_layout, 0, 1, &descriptor_set, 0, nullptr);
+                          pipeline.pipeline_layout(), 0, 1, &descriptor_set, 0,
+                          nullptr);
   vkCmdDispatch(command_buffer, buffer_size / sizeof(int32_t), 1, 1);
   if (vkEndCommandBuffer(command_buffer) != VK_SUCCESS) {
     beyond::panic("Vulkan backend failed to end command buffer");
@@ -484,11 +448,6 @@ auto VulkanContext::submit(gsl::span<SubmitInfo> info) -> void
 
   vkDestroyCommandPool(device_, command_pool, nullptr);
   vkDestroyDescriptorPool(device_, descriptor_pool, nullptr);
-  vkDestroyPipeline(device_, pipeline, nullptr);
-  vkDestroyPipelineLayout(device_, pipeline_layout, nullptr);
-  vkDestroyDescriptorSetLayout(device_, descriptor_set_layout, nullptr);
-
-  vkDestroyShaderModule(device_, shader_module, nullptr);
 }
 
 } // namespace beyond::graphics::vulkan

@@ -16,6 +16,7 @@
 #include <beyond/graphics/backend.hpp>
 
 #include "vulkan_buffer.hpp"
+#include "vulkan_pipeline.hpp"
 #include "vulkan_swapchain.hpp"
 
 #include <algorithm>
@@ -34,6 +35,10 @@ public:
   [[nodiscard]] auto create_buffer(const BufferCreateInfo& create_info)
       -> Buffer override;
   auto destory_buffer(Buffer& buffer_handle) -> void override;
+
+  [[nodiscard]] auto
+  create_compute_pipeline(const ComputePipelineCreateInfo& create_info)
+      -> Pipeline override;
 
   auto submit(gsl::span<SubmitInfo> infos) -> void override;
 
@@ -58,6 +63,7 @@ private:
 
   beyond::static_vector<VulkanSwapchain, 2> swapchains_pool_;
   std::vector<VulkanBuffer> buffers_pool_;
+  std::vector<VulkanPipeline> pipelines_pool_;
 
   [[nodiscard]] auto map_memory_impl(Buffer buffer_handle) noexcept
       -> MappingInfo override;

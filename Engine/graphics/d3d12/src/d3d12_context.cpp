@@ -32,6 +32,13 @@ public:
     beyond::panic("Unimplemented\n");
   }
 
+  [[nodiscard]] auto create_compute_pipeline(const ComputePipelineCreateInfo &
+                                             /*create_info*/)
+      -> Pipeline override
+  {
+    beyond::panic("Unimplemented\n");
+  }
+
   auto submit(gsl::span<SubmitInfo>) -> void override
   {
     beyond::panic("Unimplemented\n");

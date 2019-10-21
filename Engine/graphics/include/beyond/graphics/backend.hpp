@@ -85,7 +85,7 @@ struct BufferCreateInfo {
   MemoryUsage memory_usage = MemoryUsage::device;
 };
 
-/// @brief A handle to buffer
+/// @brief A handle to a GPU buffer
 struct Buffer : Handle<Buffer, std::uint32_t, 20, 12> {
   using Handle::Handle;
 };
@@ -96,6 +96,15 @@ struct SubmitInfo {
   Buffer input{};
   Buffer output{};
   std::uint32_t buffer_size{};
+};
+
+struct ComputePipelineCreateInfo {
+};
+
+/// @brief A handle to a GPU pipeline
+struct Pipeline : beyond::NamedType<std::uint32_t, struct PipelineTag,
+                                    beyond::EquableBase> {
+  using NamedType::NamedType;
 };
 
 class Context;
@@ -228,6 +237,15 @@ public:
 
   [[nodiscard]] virtual auto create_buffer(const BufferCreateInfo& create_info)
       -> Buffer = 0;
+
+  /**
+   * @brief Creates a compute pipeline
+   * @note There are not way to destory a pipeline manually. All pipelines will
+   * be destoryed when the context get destoryed.
+   */
+  [[nodiscard]] virtual auto
+  create_compute_pipeline(const ComputePipelineCreateInfo& create_info)
+      -> Pipeline = 0;
 
   /**
    * @brief Destories the device buffer.

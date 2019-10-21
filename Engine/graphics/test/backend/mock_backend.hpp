@@ -46,6 +46,13 @@ public:
     buffers_[index].clear();
   }
 
+  [[nodiscard]] auto create_compute_pipeline(const ComputePipelineCreateInfo &
+                                             /*create_info*/)
+      -> Pipeline override
+  {
+    return Pipeline{0};
+  }
+
   auto submit(gsl::span<SubmitInfo>) -> void override {}
 
   [[nodiscard]] auto map_memory_impl(Buffer buffer) noexcept
