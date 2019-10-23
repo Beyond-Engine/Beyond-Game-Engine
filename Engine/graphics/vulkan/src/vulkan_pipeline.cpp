@@ -8,7 +8,7 @@
 
 namespace beyond::graphics::vulkan {
 
-auto VulkanPipeline::create_compute(ComputePipelineCreateInfo info,
+auto VulkanPipeline::create_compute(ComputePipelineCreateInfo /*info*/,
                                     VkDevice device) -> VulkanPipeline
 {
   const auto shader_module =

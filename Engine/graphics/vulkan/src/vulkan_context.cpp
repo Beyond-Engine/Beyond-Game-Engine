@@ -298,10 +298,7 @@ auto VulkanContext::unmap_memory_impl(Buffer buffer_handle) noexcept -> void
 
 auto VulkanContext::submit(gsl::span<SubmitInfo> info) -> void
 {
-  // Create pipeline
-  const auto pipeline_handle =
-      create_compute_pipeline(ComputePipelineCreateInfo{});
-  const auto& pipeline = pipelines_pool_[pipeline_handle.get()];
+  const auto& pipeline = pipelines_pool_[info[0].pipeline.get()];
 
   const VkDescriptorPoolSize descriptor_pool_size{
       .type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .descriptorCount = 2};

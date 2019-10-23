@@ -27,6 +27,7 @@ int main()
   static constexpr std::uint32_t buffer_size = 1024;
   static constexpr auto payload_size = buffer_size / sizeof(int32_t);
 
+  // Create buffers
   auto in_handle = context->create_buffer(
       {.size = buffer_size,
        .memory_usage = graphics::MemoryUsage::host_to_device});
@@ -34,6 +35,10 @@ int main()
   auto out_handle = context->create_buffer(
       {.size = buffer_size,
        .memory_usage = graphics::MemoryUsage::device_to_host});
+
+  // Create pipeline
+  const auto pipeline_handle =
+      context->create_compute_pipeline(graphics::ComputePipelineCreateInfo{});
 
   {
     // Filling input buffer
@@ -45,7 +50,7 @@ int main()
 
     // Compute
     std::vector<graphics::SubmitInfo> infos;
-    infos.push_back({in_handle, out_handle, buffer_size});
+    infos.push_back({in_handle, out_handle, buffer_size, pipeline_handle});
     context->submit(infos);
 
     // Done

@@ -90,14 +90,6 @@ struct Buffer : Handle<Buffer, std::uint32_t, 20, 12> {
   using Handle::Handle;
 };
 
-/// @brief Structure specifying a commands submit operation
-struct SubmitInfo {
-  // Temporaraily hack around
-  Buffer input{};
-  Buffer output{};
-  std::uint32_t buffer_size{};
-};
-
 struct ComputePipelineCreateInfo {
 };
 
@@ -105,6 +97,15 @@ struct ComputePipelineCreateInfo {
 struct Pipeline : beyond::NamedType<std::uint32_t, struct PipelineTag,
                                     beyond::EquableBase> {
   using NamedType::NamedType;
+};
+
+/// @brief Structure specifying a commands submit operation
+struct SubmitInfo {
+  // Temporaraily hack around
+  Buffer input{};
+  Buffer output{};
+  std::uint32_t buffer_size{};
+  Pipeline pipeline;
 };
 
 class Context;
