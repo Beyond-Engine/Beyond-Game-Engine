@@ -235,12 +235,16 @@ VulkanContext::create_buffer(const BufferCreateInfo& create_info) -> Buffer
   switch (create_info.memory_usage) {
   case MemoryUsage::device:
     alloc_info.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+    break;
   case MemoryUsage::host:
     alloc_info.usage = VMA_MEMORY_USAGE_CPU_ONLY;
+    break;
   case MemoryUsage::host_to_device:
     alloc_info.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
+    break;
   case MemoryUsage::device_to_host:
     alloc_info.usage = VMA_MEMORY_USAGE_GPU_TO_CPU;
+    break;
   }
 
   VkBuffer buffer;
