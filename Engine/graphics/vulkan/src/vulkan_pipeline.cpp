@@ -67,6 +67,8 @@ auto VulkanPipeline::create_compute(ComputePipelineCreateInfo /*info*/,
     beyond::panic("Vulkan backend failed to create compute pipeline");
   }
 
+  vkDestroyShaderModule(device, shader_module, nullptr);
+
   return VulkanPipeline{device, descriptor_set_layout, pipeline_layout,
                         pipeline};
 }

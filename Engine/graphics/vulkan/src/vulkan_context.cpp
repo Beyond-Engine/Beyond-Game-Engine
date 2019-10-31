@@ -163,12 +163,15 @@ VulkanContext::VulkanContext(Window& window)
   device_ = create_logical_device(physical_device_, queue_family_indices_);
   volkLoadDevice(device_);
 
-  vkGetDeviceQueue(device_, queue_family_indices_.graphics_family, 0,
-                   &graphics_queue_);
-  vkGetDeviceQueue(device_, queue_family_indices_.present_family, 0,
-                   &present_queue_);
-  vkGetDeviceQueue(device_, queue_family_indices_.compute_family, 0,
-                   &compute_queue_);
+  const auto get_device_queue = [this](std::uint32_t family_index,
+                                       std::uint32_t index) {
+    VkQueue queue;
+    vkGetDeviceQueue(this->device_, family_index, index, &queue);
+    return queue;
+  };
+  graphics_queue_ = get_device_queue(queue_family_indices_.graphics_family, 0);
+  present_queue_ = get_device_queue(queue_family_indices_.present_family, 0);
+  compute_queue_ = get_device_queue(queue_family_indices_.compute_family, 0);
 
   VmaAllocatorCreateInfo allocator_info{};
   allocator_info.physicalDevice = physical_device_;
