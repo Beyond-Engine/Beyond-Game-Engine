@@ -48,9 +48,9 @@ public:
 
   [[nodiscard]] auto create_compute_pipeline(const ComputePipelineCreateInfo &
                                              /*create_info*/)
-      -> Pipeline override
+      -> ComputePipeline override
   {
-    return Pipeline{0};
+    return ComputePipeline{0};
   }
 
   auto submit(gsl::span<SubmitInfo>) -> void override {}

@@ -38,7 +38,7 @@ public:
 
   [[nodiscard]] auto
   create_compute_pipeline(const ComputePipelineCreateInfo& create_info)
-      -> Pipeline override;
+      -> ComputePipeline override;
 
   auto submit(gsl::span<SubmitInfo> infos) -> void override;
 
@@ -63,7 +63,7 @@ private:
 
   beyond::static_vector<VulkanSwapchain, 2> swapchains_pool_;
   std::vector<VulkanBuffer> buffers_pool_;
-  std::vector<VulkanPipeline> pipelines_pool_;
+  std::vector<VulkanPipeline> compute_pipelines_pool_;
 
   [[nodiscard]] auto map_memory_impl(Buffer buffer_handle) noexcept
       -> MappingInfo override;

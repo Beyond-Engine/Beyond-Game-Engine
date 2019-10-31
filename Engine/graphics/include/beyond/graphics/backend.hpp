@@ -94,8 +94,8 @@ struct ComputePipelineCreateInfo {
 };
 
 /// @brief A handle to a GPU pipeline
-struct Pipeline : beyond::NamedType<std::uint32_t, struct PipelineTag,
-                                    beyond::EquableBase> {
+struct ComputePipeline : beyond::NamedType<std::uint32_t, struct PipelineTag,
+                                           beyond::EquableBase> {
   using NamedType::NamedType;
 };
 
@@ -105,7 +105,7 @@ struct SubmitInfo {
   Buffer input{};
   Buffer output{};
   std::uint32_t buffer_size{};
-  Pipeline pipeline;
+  ComputePipeline pipeline;
 };
 
 class Context;
@@ -246,7 +246,7 @@ public:
    */
   [[nodiscard]] virtual auto
   create_compute_pipeline(const ComputePipelineCreateInfo& create_info)
-      -> Pipeline = 0;
+      -> ComputePipeline = 0;
 
   /**
    * @brief Destories the device buffer.

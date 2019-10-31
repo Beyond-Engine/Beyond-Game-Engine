@@ -34,7 +34,7 @@ public:
 
   [[nodiscard]] auto create_compute_pipeline(const ComputePipelineCreateInfo &
                                              /*create_info*/)
-      -> Pipeline override
+      -> ComputePipeline override
   {
     beyond::panic("Unimplemented\n");
   }

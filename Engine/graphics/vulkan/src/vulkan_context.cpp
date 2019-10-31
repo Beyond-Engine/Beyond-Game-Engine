@@ -182,7 +182,7 @@ VulkanContext::~VulkanContext() noexcept
 {
   swapchains_pool_.clear();
   buffers_pool_.clear();
-  pipelines_pool_.clear();
+  compute_pipelines_pool_.clear();
 
   vmaDestroyAllocator(allocator_);
 
@@ -291,18 +291,18 @@ auto VulkanContext::unmap_memory_impl(Buffer buffer_handle) noexcept -> void
 }
 
 [[nodiscard]] auto VulkanContext::create_compute_pipeline(
-    const ComputePipelineCreateInfo& create_info) -> Pipeline
+    const ComputePipelineCreateInfo& create_info) -> ComputePipeline
 {
-  const auto index = pipelines_pool_.size();
-  pipelines_pool_.emplace_back(
+  const auto index = compute_pipelines_pool_.size();
+  compute_pipelines_pool_.emplace_back(
       VulkanPipeline::create_compute(create_info, device_));
 
-  return Pipeline{static_cast<Pipeline::UnderlyingType>(index)};
+  return ComputePipeline{static_cast<ComputePipeline::UnderlyingType>(index)};
 }
 
 auto VulkanContext::submit(gsl::span<SubmitInfo> info) -> void
 {
-  const auto& pipeline = pipelines_pool_[info[0].pipeline.get()];
+  const auto& pipeline = compute_pipelines_pool_[info[0].pipeline.get()];
 
   const VkDescriptorPoolSize descriptor_pool_size{
       .type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .descriptorCount = 2};
