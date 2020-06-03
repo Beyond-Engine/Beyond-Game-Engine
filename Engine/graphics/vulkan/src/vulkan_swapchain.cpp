@@ -1,7 +1,7 @@
 #include "vulkan_swapchain.hpp"
 #include "vulkan_utils.hpp"
 
-#include <beyond/core/utils/panic.hpp>
+#include <beyond/utils/panic.hpp>
 
 #include <algorithm>
 #include <gsl/span>

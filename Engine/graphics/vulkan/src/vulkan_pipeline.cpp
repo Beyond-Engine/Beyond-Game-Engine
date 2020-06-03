@@ -1,4 +1,4 @@
-#include <beyond/core/utils/panic.hpp>
+#include <beyond/utils/panic.hpp>
 
 #include <array>
 

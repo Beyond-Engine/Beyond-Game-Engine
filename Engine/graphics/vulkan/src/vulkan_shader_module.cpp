@@ -5,8 +5,8 @@
 
 #include <fmt/format.h>
 
-#include <beyond/core/utils/bit_cast.hpp>
-#include <beyond/core/utils/panic.hpp>
+#include <beyond/utils/bit_cast.hpp>
+#include <beyond/utils/panic.hpp>
 
 namespace {
 

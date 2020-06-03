@@ -1,5 +1,5 @@
-﻿#include <beyond/core/utils/assert.hpp>
-#include <beyond/core/utils/bit_cast.hpp>
+﻿#include <beyond/utils/assert.hpp>
+#include <beyond/utils/bit_cast.hpp>
 
 #include "vulkan_context.hpp"
 #include "vulkan_shader_module.hpp"
@@ -413,7 +413,8 @@ auto VulkanContext::submit(gsl::span<SubmitInfo> info) -> void
   vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE,
                           pipeline.pipeline_layout(), 0, 1, &descriptor_set, 0,
                           nullptr);
-  vkCmdDispatch(command_buffer, buffer_size / sizeof(int32_t), 1, 1);
+  vkCmdDispatch(command_buffer,
+                static_cast<uint32_t>(buffer_size / sizeof(int32_t)), 1, 1);
   if (vkEndCommandBuffer(command_buffer) != VK_SUCCESS) {
     beyond::panic("Vulkan backend failed to end command buffer");
   }

@@ -8,7 +8,7 @@
 
 #include <utility>
 
-#include <beyond/core/utils/panic.hpp>
+#include <beyond/utils/panic.hpp>
 
 namespace beyond::graphics::vulkan {
 

@@ -1,5 +1,5 @@
-#include <beyond/core/utils/assert.hpp>
 #include <beyond/graphics/backend.hpp>
+#include <beyond/utils/assert.hpp>
 
 #include <fmt/format.h>
 

@@ -12,9 +12,9 @@
 
 #include <gsl/span>
 
-#include "beyond/core/utils/handle.hpp"
-#include "beyond/core/utils/named_type.hpp"
 #include "beyond/platform/platform.hpp"
+#include "beyond/utils/handle.hpp"
+#include "beyond/utils/named_type.hpp"
 
 namespace beyond::graphics {
 

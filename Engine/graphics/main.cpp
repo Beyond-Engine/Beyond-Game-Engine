@@ -1,7 +1,7 @@
 #include <fmt/format.h>
 
-#include <beyond/core/utils/panic.hpp>
 #include <beyond/graphics/backend.hpp>
+#include <beyond/utils/panic.hpp>
 
 #include <beyond/platform/platform.hpp>
 

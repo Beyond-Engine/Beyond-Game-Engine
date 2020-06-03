@@ -9,9 +9,9 @@
 
 #include <vk_mem_alloc.h>
 
-#include <beyond/core/container/static_vector.hpp>
-#include <beyond/core/utils/panic.hpp>
+#include <beyond/container/static_vector.hpp>
 #include <beyond/platform/platform.hpp>
+#include <beyond/utils/panic.hpp>
 
 #include <beyond/graphics/backend.hpp>
 
@@ -61,7 +61,7 @@ private:
 
   VmaAllocator allocator_ = nullptr;
 
-  beyond::static_vector<VulkanSwapchain, 2> swapchains_pool_;
+  beyond::StaticVector<VulkanSwapchain, 2> swapchains_pool_;
   std::vector<VulkanBuffer> buffers_pool_;
   std::vector<VulkanPipeline> compute_pipelines_pool_;
 

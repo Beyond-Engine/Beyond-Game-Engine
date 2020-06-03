@@ -7,8 +7,8 @@
 
 #include <algorithm>
 
-#include <beyond/core/utils/panic.hpp>
 #include <beyond/platform/platform.hpp>
+#include <beyond/utils/panic.hpp>
 
 #ifdef BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN
 #define GLFW_INCLUDE_VULKAN
