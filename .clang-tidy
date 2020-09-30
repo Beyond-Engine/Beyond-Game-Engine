@@ -25,6 +25,7 @@ Checks:          '*,
 -readability-uppercase-literal-suffix,
 -llvm-include-order,
 -llvm-header-guard,
+-llvmlibc-*,
 -fuchsia-*,
 -google-runtime-references,
 -google-build-using-namespace
