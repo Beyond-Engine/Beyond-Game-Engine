@@ -3,6 +3,8 @@
 #ifndef BEYOND_GRAPHICS_TEST_MOCK_BACKEND_HPP
 #define BEYOND_GRAPHICS_TEST_MOCK_BACKEND_HPP
 
+#include <beyond/core/utils/bit_cast.hpp>
+
 #include <cstdio>
 #include <memory>
 #include <memory_resource>
@@ -13,11 +15,11 @@
 
 namespace beyond::graphics {
 
-class MockContext : public Context {
+class MockGPUDevice : public GPUDevice {
   using MockBuffer = std::pmr::vector<std::byte>;
 
 public:
-  MockContext()
+  MockGPUDevice()
   {
     std::puts("Mock Graphics backend");
     std::fflush(stdout);
@@ -31,14 +33,14 @@ public:
   [[nodiscard]] auto create_buffer(const BufferCreateInfo& info) noexcept
       -> Buffer override
   {
-    const auto index = static_cast<Buffer::Index>(buffers_.size());
+    const auto index = buffers_.size();
     buffers_.emplace_back(info.size);
     return Buffer{index};
   }
 
   auto destory_buffer(Buffer& buffer_handle) -> void override
   {
-    const auto index = static_cast<Buffer::Index>(buffers_.size());
+    const auto index = bit_cast<std::size_t>(buffer_handle);
     if (index >= buffers_.size()) {
       return;
     }
@@ -46,7 +48,7 @@ public:
     buffers_[index].clear();
   }
 
-  [[nodiscard]] auto create_compute_pipeline(const ComputePipelineCreateInfo &
+  [[nodiscard]] auto create_compute_pipeline(const ComputePipelineCreateInfo&
                                              /*create_info*/)
       -> ComputePipeline override
   {
@@ -55,22 +57,21 @@ public:
 
   auto submit(gsl::span<SubmitInfo>) -> void override {}
 
-  [[nodiscard]] auto map_memory_impl(Buffer buffer) noexcept
-      -> MappingInfo override
+  [[nodiscard]] auto map(Buffer buffer) noexcept -> void* override
   {
-    const auto index = buffer.index();
+    const auto index = buffer.id;
     if (index >= buffers_.size()) {
-      return {nullptr, 0};
+      return nullptr;
     }
 
     if (buffers_[index].empty()) {
-      return {nullptr, 0};
+      return nullptr;
     }
 
-    return {buffers_[index].data(), buffers_[index].size()};
+    return buffers_[index].data();
   }
 
-  auto unmap_memory_impl(Buffer) noexcept -> void override {}
+  auto unmap(Buffer) noexcept -> void override {}
 
 private:
   std::pmr::memory_resource& memory_resource_ =

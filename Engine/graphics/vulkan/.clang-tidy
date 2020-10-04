@@ -1,5 +1,5 @@
 ---
-Checks:          '*,
+Checks: '*,
 -clang-analyzer-deadcode.DeadStores,
 -clang-analyzer-alpha.*,
 -cert-dcl21-cpp,
@@ -28,6 +28,8 @@ Checks:          '*,
 -readability-function-size,
 -llvm-include-order,
 -llvm-header-guard,
+-llvmlibc-callee-namespace,
+-llvm-qualified-auto,
 -fuchsia-*,
 -google-runtime-references,
 -google-build-using-namespace
@@ -36,6 +38,6 @@ WarningsAsErrors: '*'
 HeaderFilterRegex: 'catch.hpp'
 FormatStyle: 'file'
 CheckOptions:
-  - key:             misc-non-private-member-variables-in-classes.IgnorePublicMemberVariables
-    value:           '1'
+  - key: misc-non-private-member-variables-in-classes.IgnorePublicMemberVariables
+    value: '1'
 ...

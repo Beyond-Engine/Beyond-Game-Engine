@@ -9,8 +9,8 @@
 namespace beyond::graphics::vulkan {
 
 /// @brief Create a VulkanGraphicsContext
-[[nodiscard]] auto create_vulkan_context(Window& window) noexcept
-    -> std::unique_ptr<Context>;
+[[nodiscard]] auto create_vulkan_gpu_device(Window& window) noexcept
+    -> std::unique_ptr<GPUDevice>;
 
 } // namespace beyond::graphics::vulkan
 

@@ -5,6 +5,7 @@
 
 #include <volk.h>
 
+#include <cstdint>
 #include <optional>
 #include <set>
 #include <vector>

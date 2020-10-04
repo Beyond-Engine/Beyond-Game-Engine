@@ -1,10 +1,10 @@
 set(TEST_TARGET_NAME beyond_graphics_test)
 
 add_executable(${TEST_TARGET_NAME}
-    "backend/mock_backend.hpp"
-    "backend/mapping_test.cpp"
-    "main.cpp"
-    )
+        "backend/mock_gpu_device.hpp"
+        "backend/mapping_test.cpp"
+        "main.cpp"
+        )
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 

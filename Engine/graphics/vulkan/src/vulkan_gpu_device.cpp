@@ -1,31 +1,22 @@
 ﻿#include <beyond/core/utils/assert.hpp>
 #include <beyond/core/utils/bit_cast.hpp>
 
-#include "vulkan_context.hpp"
+#include "vulkan_gpu_device.hpp"
 #include "vulkan_shader_module.hpp"
 #include "vulkan_utils.hpp"
 
 #include <fmt/format.h>
-
-#define BAIL_ON_BAD_RESULT(result)                                             \
-  if (VK_SUCCESS != (result)) {                                                \
-    fprintf(stderr, "Failure at %u %s\n", __LINE__, __FILE__);                 \
-    exit(-1);                                                                  \
-  }
 
 namespace vulkan = beyond::graphics::vulkan;
 using vulkan::QueueFamilyIndices;
 
 namespace {
 
-constexpr std::array validation_layers = {"VK_LAYER_KHRONOS_validation"};
-constexpr std::array device_extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-
 #ifdef BEYOND_VULKAN_ENABLE_VALIDATION_LAYER
-constexpr bool enable_validation_layers = true;
-#else
-constexpr bool enable_validation_layers = false;
+constexpr std::array validation_layers = {"VK_LAYER_KHRONOS_validation"};
 #endif
+
+constexpr std::array device_extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
 [[nodiscard]] auto
 check_device_extension_support(VkPhysicalDevice device) noexcept -> bool
@@ -135,13 +126,13 @@ create_logical_device(VkPhysicalDevice pd,
 
 namespace beyond::graphics::vulkan {
 
-[[nodiscard]] auto create_vulkan_context(Window& window) noexcept
-    -> std::unique_ptr<Context>
+[[nodiscard]] auto create_vulkan_gpu_device(Window& window) noexcept
+    -> std::unique_ptr<GPUDevice>
 {
-  return std::make_unique<VulkanContext>(window);
+  return std::make_unique<VulkanGPUDevice>(window);
 }
 
-VulkanContext::VulkanContext(Window& window)
+VulkanGPUDevice::VulkanGPUDevice(Window& window)
 {
   std::puts("Vulkan Graphics backend");
 
@@ -165,7 +156,7 @@ VulkanContext::VulkanContext(Window& window)
 
   const auto get_device_queue = [this](std::uint32_t family_index,
                                        std::uint32_t index) {
-    VkQueue queue;
+    VkQueue queue = nullptr;
     vkGetDeviceQueue(this->device_, family_index, index, &queue);
     return queue;
   };
@@ -181,10 +172,9 @@ VulkanContext::VulkanContext(Window& window)
   }
 } // namespace beyond::graphics::vulkan
 
-VulkanContext::~VulkanContext() noexcept
+VulkanGPUDevice::~VulkanGPUDevice() noexcept
 {
   swapchains_pool_.clear();
-  buffers_pool_.clear();
   compute_pipelines_pool_.clear();
 
   vmaDestroyAllocator(allocator_);
@@ -199,7 +189,7 @@ VulkanContext::~VulkanContext() noexcept
   vkDestroyInstance(instance_, nullptr);
 }
 
-[[nodiscard]] auto VulkanContext::create_swapchain() -> Swapchain
+[[nodiscard]] auto VulkanGPUDevice::create_swapchain() -> Swapchain
 {
   const auto index = swapchains_pool_.size();
 
@@ -213,15 +203,9 @@ VulkanContext::~VulkanContext() noexcept
 }
 
 [[nodiscard]] auto
-VulkanContext::create_buffer(const BufferCreateInfo& create_info) -> Buffer
+VulkanGPUDevice::create_buffer(const BufferCreateInfo& create_info) -> Buffer
 {
   // TODO(lesley): error handling
-
-  const auto index = static_cast<Buffer::Index>(buffers_pool_.size());
-
-  if (Buffer::is_overflow(index)) {
-    beyond::panic("Created too many buffers");
-  }
 
   const VkBufferCreateInfo buffer_info{
       .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
@@ -250,50 +234,54 @@ VulkanContext::create_buffer(const BufferCreateInfo& create_info) -> Buffer
     break;
   }
 
-  VkBuffer buffer;
-  VmaAllocation allocation;
+  VkBuffer buffer{};
+  VmaAllocation allocation{};
   if (vmaCreateBuffer(allocator_, &buffer_info, &alloc_info, &buffer,
                       &allocation, nullptr) != VK_SUCCESS) {
     beyond::panic("Vulkan backend failed to allocate a buffer");
   }
 
-  buffers_pool_.emplace_back(allocator_, buffer, allocation, create_info.size);
-  return Buffer{index};
+  buffer_allocations_.emplace(buffer, allocation);
+  return Buffer{bit_cast<std::uint64_t>(buffer)};
 }
 
-auto VulkanContext::destory_buffer(Buffer& buffer_handle) -> void
+auto VulkanGPUDevice::destory_buffer(Buffer& buffer_handle) -> void
 {
-  const auto index = buffer_handle.index();
+  const auto buffer = bit_cast<VkBuffer>(buffer_handle.id);
+  const auto allocation = buffer_allocations_.at(buffer);
+  vmaDestroyBuffer(allocator_, buffer, allocation);
+}
 
-  if (index >= buffers_pool_.size() || !buffers_pool_[index]) {
-    return;
+[[nodiscard]] auto VulkanGPUDevice::map(Buffer buffer_handle) noexcept -> void*
+{
+  // TODO: more robost error handling
+  void* payload = nullptr;
+  const auto buffer = bit_cast<VkBuffer>(buffer_handle.id);
+  const auto allocation_itr = buffer_allocations_.find(buffer);
+  if (allocation_itr == buffer_allocations_.end()) {
+    return nullptr;
   }
 
-  buffers_pool_[index] = VulkanBuffer{};
-}
-
-[[nodiscard]] auto VulkanContext::map_memory_impl(Buffer buffer_handle) noexcept
-    -> MappingInfo
-{
-  if (buffers_pool_.size() < buffer_handle.index()) {
-    return {nullptr, 0};
+  if (vmaMapMemory(allocator_, allocation_itr->second, &payload) !=
+      VK_SUCCESS) {
+    return nullptr;
   }
-
-  auto& buffer = buffers_pool_[buffer_handle.index()];
-  return {buffer.map(), buffer.size()};
+  return payload;
 }
 
-auto VulkanContext::unmap_memory_impl(Buffer buffer_handle) noexcept -> void
+auto VulkanGPUDevice::unmap(Buffer buffer_handle) noexcept -> void
 {
-  if (buffers_pool_.size() < buffer_handle.index()) {
+  const auto buffer = bit_cast<VkBuffer>(buffer_handle.id);
+  const auto allocation_itr = buffer_allocations_.find(buffer);
+  if (allocation_itr == buffer_allocations_.end()) {
     // TODO(llai): error handling in unmap_memory?
     beyond::panic("unmap an invalid buffer handle");
   }
 
-  return buffers_pool_[buffer_handle.index()].unmap();
+  vmaUnmapMemory(allocator_, allocation_itr->second);
 }
 
-[[nodiscard]] auto VulkanContext::create_compute_pipeline(
+[[nodiscard]] auto VulkanGPUDevice::create_compute_pipeline(
     const ComputePipelineCreateInfo& create_info) -> ComputePipeline
 {
   const auto index = compute_pipelines_pool_.size();
@@ -303,7 +291,7 @@ auto VulkanContext::unmap_memory_impl(Buffer buffer_handle) noexcept -> void
   return ComputePipeline{static_cast<ComputePipeline::UnderlyingType>(index)};
 }
 
-auto VulkanContext::submit(gsl::span<SubmitInfo> info) -> void
+auto VulkanGPUDevice::submit(gsl::span<SubmitInfo> info) -> void
 {
   const auto& pipeline = compute_pipelines_pool_[info[0].pipeline.get()];
 
@@ -318,7 +306,7 @@ auto VulkanContext::submit(gsl::span<SubmitInfo> info) -> void
       .poolSizeCount = 1,
       .pPoolSizes = &descriptor_pool_size};
 
-  VkDescriptorPool descriptor_pool;
+  VkDescriptorPool descriptor_pool{};
   if (vkCreateDescriptorPool(device_, &descriptor_pool_create_info, nullptr,
                              &descriptor_pool) != VK_SUCCESS) {
     beyond::panic("Vulkan backend failed to create descriptor pool");
@@ -333,7 +321,7 @@ auto VulkanContext::submit(gsl::span<SubmitInfo> info) -> void
       .descriptorSetCount = 1,
       .pSetLayouts = &descriptor_set_layout};
 
-  VkDescriptorSet descriptor_set;
+  VkDescriptorSet descriptor_set{};
   if (vkAllocateDescriptorSets(device_, &descriptor_set_allocate_info,
                                &descriptor_set) != VK_SUCCESS) {
     beyond::panic("Vulkan backend failed to allocate descriptor set");
@@ -343,20 +331,17 @@ auto VulkanContext::submit(gsl::span<SubmitInfo> info) -> void
   const auto out_handle = info[0].output;
   const auto buffer_size = info[0].buffer_size;
 
-  auto& in_buffer = buffers_pool_[in_handle.index()];
-  const auto in_buffer_raw = in_buffer.vkbuffer();
-
-  auto& out_buffer = buffers_pool_[out_handle.index()];
-  const auto out_buffer_raw = out_buffer.vkbuffer();
+  const auto in_buffer = bit_cast<VkBuffer>(in_handle.id);
+  const auto out_buffer = bit_cast<VkBuffer>(out_handle.id);
 
   const VkDescriptorBufferInfo in_descriptor_buffer_info{
-      .buffer = in_buffer_raw,
+      .buffer = in_buffer,
       .offset = 0,
       .range = VK_WHOLE_SIZE,
   };
 
   const VkDescriptorBufferInfo out_descriptor_buffer_info{
-      .buffer = out_buffer_raw,
+      .buffer = out_buffer,
       .offset = 0,
       .range = VK_WHOLE_SIZE,
   };
@@ -379,7 +364,7 @@ auto VulkanContext::submit(gsl::span<SubmitInfo> info) -> void
       .pNext = nullptr,
       .flags = 0,
       .queueFamilyIndex = queue_family_indices_.compute_family};
-  VkCommandPool command_pool;
+  VkCommandPool command_pool{};
   if (vkCreateCommandPool(device_, &command_pool_create_info, nullptr,
                           &command_pool) != VK_SUCCESS) {
     beyond::panic("Vulkan backend failed to create command pool");
@@ -392,7 +377,7 @@ auto VulkanContext::submit(gsl::span<SubmitInfo> info) -> void
       .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
       .commandBufferCount = 1};
 
-  VkCommandBuffer command_buffer;
+  VkCommandBuffer command_buffer{};
   if (vkAllocateCommandBuffers(device_, &command_buffer_allocate_info,
                                &command_buffer) != VK_SUCCESS) {
     beyond::panic("Vulkan backend failed to allocate command buffer");
@@ -434,7 +419,7 @@ auto VulkanContext::submit(gsl::span<SubmitInfo> info) -> void
       .pNext = nullptr,
       .flags = 0,
   };
-  VkFence fence;
+  VkFence fence{};
   vkCreateFence(device_, &fence_create_info, nullptr, &fence);
   if (vkQueueSubmit(compute_queue_, 1, &submit_info, fence) != VK_SUCCESS) {
     beyond::panic("Vulkan backend failed to submit to queue");
@@ -459,6 +444,7 @@ auto VulkanContext::submit(gsl::span<SubmitInfo> info) -> void
 
 namespace {
 
+#ifdef BEYOND_VULKAN_ENABLE_VALIDATION_LAYER
 auto check_validation_layer_support() noexcept -> bool
 {
   const auto available = vulkan::get_vector_with<VkLayerProperties>(
@@ -475,13 +461,16 @@ auto check_validation_layer_support() noexcept -> bool
                             }) != std::end(available);
       });
 }
+#endif
 
 [[nodiscard]] auto create_instance(const beyond::Window& window) noexcept
     -> VkInstance
 {
-  if (enable_validation_layers && !check_validation_layer_support()) {
+#ifdef BEYOND_VULKAN_ENABLE_VALIDATION_LAYER
+  if (!check_validation_layer_support()) {
     beyond::panic("validation layers requested, but not available!");
   }
+#endif
 
   VkInstance instance;
 

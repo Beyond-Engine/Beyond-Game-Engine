@@ -2,21 +2,13 @@
 
 #include <beyond/graphics/backend.hpp>
 
-#include "mock_backend.hpp"
+#include "mock_gpu_device.hpp"
 
-using namespace beyond::graphics;
-
-TEMPLATE_TEST_CASE("default constructed Mapping", "[beyond.graphics.backend]",
-                   Mapping<int>, const Mapping<int>)
+TEST_CASE("Mapping from a the mock")
 {
-  TestType mapping;
-  REQUIRE(!mapping);
-  REQUIRE(mapping.data() == nullptr);
-}
+  using namespace beyond::graphics;
 
-TEST_CASE("Mapping from a backend")
-{
-  MockContext context;
+  MockGPUDevice context;
 
   GIVEN("A buffer created from context")
   {
@@ -26,15 +18,17 @@ TEST_CASE("Mapping from a backend")
 
     WHEN("Map memory from context")
     {
-      auto mapping = context.map_memory<int>(buffer);
+      auto* mapping = static_cast<int*>(context.map(buffer));
       REQUIRE(mapping);
 
       AND_THEN("Modifying a mapped value will persist between mapping")
       {
         *mapping = 1;
-        mapping.release();
+        context.unmap(buffer);
+        mapping = nullptr;
         REQUIRE(!mapping);
-        mapping = context.map_memory<int>(buffer);
+
+        mapping = static_cast<int*>(context.map(buffer));
         REQUIRE(mapping);
         REQUIRE(*mapping == 1);
       }

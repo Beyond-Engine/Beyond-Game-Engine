@@ -13,17 +13,17 @@
 
 namespace beyond::graphics {
 
-Context::~Context() = default;
+GPUDevice::~GPUDevice() = default;
 
-[[nodiscard]] auto create_context(Window& window) noexcept
-    -> std::unique_ptr<Context>
+[[nodiscard]] auto create_gpu_device(Window& window) noexcept
+    -> std::unique_ptr<GPUDevice>
 {
   switch (window.backend()) {
   case GraphicsBackend::no:
     return nullptr;
 #ifdef BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN
   case GraphicsBackend::vulkan:
-    return graphics::vulkan::create_vulkan_context(window);
+    return graphics::vulkan::create_vulkan_gpu_device(window);
 #endif
 #ifdef BEYOND_BUILD_GRAPHICS_BACKEND_D3D12
   case GraphicsBackend::d3d12:

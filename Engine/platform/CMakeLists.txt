@@ -2,38 +2,38 @@ set(BEYOND_PLATFORM_GLFW ON)
 
 add_library(platform)
 target_sources(platform
-    PUBLIC
+        PUBLIC
         "${CMAKE_CURRENT_SOURCE_DIR}/include/beyond/platform/platform.hpp"
-    PRIVATE
+        PRIVATE
         $<$<BOOL:${BEYOND_PLATFORM_GLFW}>:src/glfw_platform_impl.cpp>
-    )
+        )
 
 target_include_directories(platform
-    PUBLIC
+        PUBLIC
         $<INSTALL_INTERFACE:include>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    PRIVATE
+        PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
-)
+        )
 
 target_link_libraries(platform PUBLIC core)
 
 if (${BEYOND_PLATFORM_GLFW})
-    conan_cmake_run(REQUIRES glfw/3.3@bincrafters/stable
-                    BASIC_SETUP CMAKE_TARGETS
-                    BUILD missing)
+    conan_cmake_run(REQUIRES glfw/3.3.2
+            BASIC_SETUP CMAKE_TARGETS
+            BUILD missing)
 
     target_link_libraries(platform
-        PRIVATE CONAN_PKG::glfw)
-endif()
+            PRIVATE CONAN_PKG::glfw)
+endif ()
 
 if (${BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN})
     target_compile_definitions(platform PUBLIC BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN)
 
     target_compile_definitions(platform PRIVATE VK_NO_PROTOTYPES)
     target_link_libraries(platform PRIVATE volk)
-endif()
+endif ()
 
 if (${BEYOND_BUILD_GRAPHICS_BACKEND_D3D12})
     target_compile_definitions(platform PUBLIC BEYOND_BUILD_GRAPHICS_BACKEND_D3D12)
-endif()
+endif ()

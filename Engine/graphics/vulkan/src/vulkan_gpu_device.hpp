@@ -15,7 +15,6 @@
 
 #include <beyond/graphics/backend.hpp>
 
-#include "vulkan_buffer.hpp"
 #include "vulkan_pipeline.hpp"
 #include "vulkan_swapchain.hpp"
 
@@ -26,15 +25,15 @@
 
 namespace beyond::graphics::vulkan {
 
-class VulkanContext final : public Context {
+class VulkanGPUDevice final : public GPUDevice {
 public:
-  explicit VulkanContext(Window& window);
-  ~VulkanContext() noexcept override;
+  explicit VulkanGPUDevice(Window& window);
+  ~VulkanGPUDevice() noexcept override;
 
   [[nodiscard]] auto create_swapchain() -> Swapchain override;
   [[nodiscard]] auto create_buffer(const BufferCreateInfo& create_info)
       -> Buffer override;
-  auto destory_buffer(Buffer& buffer_handle) -> void override;
+  auto destory_buffer(Buffer& buffer) -> void override;
 
   [[nodiscard]] auto
   create_compute_pipeline(const ComputePipelineCreateInfo& create_info)
@@ -62,12 +61,11 @@ private:
   VmaAllocator allocator_ = nullptr;
 
   beyond::static_vector<VulkanSwapchain, 2> swapchains_pool_;
-  std::vector<VulkanBuffer> buffers_pool_;
+  std::unordered_map<VkBuffer, VmaAllocation> buffer_allocations_;
   std::vector<VulkanPipeline> compute_pipelines_pool_;
 
-  [[nodiscard]] auto map_memory_impl(Buffer buffer_handle) noexcept
-      -> MappingInfo override;
-  auto unmap_memory_impl(Buffer buffer_handle) noexcept -> void override;
+  [[nodiscard]] auto map(Buffer buffer_handle) noexcept -> void* override;
+  auto unmap(Buffer buffer_handle) noexcept -> void override;
 };
 
 } // namespace beyond::graphics::vulkan

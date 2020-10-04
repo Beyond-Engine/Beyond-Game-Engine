@@ -12,7 +12,6 @@
 
 #include <gsl/span>
 
-#include "beyond/core/utils/handle.hpp"
 #include "beyond/core/utils/named_type.hpp"
 #include "beyond/platform/platform.hpp"
 
@@ -86,8 +85,11 @@ struct BufferCreateInfo {
 };
 
 /// @brief A handle to a GPU buffer
-struct Buffer : Handle<Buffer, std::uint32_t, 20, 12> {
-  using Handle::Handle;
+struct Buffer {
+  uint64_t id = 0;
+
+  [[nodiscard]] friend auto operator==(Buffer lhs, Buffer rhs)
+      -> bool = default;
 };
 
 struct ComputePipelineCreateInfo {
@@ -108,131 +110,19 @@ struct SubmitInfo {
   ComputePipeline pipeline;
 };
 
-class Context;
-
-/**
- * @brief A mapping is a view of host visible device memory
- * @warning Destorying a buffer while a `Mapping` to it is still alive is
- * undefined behavior
- */
-template <typename T> class Mapping {
-public:
-  using size_type = std::size_t;
-  using value_type = T;
-  using pointer = T*;
-  using const_pointer = const T*;
-  using reference = T&;
-  using const_reference = const T&;
-
-  using iterator = T*;
-  using const_iterator = const T*;
-
-  Mapping() = default;
-  explicit Mapping(Context& context, Buffer buffer);
-  ~Mapping() noexcept;
-
-  Mapping(const Mapping&) = delete;
-  auto operator=(const Mapping&) & -> Mapping& = delete;
-  Mapping(Mapping&& other) noexcept
-      : context_{std::exchange(other.context_, nullptr)}, buffer_{std::move(
-                                                              other.buffer_)},
-        data_{std::exchange(other.data_, nullptr)}, size_{std::exchange(
-                                                        other.size_, 0)}
-  {
-  }
-  auto operator=(Mapping&& other) & noexcept -> Mapping&
-  {
-    context_ = std::exchange(other.context_, nullptr);
-    buffer_ = std::move(other.buffer_);
-    data_ = std::exchange(other.data_, nullptr);
-    size_ = std::exchange(other.size_, 0);
-    return *this;
-  }
-
-  /// @brief  dereferences pointer to the managed mapping
-  /// @return the mapped object owned by `*this`, equivalent to `*get()`
-  /// @warning The behavior is undefined if `get() == nullptr`
-  [[nodiscard]] auto operator*() noexcept -> reference
-  {
-    return *data_;
-  }
-
-  /// @brief overload
-  [[nodiscard]] auto operator*() const noexcept -> const_reference
-  {
-    return *data_;
-  }
-
-  /// @brief Return `true` if the `MappingPtr` is null
-  [[nodiscard]] explicit operator bool() const noexcept
-  {
-    return data_ != nullptr;
-  }
-
-  /// @brief returns a pointer to the managed memory
-  [[nodiscard]] auto data() noexcept -> pointer
-  {
-    return data_;
-  }
-
-  /// @overload
-  [[nodiscard]] auto data() const noexcept -> const_pointer
-  {
-    return data_;
-  }
-
-  /// @brief Releases the managed mapping
-  auto release() noexcept -> void;
-
-  [[nodiscard]] auto begin() noexcept -> iterator
-  {
-    return data_;
-  }
-
-  [[nodiscard]] auto end() noexcept -> iterator
-  {
-    return data_ + size_;
-  }
-
-  [[nodiscard]] auto begin() const noexcept -> const_iterator
-  {
-    return data_;
-  }
-
-  [[nodiscard]] auto end() const noexcept -> const_iterator
-  {
-    return data_ + size_;
-  }
-
-  [[nodiscard]] auto cbegin() const noexcept -> const_iterator
-  {
-    return data_;
-  }
-
-  [[nodiscard]] auto cend() const noexcept -> const_iterator
-  {
-    return data_ + size_;
-  }
-
-private:
-  Context* context_ = nullptr;
-  Buffer buffer_{};
-
-  T* data_ = nullptr;
-  size_type size_{};
-};
+class GPUDevice;
 
 /**
  * @brief Interface of the graphics context
  */
-class Context {
+class GPUDevice {
 public:
-  virtual ~Context();
+  virtual ~GPUDevice();
 
-  Context(const Context&) = delete;
-  auto operator=(const Context&) -> Context& = delete;
-  Context(Context&&) = delete;
-  auto operator=(Context &&) -> Context& = delete;
+  GPUDevice(const GPUDevice&) = delete;
+  auto operator=(const GPUDevice&) -> GPUDevice& = delete;
+  GPUDevice(GPUDevice&&) = delete;
+  auto operator=(GPUDevice&&) -> GPUDevice& = delete;
 
   [[nodiscard]] virtual auto create_swapchain() -> Swapchain = 0;
 
@@ -260,13 +150,23 @@ public:
   /// @brief Submits a sequence of command buffers to execute
   virtual auto submit(gsl::span<SubmitInfo> infos) -> void = 0;
 
-  template <typename T> auto map_memory(Buffer buffer) noexcept -> Mapping<T>
-  {
-    return Mapping<T>{*this, buffer};
-  }
+  /**
+   * @brief Maps the underlying memory of buffer to a pointer
+   *
+   * After a successful call to `map` buffer memory is
+   * considered to be currently host mapped. If the `buffer` handle does not
+   * refer to an real buffer, or if its underlying memory is not host visible,
+   * this function will return `nullptr`
+   */
+  [[nodiscard]] virtual auto map(Buffer buffer) noexcept -> void* = 0;
+
+  /**
+   * @brief Unmaps the underlying memory of buffer
+   */
+  virtual auto unmap(Buffer buffer) noexcept -> void = 0;
 
 protected:
-  Context() = default;
+  GPUDevice() = default;
 
   template <typename T> friend class Mapping;
 
@@ -274,52 +174,11 @@ protected:
     void* data = nullptr;
     std::size_t size = 0; // In bytes
   };
-
-  /**
-   * @brief Maps the underlying memory of buffer to a pointer
-   *
-   * After a successful call to `map_Mapping buffer memory is
-   * considered to be currently host mapped. If the `buffer` handle does not
-   * refer to an real buffer, or if its underlying memory is not host visible,
-   * this function will return `nullptr`
-   */
-  [[nodiscard]] virtual auto map_memory_impl(Buffer buffer) noexcept
-      -> MappingInfo = 0;
-
-  /**
-   * @brief Unmaps the underlying memory  of buffer
-   */
-  virtual auto unmap_memory_impl(Buffer buffer) noexcept -> void = 0;
 };
 
 /// @brief Create a graphics context
-[[nodiscard]] auto create_context(Window& window) noexcept
-    -> std::unique_ptr<Context>;
-
-template <typename T>
-Mapping<T>::Mapping(Context& context, Buffer buffer)
-    : context_{&context}, buffer_{buffer}
-{
-  const auto info = context.map_memory_impl(buffer);
-  data_ = static_cast<pointer>(info.data);
-  size_ = info.size / sizeof(value_type);
-}
-
-template <typename T> Mapping<T>::~Mapping() noexcept
-{
-  if (*this) {
-    context_->unmap_memory_impl(buffer_);
-  }
-}
-
-template <typename T> auto Mapping<T>::release() noexcept -> void
-{
-  if (*this) {
-    context_->unmap_memory_impl(buffer_);
-  }
-  context_ = nullptr;
-  data_ = nullptr;
-}
+[[nodiscard]] auto create_gpu_device(Window& window) noexcept
+    -> std::unique_ptr<GPUDevice>;
 
 /** @}@} */
 
