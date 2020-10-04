@@ -1,5 +1,5 @@
 ---
-Checks:          '*,
+Checks: '*,
 -clang-analyzer-deadcode.DeadStores,
 -clang-analyzer-alpha.*,
 -cert-dcl21-cpp,
@@ -14,6 +14,7 @@ Checks:          '*,
 -hicpp-avoid-c-arrays,
 -hicpp-special-member-functions,
 -hicpp-uppercase-literal-suffix,
+-*-use-emplace,
 -misc-unconventional-assign-operator,
 -cppcoreguidelines-c-copy-assignment-signature,
 -modernize-avoid-c-arrays,
@@ -34,14 +35,14 @@ WarningsAsErrors: '*'
 HeaderFilterRegex: 'catch.hpp'
 FormatStyle: 'file'
 CheckOptions:
-  - key:             readability-function-size.LineThreshold
-    value:           '200'
-  - key:             readability-function-size.ParameterThreshold
-    value:           '16'
-  - key:             readability-function-size.StatementThreshold
-    value:           '400'
-  - key:             readability-implicit-bool-conversion.AllowPointerConditions
-    value:           '1'
-  - key:             misc-non-private-member-variables-in-classes.IgnorePublicMemberVariables
-    value:           '1'
+  - key: readability-function-size.LineThreshold
+    value: '200'
+  - key: readability-function-size.ParameterThreshold
+    value: '16'
+  - key: readability-function-size.StatementThreshold
+    value: '400'
+  - key: readability-implicit-bool-conversion.AllowPointerConditions
+    value: '1'
+  - key: misc-non-private-member-variables-in-classes.IgnorePublicMemberVariables
+    value: '1'
 ...

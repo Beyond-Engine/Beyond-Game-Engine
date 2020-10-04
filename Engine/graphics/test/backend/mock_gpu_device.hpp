@@ -7,7 +7,6 @@
 
 #include <cstdio>
 #include <memory>
-#include <memory_resource>
 
 #include <beyond/graphics/backend.hpp>
 
@@ -16,7 +15,7 @@
 namespace beyond::graphics {
 
 class MockGPUDevice : public GPUDevice {
-  using MockBuffer = std::pmr::vector<std::byte>;
+  using MockBuffer = std::vector<std::byte>;
 
 public:
   MockGPUDevice()
@@ -34,13 +33,13 @@ public:
       -> Buffer override
   {
     const auto index = buffers_.size();
-    buffers_.emplace_back(info.size);
+    buffers_.emplace_back(static_cast<std::size_t>(info.size));
     return Buffer{index};
   }
 
   auto destory_buffer(Buffer& buffer_handle) -> void override
   {
-    const auto index = bit_cast<std::size_t>(buffer_handle);
+    const auto index = buffer_handle.id;
     if (index >= buffers_.size()) {
       return;
     }
@@ -74,9 +73,7 @@ public:
   auto unmap(Buffer) noexcept -> void override {}
 
 private:
-  std::pmr::memory_resource& memory_resource_ =
-      *std::pmr::get_default_resource();
-  std::pmr::vector<MockBuffer> buffers_;
+  std::vector<MockBuffer> buffers_{};
 };
 
 } // namespace beyond::graphics

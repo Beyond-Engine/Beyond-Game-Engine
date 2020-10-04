@@ -27,63 +27,69 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BINARY_OUT_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${LIB_OUT_DIR})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${LIB_OUT_DIR})
 
-foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
-        string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${BINARY_OUT_DIR})
-        set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${LIB_OUT_DIR})
-        set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${LIB_OUT_DIR})
-endforeach(OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES)
+foreach (OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${BINARY_OUT_DIR})
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${LIB_OUT_DIR})
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${LIB_OUT_DIR})
+endforeach (OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES)
 
 option(BEYOND_BUILD_TESTS "Builds the tests" OFF)
 CMAKE_DEPENDENT_OPTION(BEYOND_BUILD_TESTS_COVERAGE
-    "Build the project with code coverage support for tests" OFF
-                       "BEYOND_BUILD_TESTS" OFF)
+        "Build the project with code coverage support for tests" OFF
+        "BEYOND_BUILD_TESTS" OFF)
 
 option(BEYOND_ENABLE_CLANG_TIDY "Enable testing with clang-tidy" OFF)
 option(BEYOND_ENABLE_CPPCHECK "Enable testing with cppcheck" OFF)
 option(BEYOND_WARNING_AS_ERROR "Treats compiler warnings as errors" ON)
 
 option(BEYOND_BUILD_DOCUMENTATION
-    "Build the documentation of the Beyond game engine" OFF)
+        "Build the documentation of the Beyond game engine" OFF)
+
+option(BEYOND_BUILD_EXAMPLES
+        "Build the demos of the Beyond game engine" ON)
 
 option(BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN "Build the vulkan backend" ON)
 if (WIN32)
     option(BEYOND_BUILD_GRAPHICS_BACKEND_D3D12 "Build the DirectX 12 backend" ON)
-endif()
+endif ()
 
 if (BEYOND_BUILD_DOCUMENTATION)
     include("doxygen")
-endif()
+endif ()
 
 include("compiler")
 include("clangformat")
 
 if (BEYOND_ENABLE_CLANG_TIDY)
-include("ClangTidy")
-endif()
+    include("ClangTidy")
+endif ()
 
 if (BEYOND_ENABLE_CPPCHECK)
-include("cppcheck")
-endif()
+    include("cppcheck")
+endif ()
 
 # Conan package manager
 # Download automatically, you can also just copy the conan.cmake file
-if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
-   message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
-   file(DOWNLOAD "https://github.com/conan-io/cmake-conan/raw/v0.14/conan.cmake"
-                 "${CMAKE_BINARY_DIR}/conan.cmake")
-endif()
+if (NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
+    message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
+    file(DOWNLOAD "https://github.com/conan-io/cmake-conan/raw/v0.14/conan.cmake"
+            "${CMAKE_BINARY_DIR}/conan.cmake")
+endif ()
 include(${CMAKE_BINARY_DIR}/conan.cmake)
 conan_check(VERSION 1.0.0 REQUIRED)
 
 conan_cmake_run(CONANFILE conanfile.txt  # or relative build/conanfile.txt
-                BASIC_SETUP CMAKE_TARGETS
-                BUILD missing)
+        BASIC_SETUP CMAKE_TARGETS
+        BUILD missing)
 
-if(${BEYOND_BUILD_TESTS})
-enable_testing()
-endif()
+if (${BEYOND_BUILD_TESTS})
+    enable_testing()
+endif ()
 
 add_subdirectory(third-party)
 add_subdirectory(Engine)
 
+if (${BEYOND_BUILD_EXAMPLES})
+    add_subdirectory(examples)
+endif ()
