@@ -15,6 +15,14 @@
 #include "beyond/core/utils/named_type.hpp"
 #include "beyond/platform/platform.hpp"
 
+#define DEFINE_HANDLE(type)                                                    \
+  struct type {                                                                \
+    std::uint64_t id = 0;                                                      \
+                                                                               \
+    [[nodiscard]] constexpr friend auto operator==(type lhs, type rhs)         \
+        -> bool = default;                                                     \
+  };
+
 namespace beyond::graphics {
 
 /**
@@ -30,10 +38,8 @@ namespace beyond::graphics {
  * @{
  */
 
-struct Swapchain : beyond::NamedType<std::uint32_t, struct SwapchainTag,
-                                     beyond::EquableBase> {
-  using NamedType::NamedType;
-};
+/// @brief A handle to a GPU Swapchain
+DEFINE_HANDLE(Swapchain)
 
 /// @brief The place of buffer memory it reside in
 enum struct MemoryUsage {
@@ -85,21 +91,13 @@ struct BufferCreateInfo {
 };
 
 /// @brief A handle to a GPU buffer
-struct Buffer {
-  uint64_t id = 0;
-
-  [[nodiscard]] friend auto operator==(Buffer lhs, Buffer rhs)
-      -> bool = default;
-};
+DEFINE_HANDLE(Buffer)
 
 struct ComputePipelineCreateInfo {
 };
 
-/// @brief A handle to a GPU pipeline
-struct ComputePipeline : beyond::NamedType<std::uint32_t, struct PipelineTag,
-                                           beyond::EquableBase> {
-  using NamedType::NamedType;
-};
+/// @brief A handle to a GPU compute pipeline
+DEFINE_HANDLE(ComputePipeline)
 
 /// @brief Structure specifying a commands submit operation
 struct SubmitInfo {
@@ -109,8 +107,6 @@ struct SubmitInfo {
   std::uint32_t buffer_size{};
   ComputePipeline pipeline;
 };
-
-class GPUDevice;
 
 /**
  * @brief Interface of the graphics context

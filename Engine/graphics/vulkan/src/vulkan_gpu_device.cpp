@@ -199,7 +199,7 @@ VulkanGPUDevice::~VulkanGPUDevice() noexcept
 
   swapchains_pool_.emplace_back(physical_device_, device_, surface_,
                                 queue_family_indices_);
-  return Swapchain{static_cast<Swapchain::UnderlyingType>(index)};
+  return Swapchain{index};
 }
 
 [[nodiscard]] auto
@@ -288,12 +288,13 @@ auto VulkanGPUDevice::unmap(Buffer buffer_handle) noexcept -> void
   compute_pipelines_pool_.emplace_back(
       VulkanPipeline::create_compute(create_info, device_));
 
-  return ComputePipeline{static_cast<ComputePipeline::UnderlyingType>(index)};
+  return ComputePipeline{index};
 }
 
 auto VulkanGPUDevice::submit(gsl::span<SubmitInfo> info) -> void
 {
-  const auto& pipeline = compute_pipelines_pool_[info[0].pipeline.get()];
+  const auto& pipeline =
+      compute_pipelines_pool_[static_cast<std::uint32_t>(info[0].pipeline.id)];
 
   const VkDescriptorPoolSize descriptor_pool_size{
       .type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .descriptorCount = 2};
