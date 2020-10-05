@@ -17,7 +17,7 @@ int main()
   using namespace beyond;
 
   // Setting up
-  Window window(initial_width, initial_height, "Test");
+  Window window(initial_width, initial_height, "Test", beyond::GraphicsBackend::vulkan);
   const auto device = beyond::graphics::create_gpu_device(window);
   if (!device) {
     std::fputs("Error: Cannot create Graphics device\n", stderr);
@@ -58,6 +58,8 @@ int main()
     if (!std::equal(in_payload, in_payload + payload_size, out_payload)) {
       std::fputs("Error: incorrect compute result", stderr);
     }
+    device->unmap(in_handle);
+    device->unmap(out_handle);
   }
 
   device->destory_buffer(in_handle);
