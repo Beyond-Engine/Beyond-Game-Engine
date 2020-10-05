@@ -33,8 +33,8 @@ public:
   auto operator=(const VulkanSwapchain&) -> VulkanSwapchain& = delete;
 
   VulkanSwapchain(VulkanSwapchain&& other) noexcept
-      : device_{std::exchange(other.device_, nullptr)},
-        swapchain_{std::exchange(other.swapchain_, nullptr)},
+      : device_{std::exchange(other.device_, {})},
+        swapchain_{std::exchange(other.swapchain_, {})},
         swapchain_images_{std::move(other.swapchain_images_)},
         swapchain_image_views_{std::move(other.swapchain_image_views_)},
         swapchain_images_format_{
@@ -46,8 +46,8 @@ public:
 
   auto operator=(VulkanSwapchain&& other) & noexcept -> VulkanSwapchain&
   {
-    device_ = std::exchange(other.device_, nullptr);
-    swapchain_ = std::exchange(other.swapchain_, nullptr);
+    device_ = std::exchange(other.device_, {});
+    swapchain_ = std::exchange(other.swapchain_, {});
     swapchain_images_ = std::move(other.swapchain_images_);
     swapchain_image_views_ = std::move(other.swapchain_image_views_);
     swapchain_images_format_ =
@@ -58,8 +58,8 @@ public:
   }
 
 private:
-  VkDevice device_ = nullptr;
-  VkSwapchainKHR swapchain_ = nullptr;
+  VkDevice device_{};
+  VkSwapchainKHR swapchain_{};
   std::vector<VkImage> swapchain_images_;
   std::vector<VkImageView> swapchain_image_views_;
 

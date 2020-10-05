@@ -6,6 +6,7 @@
 #endif
 
 #include <algorithm>
+#include <iterator>
 
 #include <beyond/core/utils/panic.hpp>
 #include <beyond/platform/platform.hpp>
@@ -89,7 +90,7 @@ auto Window::swap_buffers() -> void
     -> std::vector<const char*>
 {
   uint32_t glfw_extension_count = 0;
-  const char** glfw_extensions;
+  const char** glfw_extensions = nullptr;
   glfw_extensions = glfwGetRequiredInstanceExtensions(&glfw_extension_count);
 
   std::vector<const char*> extensions;

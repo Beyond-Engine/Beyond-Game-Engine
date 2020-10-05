@@ -16,6 +16,7 @@ target_include_directories(platform
         ${CMAKE_CURRENT_SOURCE_DIR}
         )
 
+
 target_link_libraries(platform PUBLIC core)
 
 if (${BEYOND_PLATFORM_GLFW})
@@ -31,7 +32,7 @@ if (${BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN})
     target_compile_definitions(platform PUBLIC BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN)
 
     target_compile_definitions(platform PRIVATE VK_NO_PROTOTYPES)
-    target_link_libraries(platform PRIVATE volk)
+    target_link_libraries(platform PUBLIC volk)
 endif ()
 
 if (${BEYOND_BUILD_GRAPHICS_BACKEND_D3D12})

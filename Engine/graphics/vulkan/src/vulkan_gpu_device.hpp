@@ -42,23 +42,23 @@ public:
   auto submit(gsl::span<SubmitInfo> infos) -> void override;
 
 private:
-  VkInstance instance_ = nullptr;
+  VkInstance instance_{};
 
-  VkSurfaceKHR surface_ = nullptr;
+  VkSurfaceKHR surface_{};
 
 #ifdef BEYOND_VULKAN_ENABLE_VALIDATION_LAYER
-  VkDebugUtilsMessengerEXT debug_messager_ = nullptr;
+  VkDebugUtilsMessengerEXT debug_messager_{};
 #endif
 
-  VkPhysicalDevice physical_device_ = nullptr;
+  VkPhysicalDevice physical_device_{};
   vulkan::QueueFamilyIndices queue_family_indices_{};
-  VkDevice device_ = nullptr;
+  VkDevice device_{};
 
-  VkQueue graphics_queue_ = nullptr;
-  VkQueue present_queue_ = nullptr;
-  VkQueue compute_queue_ = nullptr;
+  VkQueue graphics_queue_{};
+  VkQueue present_queue_{};
+  VkQueue compute_queue_{};
 
-  VmaAllocator allocator_ = nullptr;
+  VmaAllocator allocator_{};
 
   beyond::static_vector<VulkanSwapchain, 2> swapchains_pool_;
   std::unordered_map<VkBuffer, VmaAllocation> buffer_allocations_;

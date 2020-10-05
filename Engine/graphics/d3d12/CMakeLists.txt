@@ -1,6 +1,6 @@
 add_library(d3d12_backend
     "include/beyond/d3d12/d3d12_interface.hpp"
-    "src/d3d12_context.cpp")
+    "src/d3d12_device.cpp")
 
 target_link_libraries(d3d12_backend
     PRIVATE compiler_warnings

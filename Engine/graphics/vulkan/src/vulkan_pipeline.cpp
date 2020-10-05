@@ -56,12 +56,12 @@ auto VulkanPipeline::create_compute(ComputePipelineCreateInfo /*info*/,
       .stage = {VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO, nullptr, 0,
                 VK_SHADER_STAGE_COMPUTE_BIT, shader_module, "main", nullptr},
       .layout = pipeline_layout,
-      .basePipelineHandle = nullptr,
+      .basePipelineHandle = {},
       .basePipelineIndex = 0,
   };
 
-  VkPipeline pipeline;
-  if (vkCreateComputePipelines(device, nullptr, 1,
+  VkPipeline pipeline {};
+  if (vkCreateComputePipelines(device, {}, 1,
                                &compute_pipeline_create_info, nullptr,
                                &pipeline) != VK_SUCCESS) {
     beyond::panic("Vulkan backend failed to create compute pipeline");

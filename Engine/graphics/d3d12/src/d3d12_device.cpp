@@ -9,9 +9,9 @@ namespace WRL = Microsoft::WRL;
 
 namespace beyond::graphics::d3d12 {
 
-class D3D12Context final : public Context {
+class D3D12GPUDevice final : public GPUDevice {
 public:
-  D3D12Context()
+  D3D12GPUDevice()
   {
     beyond::panic("Direct3D 12 Backend is currently a stub, please use Vulkan "
                   "backend instead\n");
@@ -44,22 +44,21 @@ public:
     beyond::panic("Unimplemented\n");
   }
 
-private:
-  [[nodiscard]] auto map_memory_impl(Buffer) noexcept -> MappingInfo override
+  [[nodiscard]] auto map(Buffer) noexcept -> void* override
   {
     beyond::panic("Unimplemented\n");
   }
 
-  auto unmap_memory_impl(Buffer) noexcept -> void override
+  auto unmap(Buffer) noexcept -> void override
   {
     beyond::panic("Unimplemented\n");
   }
 };
 
-[[nodiscard]] auto create_d3d12_context(Window& /*window*/) noexcept
-    -> std::unique_ptr<Context>
+[[nodiscard]] auto create_d3d12_gpu_device(Window& /*window*/) noexcept
+    -> std::unique_ptr<GPUDevice>
 {
-  return std::make_unique<D3D12Context>();
+  return std::make_unique<D3D12GPUDevice>();
 }
 
 } // namespace beyond::graphics::d3d12

@@ -7,12 +7,10 @@
 #include <string_view>
 #include <vector>
 
-struct VkInstance_T;
-struct VkSurfaceKHR_T;
-struct VkAllocationCallbacks;
+#ifdef BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN
+#include "volk.h"
+#endif
 
-using VkInstance = struct VkInstance_T*;
-using VkSurfaceKHR = struct VkSurfaceKHR_T*;
 
 namespace beyond {
 

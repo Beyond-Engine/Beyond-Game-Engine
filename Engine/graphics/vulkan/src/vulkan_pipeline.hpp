@@ -20,21 +20,21 @@ public:
   auto operator=(const VulkanPipeline&) & = delete;
 
   VulkanPipeline(VulkanPipeline&& other) noexcept
-      : device_{std::exchange(other.device_, nullptr)},
+      : device_{std::exchange(other.device_, {})},
         descriptor_set_layout_{
-            std::exchange(other.descriptor_set_layout_, nullptr)},
-        pipeline_layout_{std::exchange(other.pipeline_layout_, nullptr)},
-        pipeline_{std::exchange(other.pipeline_, nullptr)}
+            std::exchange(other.descriptor_set_layout_, {})},
+        pipeline_layout_{std::exchange(other.pipeline_layout_, {})},
+        pipeline_{std::exchange(other.pipeline_, {})}
   {
   }
 
   auto operator=(VulkanPipeline&& other) & noexcept
   {
-    device_ = std::exchange(other.device_, nullptr);
+    device_ = std::exchange(other.device_, {});
     descriptor_set_layout_ =
-        std::exchange(other.descriptor_set_layout_, nullptr);
-    pipeline_layout_ = std::exchange(other.pipeline_layout_, nullptr);
-    pipeline_ = std::exchange(other.pipeline_, nullptr);
+        std::exchange(other.descriptor_set_layout_, {});
+    pipeline_layout_ = std::exchange(other.pipeline_layout_, {});
+    pipeline_ = std::exchange(other.pipeline_, {});
   }
 
   [[nodiscard]] auto descriptor_set_layout() const noexcept
@@ -61,10 +61,10 @@ private:
   {
   }
 
-  VkDevice device_ = nullptr;
-  VkDescriptorSetLayout descriptor_set_layout_ = nullptr;
-  VkPipelineLayout pipeline_layout_ = nullptr;
-  VkPipeline pipeline_ = nullptr;
+  VkDevice device_{};
+  VkDescriptorSetLayout descriptor_set_layout_{};
+  VkPipelineLayout pipeline_layout_{};
+  VkPipeline pipeline_{};
 };
 
 } // namespace beyond::graphics::vulkan
