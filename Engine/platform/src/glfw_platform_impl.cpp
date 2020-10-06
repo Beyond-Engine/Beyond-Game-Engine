@@ -16,6 +16,11 @@
 #endif
 #include <GLFW/glfw3.h>
 
+#ifdef BEYOND_BUILD_GRAPHICS_BACKEND_D3D12
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
+#endif
+
 namespace beyond {
 
 Window::~Window() noexcept
@@ -46,11 +51,7 @@ Window::Window(int width, int height, std::string title,
     beyond::panic("Cannot initialize the GLFW platform!");
   }
 
-#ifdef BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN
-  if (backend_ == GraphicsBackend::vulkan) {
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-  }
-#endif
+  glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
   glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
   auto glfw_window =
@@ -84,6 +85,13 @@ auto Window::swap_buffers() -> void
   return static_cast<bool>(glfwWindowShouldClose(pimpl_->data_));
 }
 
+[[nodiscard]] auto Window::get_resolution() const noexcept -> Resolution
+{
+  Resolution res;
+  glfwGetWindowSize(pimpl_->data_, &res.width, &res.height);
+  return res;
+}
+
 #ifdef BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN
 /// @brief Get the extensions needed for the vulkan instance
 [[nodiscard]] auto Window::get_required_instance_extensions() const noexcept
@@ -107,6 +115,14 @@ auto Window::create_vulkan_surface(VkInstance instance,
       VK_SUCCESS) {
     beyond::panic("Failed to create Vulkan window surface!");
   }
+}
+#endif
+
+#ifdef BEYOND_BUILD_GRAPHICS_BACKEND_D3D12
+
+[[nodiscard]] auto Window::get_win32_window() noexcept -> HWND
+{
+  return glfwGetWin32Window(pimpl_->data_);
 }
 #endif
 

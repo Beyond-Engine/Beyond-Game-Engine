@@ -11,8 +11,16 @@
 #include "volk.h"
 #endif
 
+#ifdef BEYOND_BUILD_GRAPHICS_BACKEND_D3D12
+typedef struct HWND__* HWND;
+#endif
 
 namespace beyond {
+
+struct Resolution {
+  int width = 0;
+  int height = 0;
+};
 
 class Window;
 
@@ -86,6 +94,8 @@ public:
 
   auto swap_buffers() -> void;
 
+  [[nodiscard]] auto get_resolution() const noexcept -> Resolution;
+
   /// @brief Gets the title of the window
   [[nodiscard]] auto title() const -> std::string
   {
@@ -100,20 +110,15 @@ public:
 
 // TODO(llai): An extension mechanism for Window
 #ifdef BEYOND_BUILD_GRAPHICS_BACKEND_VULKAN
-  /// @brief Get the extensions needed for the vulkan instance
   [[nodiscard]] auto get_required_instance_extensions() const noexcept
       -> std::vector<const char*>;
 
-  /**
-   * @brief Create a VkSurfaceKHR from Window
-   * @param[in] instance The Vulkan Instance
-   * @param[in] allocator The allocator to use, or `nullptr` to use the default
-   * allocator.
-   * @param[out] surface The Vulkan surface to create
-   */
   auto create_vulkan_surface(VkInstance instance,
                              const VkAllocationCallbacks* allocator,
                              VkSurfaceKHR& surface) noexcept -> void;
+#endif
+#ifdef BEYOND_BUILD_GRAPHICS_BACKEND_D3D12
+  [[nodiscard]] auto get_win32_window() noexcept -> HWND;
 #endif
 
 private:

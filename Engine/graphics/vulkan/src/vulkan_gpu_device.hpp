@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef BEYOND_GRAPHICS_VULKAN_CONTEXT_HPP
-#define BEYOND_GRAPHICS_VULKAN_CONTEXT_HPP
+#ifndef BEYOND_GRAPHICS_VULKAN_GPU_DEVICE_HPP
+#define BEYOND_GRAPHICS_VULKAN_GPU_DEVICE_HPP
 
 #include <vulkan_fwd.hpp>
 
@@ -70,4 +70,4 @@ private:
 
 } // namespace beyond::graphics::vulkan
 
-#endif // BEYOND_GRAPHICS_VULKAN_CONTEXT_HPP
+#endif // BEYOND_GRAPHICS_VULKAN_GPU_DEVICE_HPP
