@@ -52,6 +52,14 @@ class D3D12GPUDevice final : public GPUDevice {
   ID3D12Resource* index_buffer_ = nullptr;
   D3D12_INDEX_BUFFER_VIEW index_buffer_view_ = {};
 
+  ID3D12Resource* uniform_buffer_ = nullptr;
+  ID3D12DescriptorHeap* uniform_buffer_heap_ = nullptr;
+  UINT8* mapped_uniform_buffer_ = nullptr;
+
+  struct {
+    int x;
+  } ubo_data_;
+
 public:
   explicit D3D12GPUDevice(Window* window = nullptr);
   ~D3D12GPUDevice() noexcept override;
@@ -103,6 +111,7 @@ private:
   void init_root_signature();
   void init_vertex_buffer();
   void init_index_buffer();
+  void init_uniform_buffer();
 };
 
 } // namespace beyond::graphics::d3d12

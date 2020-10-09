@@ -88,10 +88,23 @@ D3D12GPUDevice::D3D12GPUDevice(Window* window) : window_{window}
   init_root_signature();
   init_vertex_buffer();
   init_index_buffer();
+  init_uniform_buffer();
 }
 
 D3D12GPUDevice::~D3D12GPUDevice() noexcept
 {
+  if (uniform_buffer_heap_) {
+    uniform_buffer_heap_->Release();
+  }
+
+  if (uniform_buffer_) {
+    uniform_buffer_->Release();
+  }
+
+  if (index_buffer_) {
+    index_buffer_->Release();
+  }
+
   if (vertex_buffer_) {
     vertex_buffer_->Release();
   }
@@ -420,6 +433,80 @@ void D3D12GPUDevice::init_index_buffer()
       .Format = DXGI_FORMAT_R32_UINT,
   };
 }
+
+void D3D12GPUDevice::init_uniform_buffer()
+{
+  // Note: using upload heaps to transfer static data like vert
+  // buffers is not recommended. Every time the GPU needs it, the
+  // upload heap will be marshalled over. Please read up on Default
+  // Heap usage. An upload heap is used here for code simplicity and
+  // because there are very few verts to actually transfer.
+  constexpr D3D12_HEAP_PROPERTIES heap_props{
+      .Type = D3D12_HEAP_TYPE_UPLOAD,
+      .CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
+      .MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN,
+      .CreationNodeMask = 1,
+      .VisibleNodeMask = 1,
+  };
+
+  constexpr D3D12_DESCRIPTOR_HEAP_DESC heap_desc = {
+      .Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+      .NumDescriptors = 1,
+      .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
+  };
+
+  panic_if_failed(device_->CreateDescriptorHeap(
+      &heap_desc, IID_PPV_ARGS(&uniform_buffer_heap_)));
+
+  D3D12_RESOURCE_DESC ubo_resource_desc = {
+      .Dimension = D3D12_RESOURCE_DIMENSION_BUFFER,
+      .Alignment = 0,
+      .Width = (sizeof(ubo_data_) + 255u) & ~255u,
+      .Height = 1,
+      .DepthOrArraySize = 1,
+      .MipLevels = 1,
+      .Format = DXGI_FORMAT_UNKNOWN,
+      .SampleDesc =
+          {
+              .Count = 1,
+              .Quality = 0,
+          },
+      .Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
+      .Flags = D3D12_RESOURCE_FLAG_NONE,
+  };
+
+  panic_if_failed(device_->CreateCommittedResource(
+      &heap_props, D3D12_HEAP_FLAG_NONE, &ubo_resource_desc,
+      D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
+      IID_PPV_ARGS(&uniform_buffer_)));
+  uniform_buffer_heap_->SetName(L"Constant Buffer Upload Resource Heap");
+
+  D3D12_CONSTANT_BUFFER_VIEW_DESC cbv_desc = {};
+  cbv_desc.BufferLocation = uniform_buffer_->GetGPUVirtualAddress();
+  cbv_desc.SizeInBytes = (sizeof(ubo_data_) + 255u) &
+                         ~255u; // CB size is required to be 256-byte aligned.
+
+  D3D12_CPU_DESCRIPTOR_HANDLE cbv_handle =
+      uniform_buffer_heap_->GetCPUDescriptorHandleForHeapStart();
+  cbv_handle.ptr =
+      cbv_handle.ptr + device_->GetDescriptorHandleIncrementSize(
+                           D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) *
+                           0;
+
+  device_->CreateConstantBufferView(&cbv_desc, cbv_handle);
+
+  // We do not intend to read from this resource on the CPU. (End is
+  // less than or equal to begin)
+  constexpr D3D12_RANGE read_range = {
+      .Begin = 0,
+      .End = 0,
+  };
+
+  panic_if_failed(uniform_buffer_->Map(
+      0, &read_range, reinterpret_cast<void**>(&mapped_uniform_buffer_)));
+  memcpy(mapped_uniform_buffer_, &ubo_data_, sizeof(ubo_data_));
+  uniform_buffer_->Unmap(0, &read_range);
+} // namespace beyond::graphics::d3d12
 
 [[nodiscard]] auto create_d3d12_gpu_device(Window& window) noexcept
     -> std::unique_ptr<GPUDevice>
