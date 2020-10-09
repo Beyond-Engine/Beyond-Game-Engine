@@ -44,16 +44,22 @@ class D3D12GPUDevice final : public GPUDevice {
   D3D12_VIEWPORT viewport_;
   D3D12_RECT surface_size_;
 
-  void init_swapchain();
+  ID3D12RootSignature* root_signature_ = nullptr;
+
+  ID3D12Resource* vertex_buffer_ = nullptr;
+  D3D12_VERTEX_BUFFER_VIEW vertex_buffer_view_ = {};
+
+  ID3D12Resource* index_buffer_ = nullptr;
+  D3D12_INDEX_BUFFER_VIEW index_buffer_view_ = {};
 
 public:
   explicit D3D12GPUDevice(Window* window = nullptr);
-  ~D3D12GPUDevice();
+  ~D3D12GPUDevice() noexcept override;
 
   D3D12GPUDevice(const D3D12GPUDevice&) = delete;
   auto operator=(const D3D12GPUDevice&) -> D3D12GPUDevice& = delete;
   D3D12GPUDevice(D3D12GPUDevice&&) noexcept = delete;
-  auto operator=(D3D12GPUDevice&&) -> D3D12GPUDevice& = delete;
+  auto operator=(D3D12GPUDevice&&) noexcept -> D3D12GPUDevice& = delete;
 
   [[nodiscard]] auto create_swapchain() -> Swapchain override
   {
@@ -91,6 +97,12 @@ public:
   {
     beyond::panic("Unimplemented\n");
   }
+
+private:
+  void init_swapchain();
+  void init_root_signature();
+  void init_vertex_buffer();
+  void init_index_buffer();
 };
 
 } // namespace beyond::graphics::d3d12
