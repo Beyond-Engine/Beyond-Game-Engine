@@ -189,7 +189,9 @@ VulkanGPUDevice::~VulkanGPUDevice() noexcept
   vkDestroyInstance(instance_, nullptr);
 }
 
-[[nodiscard]] auto VulkanGPUDevice::create_swapchain() -> Swapchain
+[[nodiscard]] auto VulkanGPUDevice::create_swapchain(std::uint32_t /*width*/,
+                                                     std::uint32_t /*height*/)
+    -> GPUSwapchain
 {
   const auto index = swapchains_pool_.size();
 
@@ -199,7 +201,24 @@ VulkanGPUDevice::~VulkanGPUDevice() noexcept
 
   swapchains_pool_.emplace_back(physical_device_, device_, surface_,
                                 queue_family_indices_);
-  return Swapchain{index};
+  return GPUSwapchain{index};
+}
+
+void VulkanGPUDevice::destroy_swapchain(GPUSwapchain /*swapchain*/)
+{
+  beyond::panic("Unimplemented");
+}
+[[nodiscard]] auto VulkanGPUDevice::get_swapchain_back_buffer_index(
+    GPUSwapchain /*swapchain*/ swapchain) -> std::uint32_t
+{
+  beyond::panic("Unimplemented");
+}
+
+void VulkanGPUDevice::resize_swapchain(GPUSwapchain& swapchain,
+                                       std::uint32_t width,
+                                       std::uint32_t height)
+{
+  beyond::panic("Unimplemented");
 }
 
 [[nodiscard]] auto

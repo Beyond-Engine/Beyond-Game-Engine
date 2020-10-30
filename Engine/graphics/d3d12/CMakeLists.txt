@@ -5,7 +5,8 @@ add_library(d3d12_backend
 target_link_libraries(d3d12_backend
         PRIVATE compiler_warnings
         core platform graphics_backend
-        d3d12.lib DXGI.lib
+        d3d12.lib DXGI.lib D3DCompiler.lib
+        CONAN_PKG::glm
         )
 
 target_include_directories(d3d12_backend

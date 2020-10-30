@@ -1,6 +1,7 @@
 [requires]
 fmt/6.1.2
 gsl_microsoft/2.0.0@bincrafters/stable
+glm/0.9.9.8
 
 [build_requires]
 Catch2/2.11.1@catchorg/stable

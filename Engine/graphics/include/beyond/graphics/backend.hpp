@@ -39,7 +39,7 @@ namespace beyond::graphics {
  */
 
 /// @brief A handle to a GPU Swapchain
-DEFINE_HANDLE(Swapchain)
+DEFINE_HANDLE(GPUSwapchain)
 
 /// @brief The place of buffer memory it reside in
 enum struct MemoryUsage {
@@ -120,7 +120,15 @@ public:
   GPUDevice(GPUDevice&&) = delete;
   auto operator=(GPUDevice&&) -> GPUDevice& = delete;
 
-  [[nodiscard]] virtual auto create_swapchain() -> Swapchain = 0;
+  [[nodiscard]] virtual auto create_swapchain(std::uint32_t width,
+                                              std::uint32_t height)
+      -> GPUSwapchain = 0;
+
+  virtual void destroy_swapchain(GPUSwapchain swapchain) = 0;
+  [[nodiscard]] virtual auto
+  get_swapchain_back_buffer_index(GPUSwapchain swapchain) -> std::uint32_t = 0;
+  virtual void resize_swapchain(GPUSwapchain& swapchain, std::uint32_t width,
+                                std::uint32_t height) = 0;
 
   [[nodiscard]] virtual auto create_buffer(const BufferCreateInfo& create_info)
       -> Buffer = 0;
@@ -160,6 +168,14 @@ public:
    * @brief Unmaps the underlying memory of buffer
    */
   virtual auto unmap(Buffer buffer) noexcept -> void = 0;
+
+  // Temporary hacks
+  virtual auto render(GPUSwapchain) -> void {}
+  virtual void resize(GPUSwapchain& swapchain, unsigned width, unsigned height)
+  {
+  }
+  virtual void initialize_resources(GPUSwapchain swapchain) {}
+  virtual void setup_commands() {}
 
 protected:
   GPUDevice() = default;

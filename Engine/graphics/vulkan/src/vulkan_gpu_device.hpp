@@ -30,7 +30,14 @@ public:
   explicit VulkanGPUDevice(Window& window);
   ~VulkanGPUDevice() noexcept override;
 
-  [[nodiscard]] auto create_swapchain() -> Swapchain override;
+  [[nodiscard]] auto create_swapchain(std::uint32_t width, std::uint32_t height)
+      -> GPUSwapchain override;
+  void destroy_swapchain(GPUSwapchain swapchain) override;
+  void resize_swapchain(GPUSwapchain& swapchain, std::uint32_t width,
+                        std::uint32_t height) override;
+  [[nodiscard]] auto get_swapchain_back_buffer_index(GPUSwapchain swapchain)
+      -> std::uint32_t override;
+
   [[nodiscard]] auto create_buffer(const BufferCreateInfo& create_info)
       -> Buffer override;
   auto destory_buffer(Buffer& buffer) -> void override;
